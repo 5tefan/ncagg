@@ -1,0 +1,1 @@
+{"products": ["EXIS-L1b-SFXR"], "satellites" : ["16"],"root_dir": "/data/backup/GOES_R/data/samples", "output_dir" : "/data/backup/GOES_R/goes-r/l1/aggregation/output", "log_file" : "/data/backup/GOES_R/goes-r/l1/aggregation/log.txt", "version" : "0_0_0"}
