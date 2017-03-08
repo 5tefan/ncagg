@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import netCDF4 as nc
-from aggregoes.aggre_list import Aggregator
+from aggregoes.aggregator import Aggregator
 import os
 import tempfile
 
