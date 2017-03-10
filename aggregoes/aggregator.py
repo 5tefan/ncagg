@@ -54,13 +54,24 @@ class Aggregator(object):
         # on the first file in the list to aggregate as a template.
 
     def generate_aggregation_list(self, files_to_aggregate, config=None):
+        aggregation_list = AggreList()
+
+        if len(files_to_aggregate) == 0:
+            # no files to aggregate, exit immediately, do nothing
+            logger.warn("No files to aggregate!")
+            return aggregation_list
+
         # if global attributes and data variables are not configured, set them to defaults based on the first
         # file in files_to_aggregate
+        logger.info("Validating configurations...")
         if "global attributes" not in self.config.keys():
+            logger.debug("\tglobal attributes configuration not found, creating default.")
             self.config["global attributes"] = generate_default_global_attributes_config(files_to_aggregate[0])
         if "dimensions" not in self.config.keys():
+            logger.debug("\tdimensions configuration not found, creating default")
             self.config["dimensions"] = generate_default_dimensions_config(files_to_aggregate[0])
         if "variables" not in self.config.keys():
+            logger.debug("\tvariables configuration not found, creating default")
             self.config["variables"] = generate_default_variables_config(files_to_aggregate[0])
 
         self.config["config"] = config
@@ -68,16 +79,16 @@ class Aggregator(object):
         # auto detect the unlimited dimensions, it is along these that we need to aggregate
         # unlimited_dims = [dim for dim in self.config["dimensions"] if dim["size"] is None]
 
-        aggregation_list = AggreList()
-
-        unlim_config = validate_unlim_config(self.config.get("config"), files_to_aggregate[0]) if \
-            len(files_to_aggregate) > 0 else None
+        logger.info("Initializing input file nodes...")
+        unlim_config = validate_unlim_config(self.config.get("config", None), files_to_aggregate[0])
         input_files = [InputFileNode(fn, unlim_config) for fn in sorted(files_to_aggregate)]
         if unlim_config is not None:
+            logger.info("\tFound config for unlimited dim indexing, calculating coverage.")
             unlim_fills_needed = {
                 unlim_dim: self.get_coverage_for(input_files, unlim_dim) for unlim_dim in unlim_config.keys()
-                }
+            }
 
+        logger.info("Building aggregation list...")
         for index, file_node in enumerate(input_files):
 
             # noinspection PyUnboundLocalVariable

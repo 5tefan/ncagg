@@ -24,9 +24,8 @@ class TestMag(unittest.TestCase):
                 "index_by": "OB_time",
                 "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
                 "max": end_time,
-                "other_dim_indicies": { "samples_per_record": 0 },
+                "other_dim_indicies": {"samples_per_record": 0},
                 "expected_cadence": {"report_number": 1, "number_samples_per_report": 10},
             }
         })
         a.evaluate_aggregation_list(aggregation_list, self.file)
-

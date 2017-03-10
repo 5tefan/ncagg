@@ -25,7 +25,7 @@ def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
     time_variable is not flat, we specify to take the first record from the other dimension besides record_number.
 
 
-    :type mapping: dict
+    :type mapping: dict | None
     :param mapping: specification of mapping between unlim dimension and a variable indexing it
     :type input_file: str
     :param input_file: a sample input file to check the mapping against

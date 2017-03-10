@@ -15,6 +15,11 @@ specified the configuration is, the AggreList may specify to Fill missing chunks
 Stage 2 is comparatively simple and consists of reading data from the AggreList into the final aggregated
 output file.
 
+Other considerations:
+ - May aggregate more data than fits into memory at once. Only the data from a single variable in one
+ component file must be able to fit in memory.
+
+
 ## Configurations
 
 There are two stages of configuration available to specify the output of aggregation:
@@ -30,6 +35,8 @@ can be initialized using a command line utility.
 Type 2 - aggregation configuration contains information specific to generating a single output
 file, and includes information indicating which variables index unlimited dimensions, what their
 min and max values are, and what their expected cadences are.
+
+
 
 
 
