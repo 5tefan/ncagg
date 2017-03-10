@@ -43,20 +43,41 @@ class DataLocationMapper(object):
                 }
             },
             "magn-l2-quiet": {
-                "base": os.path.join(base, "spades_mag_prod/archive/", sat)
+                "base": os.path.join(base, "spades_mag_prod/archive/", sat),
+                "rc": {
+                    "time": {
+                        "index_by": "time",
+                        "expected_cadence": {"time": 10},
+                    }
+                }
             },
 
             "EXIS-L1b-SFXR": {
-                "base": os.path.join(base, "spades_exis_prod/archive/", sat)
-            },
-            "EXIS-L1b-SFEU": {
-                "base": os.path.join(base, "spades_exis_prod/archive/", sat)
+                "base": os.path.join(base, "spades_exis_prod/archive/", sat),
+                "rc": {
+                    "report_number": {
+                        "index_by": "time",
+                        "expected_cadence": {"time": 1},
+                    }
+                }
             },
             "xrsf-l2-flx1s": {
-                "base": os.path.join(base, "spades_exis_prod/archive/", sat)
+                "base": os.path.join(base, "spades_exis_prod/archive/", sat),
+                "rc": {
+                    "record_number": {
+                        "index_by": "time",
+                        "expected_cadence": {"time": 1},
+                    }
+                }
             },
             "xrsf-l2-avg1m": {
-                "base": os.path.join(base, "spades_exis_prod/archive/", sat)
+                "base": os.path.join(base, "spades_exis_prod/archive/", sat),
+                "rc": {
+                    "record_number": {
+                        "index_by": "time",
+                        "expected_cadence": {"time": 1.0/60.},
+                    }
+                }
             },
 
         }
