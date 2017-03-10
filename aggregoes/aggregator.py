@@ -179,7 +179,7 @@ class Aggregator(object):
         gap_too_small = coverage_diff <= gap_too_small_upper_bound_seconds
         where_gap_too_small = np.where(gap_too_small)[0]
         for problem_index in where_gap_too_small:
-            num_overlap = np.abs(np.round(coverage_diff[problem_index] * cadence_hz))
+            num_overlap = np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))
             # if gap at beginning of the agg period, take off from front of first file, otherwise chop
             # the end from the previous file
             if problem_index == 0:
@@ -194,7 +194,7 @@ class Aggregator(object):
         gap_too_big = coverage_diff > 2.0 / ((2.0 - self.timing_certainty) * cadence_hz)  # type: np.ndarray
         insert_fills = np.zeros_like(gap_too_big, dtype=int)
         for index in gap_too_big.nonzero()[0]:
-            insert_fills[index] = np.round((coverage_diff[index] - (1.0 / cadence_hz)) * cadence_hz)
+            insert_fills[index] = np.floor((coverage_diff[index] - (1.0 / cadence_hz)) * cadence_hz)
 
         return insert_fills, np.where(insert_fills, ends, np.zeros_like(insert_fills))
 
