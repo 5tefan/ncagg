@@ -1,6 +1,6 @@
 import unittest
 from aggregoes.aggregator import AggreList
-from aggregoes.aggregator import FillNode
+from aggregoes.aggrelist import FillNode, AggreList
 
 
 class TestAggreList(unittest.TestCase):

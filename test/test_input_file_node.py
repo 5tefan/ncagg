@@ -1,4 +1,4 @@
-from aggregoes.aggregator import InputFileNode
+from aggregoes.aggrelist import InputFileNode
 from netCDF4 import num2date
 from datetime import datetime
 import unittest

@@ -29,6 +29,7 @@ class TestMag(unittest.TestCase):
             }
         })
         self.assertEqual(len(aggregation_list), 63)
+        print aggregation_list
 
     def test_giving_extra_files(self):
         pwd = os.path.dirname(__file__)

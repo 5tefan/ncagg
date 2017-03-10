@@ -1,4 +1,6 @@
+import numpy as np
 import netCDF4 as nc
+from aggregoes.attributes import AttributeHandler
 
 """
 This file contains functions that take some configuration, generally as the first parameter, and any other necessary
@@ -59,7 +61,7 @@ def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
                 raise TypeError("Key other_dim_indicies must be a dict.")
             checked_other_dim_indicies = {
                 d: value["other_dim_indicies"].get(d, 0) for d in nc_in.variables[value["index_by"]].dimensions
-            }
+                }
 
             # check that the specified dimension index is in range of the size of the dimension
             # note the abs(v) as the index could be eg. -1 to go by the last one.
@@ -73,3 +75,78 @@ def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
 
         return mapping
 
+
+def validate_a_global_attribute_block(block):
+    """
+    Validate a global attribute configuration.
+     - checks that the block has a name field
+     - strategy is valid, if strategy given otherwise default to "first"
+     - if strategy is static, make sure value is given
+    :type block: dict
+    :param block: a dict bock configuring a global attribute
+    :return: None
+    """
+    if block is None or len(block) == 0:
+        return None
+
+    if "name" not in block.keys():
+        raise ValueError("Name of attribute not set in attribute config block.")
+
+    if "strategy" in block.keys():
+        strategy = block["strategy"]
+        if AttributeHandler.strategy_handlers.get(strategy, None) is None:
+            raise ValueError("Strategy %s does not exist, found for attribute: %s" % (strategy, block["name"]))
+
+        if strategy == "static" and block.get("value", None) is None:
+            raise ValueError("No value key set for attribute %s with strategy static" % block["name"])
+    else:
+        block["strategy"] = "first"
+
+
+def validate_a_dimension_block(block):
+    """
+    Validate that a block (dict) configuring a dimension is valid.
+    :type block: dict
+    :param block: a dimension configuration block to validate.
+    :return: None
+    """
+    if block is None or len(block) == 0:
+        return None
+
+    for required_key in ["name", "size"]:
+        if required_key not in block.keys():
+            raise ValueError(
+                "Dimension configuration missing key %s for %s" % (required_key, block.get("name", "unknown"))
+            )
+
+
+def validate_a_variable_block(block):
+    """
+    Validate that a block (dict) configuring a variable is valid.
+    :param block:
+    :return:
+    """
+    if block is None or len(block) == 0:
+        return None
+
+    block_keys = block.keys()
+    if "name" not in block_keys or not isinstance(block["name"], str):
+        raise ValueError("Variable block does not name (str) the variable it configures!")
+
+    if "dimensions" not in block_keys:
+        raise ValueError("Variable configuration for %s must be a list of dimensions." % block["name"])
+
+    if not hasattr(block["dimensions"], "__iter__"):
+        raise ValueError("Expected dimensions to be a list that variable %s depends on" % block["name"])
+
+    if "datatype" not in block_keys:
+        raise ValueError("datatype not configured for variable %s" % block["name"])
+
+    # make sure the datatype is understood
+    np.dtype(block["datatype"])
+
+    if "attributes" not in block_keys:
+        block["attributes"] = {}
+    else:
+        if not isinstance(block["attributes"], dict):
+            raise ValueError("Variable %s attributes configuration should be a dict" % block["name"])

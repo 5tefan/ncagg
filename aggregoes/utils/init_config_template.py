@@ -19,11 +19,41 @@ class NumpyEncoder(json.JSONEncoder):
 
 def generate_default_global_attributes_config(an_input_file):
     with nc.Dataset(an_input_file) as nc_in:
-        return [{
+        result = [{
             "name": att,
-            "strategy": "constant",
-            "value": nc_in.getncattr(att)
+            "strategy": "first",
+            # "value": nc_in.getncattr(att)
         } for att in nc_in.ncattrs()]
+
+    def set_default(attr_name, strategy, value=None):
+        """
+        Set a default value for a global attribute. Update if it already exists, otherwise insert it.
+
+        :param attr_name: gloabl attribute name to create or modify
+        :param strategy: the strategy this attribute should use
+        :param value: optional value, needed for static
+        :return: None
+        """
+        attr = next((a for a in result if a["name"] == attr_name), None)
+        config = {"name": attr_name, "strategy": strategy}
+        if value is not None:
+            config["value"] = value
+        if attr is None:
+            result.append(config)
+        else:
+            attr.update(config)
+
+    set_default("date_created", "date_created")
+    set_default("time_coverage_begin", "time_coverage_begin")
+    set_default("time_coverage_end", "time_coverage_end")
+    set_default("production_site", "unique_list")
+    set_default("production_environment", "unique_list")
+    set_default("production_data_source", "unique_list")
+    set_default("L1b_processing_param_version", "unique_list")
+    set_default("algorithm_version", "unique_list")
+    set_default("dataset_name", "filename")
+
+    return result
 
 
 def generate_default_dimensions_config(an_input_file):
@@ -31,17 +61,12 @@ def generate_default_dimensions_config(an_input_file):
         return [{
             "name": dim.name,
             "size": None if dim.isunlimited() else dim.size,
-            "index_by": None,
-            "other_dim_indicies": {},
-            "min": None,
-            "max": None,
-            "expected_cadence": {}
         } for dim in nc_in.dimensions.values()]
 
 
 def generate_default_variables_config(an_input_file):
     with nc.Dataset(an_input_file) as nc_in:
-        result =  [{
+        result = [{
             "name": k,
             "dimensions": nc_in.variables[k].dimensions,
             "datatype": str(nc_in.variables[k].datatype),
