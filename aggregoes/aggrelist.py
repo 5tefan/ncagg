@@ -106,7 +106,9 @@ class FillNode(AbstractNode):
         self.unlimited_dim_index_start[unlimited_dim] = start
 
     def get_size_along(self, unlimited_dim):
-        return self.unlimited_dim_sizes.get(unlimited_dim, None)
+        # if we haven't configured a size along some unlimited dimension, it is by
+        # default 0, ie... we are not inserting anything.
+        return self.unlimited_dim_sizes.get(unlimited_dim, 0)
 
     def data_for(self, variable, dimensions, attribute_processor):
         """
@@ -132,7 +134,7 @@ class FillNode(AbstractNode):
                 unlimited_dim = dim
             # if size_from_dimensions is none, ie it's an unlimited dimenions, then we expect
             # to find it in self.unlimited_dim_sizes, otherwise expect an exception to be raised.
-            size_from_dimensions = size_from_dimensions or self.unlimited_dim_sizes[dim]
+            size_from_dimensions = size_from_dimensions or self.get_size_along(dim)
             result_shape.append(size_from_dimensions)
             # only do this part if this is an index for an unlimited dim
             if var_indexes is not None:
@@ -205,11 +207,12 @@ class InputFileNode(AbstractNode):
             # get the slices we need to fetch the start time of the file, note that the
             # .get will fail to find a mapping for the unlimited dim and so will default to
             # 0, which should be the first record, and thus what we're after
-            slices = tuple([index if d == unlim_dim else unlim_mapping["other_dim_indicies"].get(d, index)
+            slices = tuple([index if d == unlim_dim else unlim_mapping.get("other_dim_indicies", {}).get(d, index)
                             for d in time_var.dimensions])
 
             # flatten the variable just in case,
             return time_var[slices].flatten()[0]
+
 
     def get_units_of_unlim_index(self, unlim_dim):
         """

@@ -74,7 +74,7 @@ class Aggregator(object):
             logger.debug("\tvariables configuration not found, creating default")
             self.config["variables"] = generate_default_variables_config(files_to_aggregate[0])
 
-        self.config["config"] = config
+        self.config["config"] = validate_unlim_config(config, files_to_aggregate[0])
 
         # auto detect the unlimited dimensions, it is along these that we need to aggregate
         # unlimited_dims = [dim for dim in self.config["dimensions"] if dim["size"] is None]
@@ -149,8 +149,14 @@ class Aggregator(object):
         ends = []
         # iterate over a copy of the list since we might be removing things while iterating over it
         for each in input_files[:]:
-            start = each.get_index_of_unlim(0, unlim_dim)
-            end = each.get_index_of_unlim(-1, unlim_dim)
+            try:
+                start = each.get_index_of_unlim(0, unlim_dim)
+                end = each.get_index_of_unlim(-1, unlim_dim)
+            except Exception as e:
+                logger.error("Error getting start or end of %s, removing from processing: %s" % (each, repr(e)))
+                input_files.remove(each)
+                continue
+
             if (last_value_before and end < last_value_before) or (first_value_after and start > first_value_after):
                 input_files.remove(each)
             else:
@@ -214,7 +220,7 @@ class Aggregator(object):
                 for d in [di["name"] for di in self.config["dimensions"] if di["size"] is None]
                 for v in self.config["variables"]
                 if d in v["dimensions"]
-                ]
+            ]
             for index, component in enumerate(aggregation_list):
                 # make a mapping between unlim dimensions and their initial length because even after we append
                 # only one variable that depends on the unlimited dimension, getting the size of it will return

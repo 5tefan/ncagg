@@ -60,6 +60,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None):
     if output is None or not isinstance(output, str):
         output = mapper.get_output(product)
 
+    click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)
     click.echo("Finished: %s" % output)
 
@@ -74,7 +75,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None):
 def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None):
     start_time = datetime.strptime(yyyymm, "%Y%m")
     if start_time.day < 12:
-        end_time = datetime(start_time.year, start_time.month, start_time.day) - timedelta(microseconds=1)
+        end_time = datetime(start_time.year, start_time.month + 1, start_time.day) - timedelta(microseconds=1)
     else:
         end_time = datetime(start_time.year + 1, 1, 1) - timedelta(microseconds=1)
 
@@ -102,6 +103,7 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None):
     if output is None or not isinstance(output, str):
         output = mapper.get_output(product)
 
+    click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)
     click.echo("Finished: %s" % output)
 
@@ -140,6 +142,7 @@ def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None):
     if output is None or not isinstance(output, str):
         output = mapper.get_output(product)
 
+    click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)
     click.echo("Finished: %s" % output)
 

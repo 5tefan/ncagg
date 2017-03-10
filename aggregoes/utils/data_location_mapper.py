@@ -25,10 +25,22 @@ class DataLocationMapper(object):
                 }
             },
             "magn-l2-hires": {
-                "base": os.path.join(base, "spades_mag_prod/archive/", sat)
+                "base": os.path.join(base, "spades_mag_prod/archive/", sat),
+                "rc": {
+                    "time": {
+                        "index_by": "time",
+                        "expected_cadence": {"time": 10},
+                    }
+                }
             },
             "magn-l2-avg1m": {
-                "base": os.path.join(base, "spades_mag_prod/archive/", sat)
+                "base": os.path.join(base, "spades_mag_prod/archive/", sat),
+                "rc": {
+                    "time": {
+                        "index_by": "time",
+                        "expected_cadence": {"time": 1.0/60.},
+                    }
+                }
             },
             "magn-l2-quiet": {
                 "base": os.path.join(base, "spades_mag_prod/archive/", sat)
