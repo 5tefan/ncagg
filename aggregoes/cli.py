@@ -32,7 +32,8 @@ def cli():
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.")
 @click.option("--output", default=None, help="Override the output filename.")
-def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None):
+@click.option("--debug", default=False, help="Enable verbose/debug printing.")
+def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, debug=False):
     start_time = datetime.strptime(yyyymmdd, "%Y%m%d")
     end_time = start_time + timedelta(days=1) - timedelta(microseconds=1)
 
@@ -57,8 +58,11 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None):
     a = ProgressBarAggregator()
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
+    if debug:
+        print aggregation_list
+
     if output is None or not isinstance(output, str):
-        output = mapper.get_output(product)
+        output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyymmdd, env))
 
     click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)
@@ -72,7 +76,8 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None):
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Override the directory to pull data from.")
 @click.option("--output", default=None, help="Override the output filename.")
-def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None):
+@click.option("--debug", default=False, help="Enable verbose/debug printing.")
+def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, debug=False):
     start_time = datetime.strptime(yyyymm, "%Y%m")
     if start_time.day < 12:
         end_time = datetime(start_time.year, start_time.month + 1, start_time.day) - timedelta(microseconds=1)
@@ -100,8 +105,11 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None):
     a = ProgressBarAggregator()
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
+    if debug:
+        print aggregation_list
+
     if output is None or not isinstance(output, str):
-        output = mapper.get_output(product)
+        output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyymm, env))
 
     click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)
@@ -114,7 +122,8 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None):
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Override the directory to pull data from.")
 @click.option("--output", default=None, help="Override the output filename.")
-def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None):
+@click.option("--debug", default=False, help="Enable verbose/debug printing.")
+def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, debug=False):
     start_time = datetime.strptime(yyyy, "%Y")
     end_time = datetime(start_time.year + 1, 1, 1) - timedelta(microseconds=1)
 
@@ -139,8 +148,11 @@ def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None):
     a = ProgressBarAggregator()
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
+    if debug:
+        print aggregation_list
+
     if output is None or not isinstance(output, str):
-        output = mapper.get_output(product)
+        output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyy, env))
 
     click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)

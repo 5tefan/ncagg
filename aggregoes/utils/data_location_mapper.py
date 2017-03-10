@@ -10,6 +10,7 @@ base = os.environ.get("goes_mount_base", "/nfs")
 
 class DataLocationMapper(object):
     def __init__(self, sat="GOES-16"):
+        self.sat = sat
         # rc is runtime config, note: it's missing the indexed by min and max,
         # that needs to be filled in before giving this to the generate_aggregation_list
         # function
@@ -88,7 +89,33 @@ class DataLocationMapper(object):
     def get_config(self, product):
         return self.mapping[product]["rc"]
 
-    def get_output(self, product):
+    def get_output_base(self, product):
         # TODO: implement real filename + archive structure
-        _, tmpfile = tempfile.mkstemp()
-        return tmpfile
+        return "/tmp"
+
+    def get_filename(self, product, datestr, env):
+        """
+        Create the filename for the output product.
+
+        :param product: The data short name for the aggregated product.
+        :param datestr: A datestring of [[[yyyy]mm]dd]
+        :param env: the data production environment
+        :return: None
+        """
+
+        if not env:
+            env = "xx"
+
+        # TODO: get version in here
+        sat = "G" + self.sat[:-2]
+
+        aggregate_type = "x"
+        if len(datestr) == 4:
+            aggregate_type = "y"
+        elif len(datestr) == 6:
+            aggregate_type = "m"
+        elif len(datestr) == 8:
+            aggregate_type = "d"
+
+        return "%s_%s_%s_%s%s.nc" % (env, product, sat, aggregate_type, datestr)
+
