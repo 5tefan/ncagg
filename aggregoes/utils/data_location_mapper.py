@@ -58,7 +58,7 @@ class DataLocationMapper(object):
                 "rc": {
                     "report_number": {
                         "index_by": "time",
-                        "expected_cadence": {"time": 1},
+                        "expected_cadence": {"report_number": 1},
                     }
                 }
             },
@@ -67,7 +67,7 @@ class DataLocationMapper(object):
                 "rc": {
                     "record_number": {
                         "index_by": "time",
-                        "expected_cadence": {"time": 1},
+                        "expected_cadence": {"record_number": 1},
                     }
                 }
             },
@@ -76,7 +76,7 @@ class DataLocationMapper(object):
                 "rc": {
                     "record_number": {
                         "index_by": "time",
-                        "expected_cadence": {"time": 1.0/60.},
+                        "expected_cadence": {"record_number": 1.0/60.},
                     }
                 }
             },
