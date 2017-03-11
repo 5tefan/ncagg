@@ -243,13 +243,13 @@ class Aggregator(object):
                         nc_out.variables[var_name][write_slices] = component.data_for(
                             var, self.config["dimensions"], attribute_handler.process_file
                         )
-                    except IndexError as e:
+                    except Exception as e:
                         logger.debug(component.data_for(var, self.config["dimensions"]))
                         logger.debug(component.data_for(var, self.config["dimensions"]).shape)
                         logger.debug(write_slices)
                         logger.debug(var["name"])
-                        logger.error(traceback.format_exc())
-                        logger.error("For var %s: %s" % (var, repr(e)))
+                        logger.debug(traceback.format_exc())
+                        logger.error("For var %s: %s, continuing" % (var, repr(e)))
 
             # after aggregation finished, finalize the global attributes
             attribute_handler.finalize_file(nc_out)
