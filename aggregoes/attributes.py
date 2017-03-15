@@ -260,13 +260,14 @@ class AttributeHandler(object):
         "remove": StratRemove
     }
 
-    def __init__(self, global_attr_config=None, runtime_config=None):
+    def __init__(self, global_attr_config=None, *args, **kwargs):
         super(AttributeHandler, self).__init__()
         self.config = global_attr_config or []
 
         self.attr_handlers = {
             attr["name"]: self.strategy_handlers.get(attr.get("strategy", "first"), StratFirst).setup_handler(
-                attr_config=attr, runtime_config=runtime_config
+                # expecting in kwargs at least runtime_config and filename
+                attr_config=attr, **kwargs
             )
             for attr in self.config
             }
