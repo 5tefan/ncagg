@@ -232,13 +232,16 @@ class StratTimeCoverageEnd(StratWithConfig):
 class StratOutputFilename(Strat):
     # noinspection PyMissingConstructor
     def __init__(self, *args, **kwargs):
-        pass
+        self.attr = kwargs.get("filename", "")
 
     def process(self, attr):
         pass
 
     def finalize(self, nc_out):
-        return os.path.basename(nc_out.filepath())
+        # used to be os.path.basename(nc_out.filepath()), but the filenames are regularly too
+        # long, see https://github.com/Unidata/netcdf4-python/blob/6087ae9b77b538b9c0ab3cdde3118b4ceb6f8946/netCDF4/_netCDF4.pyx#L1903
+        # seems like we exceed pathlen and are getting nasty errors. Now instead passing it through the kwargs
+        return os.path.basename(self.attr)
 
 
 class AttributeHandler(object):

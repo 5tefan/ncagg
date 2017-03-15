@@ -219,7 +219,8 @@ class Aggregator(object):
         self.initialize_aggregation_file(to_fullpath)
         attribute_handler = AttributeHandler(
             global_attr_config=self.config["global attributes"],
-            runtime_config=self.config["config"]
+            runtime_config=self.config["config"],
+            filename=to_fullpath
         )
 
         with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
