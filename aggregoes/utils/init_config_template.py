@@ -53,6 +53,14 @@ def generate_default_global_attributes_config(an_input_file):
     set_default("algorithm_version", "unique_list")
     set_default("dataset_name", "filename")
 
+    # get rid of these!
+    set_default("records_present", "remove")
+    set_default("records_data", "remove")
+    set_default("records_fill", "remove")
+    set_default("records_missing", "remove")
+    set_default("NCO", "remove")
+    set_default("time_coverage_duration", "remove")
+
     return result
 
 

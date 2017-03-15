@@ -9,10 +9,26 @@ logger.setLevel(logging.DEBUG)
 
 
 def datetime_format(dt):
+    """
+    Consistent format for timestamps throughout global attirbutes.
+    :type dt: datetime
+    :param dt: a datetime object
+    :return: dt to string
+    """
     return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + "Z"
 
 
 class Strat(object):
+    """
+    The template for a strategy implementation. Strategies should be implemented
+    with the same signatures as here.
+
+    Each attribute will be associated with an instance of the strategy it is
+    aggregated along. For each attribute seen, inst.process(attribute) will be
+    called. After aggregation, inst.finalize(nc_out) will be called and it is
+    expected that a nonempty string is returned if the attribute should be set
+    to the value returned.
+    """
     def __init__(self, *args, **kwargs):
         super(Strat, self).__init__()
         self.attr = ""
@@ -46,17 +62,30 @@ class Strat(object):
 
 
 class StratFirst(Strat):
+    """
+    Strategy processes to the first attribute value processed.
+    """
     def process(self, attr):
         if self.attr == "":
             self.attr = attr
 
 
 class StratLast(Strat):
-    def process(self, attr):
-        self.attr = attr
+    """
+    Strategy finalizes to the value of the last attribute value
+    processed.
+
+    Note, this is included to semantics as the base Strat class
+    implements StratLast.
+    """
+    pass
 
 
 class StratUniqueList(Strat):
+    """
+    Finalize to a comma separated list of unique values detected
+    during processing.
+    """
     def __init__(self, *args, **kwargs):
         super(StratUniqueList, self).__init__()
         self.attr = []
@@ -71,6 +100,9 @@ class StratUniqueList(Strat):
 
 
 class StratIntSum(Strat):
+    """
+    Process attributes as integer values and finalize to their sum.
+    """
     def __init__(self, *args, **kwargs):
         super(StratIntSum, self).__init__()
         self.attr = 0
@@ -80,6 +112,9 @@ class StratIntSum(Strat):
 
 
 class StratFloatSum(Strat):
+    """
+    Process attributes as float values and finalize to their sum.
+    """
     def __init__(self, *args, **kwargs):
         super(StratFloatSum, self).__init__()
         self.attr = 0.0
@@ -89,14 +124,21 @@ class StratFloatSum(Strat):
 
 
 class StratAssertConst(Strat):
+    """
+    Strategy raises an exception if any subsequent attributes processed
+    do not match the first one seen.
+    """
     def process(self, attr):
         if self.attr == "":
             self.attr = attr
-        else:
-            assert self.attr == attr
+        elif self.attr != attr:
+            raise AssertionError("Non constant attribute %s --> %s" % (self.attr, attr))
 
 
 class StratDateCreated(Strat):
+    """
+    Strategy returns a timestamp indicating when finalize was called.
+    """
     # noinspection PyMissingConstructor
     def __init__(self, *args, **kwargs):
         pass
@@ -108,7 +150,27 @@ class StratDateCreated(Strat):
         return datetime_format(datetime.now())
 
 
+class StratRemove(Strat):
+    """
+    Strategy always finalizes to an empty string, meaning the attribute
+    this strategy is assigned to will not be included in the aggregated
+    output.
+    """
+    # noinspection PyMissingConstructor
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def process(self, attr):
+        pass
+
+    def finalize(self, nc_out):
+        return ""
+
+
 class StratWithConfig(Strat):
+    """
+    The previous strategies were blind to world politics.
+    """
     def __init__(self, attr_config, runtime_config, *args, **kwargs):
         super(StratWithConfig, self).__init__()
         self.attr_config = attr_config or {}
@@ -191,7 +253,8 @@ class AttributeHandler(object):
         "date_created": StratDateCreated,
         "time_coverage_begin": StratTimeCoverageBegin,
         "time_coverage_end": StratTimeCoverageEnd,
-        "filename": StratOutputFilename
+        "filename": StratOutputFilename,
+        "remove": StratRemove
     }
 
     def __init__(self, global_attr_config=None, runtime_config=None):
@@ -239,7 +302,7 @@ class AttributeHandler(object):
             handler = self.attr_handlers.get(attr["name"], None)
             if handler is not None and handler[1] is not None:
                 try:
-                    attr_val = handler[1](nc_out)
+                    attr_val = str(handler[1](nc_out))
                     if attr_val != "":
                         nc_out.setncattr(attr["name"], attr_val)
                 except Exception as e:

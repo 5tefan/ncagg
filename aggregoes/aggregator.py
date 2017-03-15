@@ -89,7 +89,9 @@ class Aggregator(object):
             }
 
         logger.info("Building aggregation list...")
-        for index, file_node in enumerate(input_files):
+        for index in xrange(len(input_files) + 1):
+            # + 1 since by taking into account the diff between last_value_before and first_value_after while
+            # calculating coverage, the length of num_missing and missing_start == len(input_files) + 1
 
             # noinspection PyUnboundLocalVariable
             if unlim_config is not None and len(unlim_fills_needed) > 0:
@@ -101,10 +103,12 @@ class Aggregator(object):
                     if num_missing[index] > 0:
                         fill_node.set_size_along(unlim_dim, num_missing[index])
                         fill_node.set_unlim_dim_index_start(unlim_dim, missing_start[index])
+                # if anything was filled out in the fill_node, add it to the aggregation list
                 if len(fill_node.unlimited_dim_sizes) > 0:
                     aggregation_list.append(fill_node)
 
-            aggregation_list.append(file_node)
+            if index < len(input_files):
+                aggregation_list.append(input_files[index])
 
         return aggregation_list
 
@@ -158,6 +162,7 @@ class Aggregator(object):
                 continue
 
             if (last_value_before and end < last_value_before) or (first_value_after and start > first_value_after):
+                logger.info("File not in bounds: %s" % each)
                 input_files.remove(each)
             else:
                 starts.append(start)
@@ -206,6 +211,9 @@ class Aggregator(object):
         :param to_fullpath:
         :return:
         """
+        if len(aggregation_list) == 0:
+            logger.warn("No files in aggregation list, nothing to do.")
+            return  # bail early
         self.initialize_aggregation_file(to_fullpath)
         attribute_handler = AttributeHandler(
             global_attr_config=self.config["global attributes"],
@@ -228,8 +236,9 @@ class Aggregator(object):
                 unlim_dim_start_lens = {d.name: d.size for d in nc_out.dimensions.values() if d.isunlimited()}
 
                 for var in (self.config["variables"] if index == 0 else vars_with_unlim):
+                    var_out_name = var.get("map_to", var["name"])
                     write_slices = []
-                    for dim in nc_out.variables[var["name"]].dimensions:
+                    for dim in nc_out.variables[var_out_name].dimensions:
                         if nc_out.dimensions[dim].isunlimited():
                             d_start = unlim_dim_start_lens[dim]
                             write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
@@ -239,8 +248,7 @@ class Aggregator(object):
                     # if there were no dimensions... write_slices will still be []
                     write_slices = write_slices or slice(None)
                     try:
-                        var_name = var.get("map_to", var["name"])
-                        nc_out.variables[var_name][write_slices] = component.data_for(
+                        nc_out.variables[var_out_name][write_slices] = component.data_for(
                             var, self.config["dimensions"], attribute_handler.process_file
                         )
                     except Exception as e:
@@ -250,6 +258,9 @@ class Aggregator(object):
                         logger.debug(var["name"])
                         logger.debug(traceback.format_exc())
                         logger.error("For var %s: %s, continuing" % (var, repr(e)))
+
+                # write buffered data to disk
+                nc_out.sync()
 
             # after aggregation finished, finalize the global attributes
             attribute_handler.finalize_file(nc_out)
@@ -266,7 +277,8 @@ class Aggregator(object):
                 nc_out.createDimension(dim["name"], dim["size"])
             for var in self.config["variables"]:
                 var_name = var.get("map_to", var["name"])
-                var_out = nc_out.createVariable(var_name, np.dtype(var["datatype"]), var["dimensions"])
+                var_out = nc_out.createVariable(var_name, np.dtype(var["datatype"]), var["dimensions"],
+                                                zlib=True)
                 var_out.setncatts(var["attributes"])
 
     def handle_unexpected_condition(self, message, fatal=False, email=None):

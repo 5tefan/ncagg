@@ -91,7 +91,7 @@ class DataLocationMapper(object):
 
     def get_output_base(self, product):
         # TODO: implement real filename + archive structure
-        return "/tmp"
+        return "/nfs/goesr_private/aggregation_testing"
 
     def get_filename(self, product, datestr, env):
         """
@@ -107,7 +107,7 @@ class DataLocationMapper(object):
             env = "xx"
 
         # TODO: get version in here
-        sat = "G" + self.sat[:-2]
+        sat = "G" + self.sat[-2:]
 
         aggregate_type = "x"
         if len(datestr) == 4:

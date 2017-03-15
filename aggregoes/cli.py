@@ -10,16 +10,6 @@ All data is expected to be in a YYYYMMDD structure under the path
 returned by DataLocationMapper.
 """
 
-
-class ProgressBarAggregator(Aggregator):
-    def __init__(self, config=None):
-        super(ProgressBarAggregator, self).__init__(config)
-
-    def evaluate_aggregation_list(self, aggregation_list, to_fullpath):
-        with click.progressbar(aggregation_list) as progress_aggregation_list:
-            return super(ProgressBarAggregator, self).evaluate_aggregation_list(progress_aggregation_list, to_fullpath)
-
-
 @click.group()
 def cli():
     pass
@@ -55,7 +45,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
         "max": end_time
     })
 
-    a = ProgressBarAggregator()
+    a = Aggregator()
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
     if debug:
@@ -102,7 +92,7 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
         "max": end_time
     })
 
-    a = ProgressBarAggregator()
+    a = Aggregator()
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
     if debug:
@@ -145,7 +135,7 @@ def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, deb
         "max": end_time
     })
 
-    a = ProgressBarAggregator()
+    a = Aggregator()
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
     if debug:
