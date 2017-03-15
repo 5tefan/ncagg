@@ -203,12 +203,14 @@ class Aggregator(object):
 
         return insert_fills, np.where(insert_fills, ends, np.zeros_like(insert_fills))
 
-    def evaluate_aggregation_list(self, aggregation_list, to_fullpath):
+    def evaluate_aggregation_list(self, aggregation_list, to_fullpath, callback=None):
         """
         Evaluate an aggregation list to a file.... ie. actually do the aggregation.
 
         :param aggregation_list:
         :param to_fullpath:
+        :type callback: None | function
+        :param callback: called every time an aggregation_list element is processed.
         :return:
         """
         if len(aggregation_list) == 0:
@@ -258,6 +260,9 @@ class Aggregator(object):
                         logger.debug(var["name"])
                         logger.debug(traceback.format_exc())
                         logger.error("For var %s: %s, continuing" % (var, repr(e)))
+
+                if callback is not None:
+                    callback()
 
                 # write buffered data to disk
                 nc_out.sync()
