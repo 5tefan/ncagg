@@ -74,14 +74,17 @@ class Aggregator(object):
             logger.debug("\tvariables configuration not found, creating default")
             self.config["variables"] = generate_default_variables_config(files_to_aggregate[0])
 
-        self.config["config"] = validate_unlim_config(config, files_to_aggregate[0])
-
-        # auto detect the unlimited dimensions, it is along these that we need to aggregate
-        # unlimited_dims = [dim for dim in self.config["dimensions"] if dim["size"] is None]
+        self.config["config"] = unlim_config = validate_unlim_config(config, files_to_aggregate[0])
 
         logger.info("Initializing input file nodes...")
-        unlim_config = validate_unlim_config(self.config.get("config", None), files_to_aggregate[0])
-        input_files = [InputFileNode(fn, unlim_config) for fn in sorted(files_to_aggregate)]
+        input_files = []
+        for fn in sorted(files_to_aggregate):
+            try:
+                input_files.append(InputFileNode(fn, unlim_config))
+            except Exception as e:
+                logger.error("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+
+        # calculate file coverage if any unlimited dimensions are configured.
         if unlim_config is not None:
             logger.info("\tFound config for unlimited dim indexing, calculating coverage.")
             unlim_fills_needed = {
@@ -91,7 +94,7 @@ class Aggregator(object):
         logger.info("Building aggregation list...")
         for index in xrange(len(input_files) + 1):
             # + 1 since by taking into account the diff between last_value_before and first_value_after while
-            # calculating coverage, the length of num_missing and missing_start == len(input_files) + 1
+            # calculating calculate, the length of num_missing and missing_start == len(input_files) + 1
 
             # noinspection PyUnboundLocalVariable
             if unlim_config is not None and len(unlim_fills_needed) > 0:
@@ -134,19 +137,12 @@ class Aggregator(object):
             :return: the bound value converted to it's numerical representation
             """
             if isinstance(bound, datetime):
-                return nc.date2num([bound], input_files[0].get_units_of_unlim_index(unlim_dim))[0]
+                return nc.date2num([bound], input_files[0].get_units_of_index_by(unlim_dim))[0]
             return bound
 
-        last_value_before = None
-        first_value_after = None
-
-        try:
-            last_value_before = cast_bound(self.config["config"][unlim_dim]["min"])
-            first_value_after = cast_bound(self.config["config"][unlim_dim]["max"])
-        except KeyError:
-            # ignore, likely just wasn't configured in which case, we don't have
-            # any bounds and will just use whatever data is in the input files.
-            pass
+        # turn min and max into numerical object if they come in as datetime
+        last_value_before = cast_bound(self.config["config"][unlim_dim].get("min"))
+        first_value_after = cast_bound(self.config["config"][unlim_dim].get("max"))
 
         # remove files that aren't between last_value_before and first_value_after
         starts = []
@@ -154,8 +150,8 @@ class Aggregator(object):
         # iterate over a copy of the list since we might be removing things while iterating over it
         for each in input_files[:]:
             try:
-                start = each.get_index_of_unlim(0, unlim_dim)
-                end = each.get_index_of_unlim(-1, unlim_dim)
+                start = each.get_first_of_index_by(unlim_dim)
+                end = each.get_last_of_index_by(unlim_dim)
             except Exception as e:
                 logger.error("Error getting start or end of %s, removing from processing: %s" % (each, repr(e)))
                 input_files.remove(each)
@@ -185,14 +181,14 @@ class Aggregator(object):
         where_gap_too_small = np.where(gap_too_small)[0]
         for problem_index in where_gap_too_small:
             num_overlap = np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))
-            # if gap at beginning of the agg period, take off from front of first file, otherwise chop
-            # the end from the previous file
-            if problem_index == 0:
-                input_files[0].set_dim_slice_start(unlim_dim, int(np.ceil(num_overlap)))
-            else:
+            # Take the gap off from front of following file, ie. bias towards first values that arrived.
+            # On the end, when there is no following file, instead chop the end from the previous file.
+            if problem_index < len(input_files) - 1:
                 # this np.floor is consistent with np.ceil (pretty sure, bias towards keeping data
                 # with the previous agg interval if a record falls over?
-                input_files[problem_index - 1].set_dim_slice_stop(unlim_dim, -int(np.floor(num_overlap)))
+                input_files[problem_index].set_dim_slice_start(unlim_dim, int(np.ceil(num_overlap)))
+            else:
+                input_files[problem_index - 1].set_dim_slice_stop(unlim_dim, -int(np.ceil(num_overlap)))
 
         # if the gap is larger than 2 nominal steps, we'll need to fill (if the expected cadence is known)
         # number of filles needed is insert coverage_diff[gap_too_big] * cadence_hz fill values
@@ -223,15 +219,15 @@ class Aggregator(object):
             filename=to_fullpath
         )
 
+        vars_with_unlim = [
+            v
+            for d in [di["name"] for di in self.config["dimensions"] if di["size"] is None]
+            for v in self.config["variables"]
+            if d in v["dimensions"]
+        ]
         with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
             # get a list of variables that depend on an unlimited dimension, after the first file is
             # processed, we'll only need to go through these.
-            vars_with_unlim = [
-                v
-                for d in [di["name"] for di in self.config["dimensions"] if di["size"] is None]
-                for v in self.config["variables"]
-                if d in v["dimensions"]
-            ]
             for index, component in enumerate(aggregation_list):
                 # make a mapping between unlim dimensions and their initial length because even after we append
                 # only one variable that depends on the unlimited dimension, getting the size of it will return
@@ -251,9 +247,9 @@ class Aggregator(object):
                     # if there were no dimensions... write_slices will still be []
                     write_slices = write_slices or slice(None)
                     try:
-                        nc_out.variables[var_out_name][write_slices] = component.data_for(
-                            var, self.config["dimensions"], attribute_handler.process_file
-                        )
+                        nc_out.variables[var_out_name][write_slices] = component.data_for(var,
+                                                                                          self.config["dimensions"],
+                                                                                          attribute_handler.process_file)
                     except Exception as e:
                         logger.debug(component.data_for(var, self.config["dimensions"]))
                         logger.debug(component.data_for(var, self.config["dimensions"]).shape)
@@ -270,6 +266,38 @@ class Aggregator(object):
 
             # after aggregation finished, finalize the global attributes
             attribute_handler.finalize_file(nc_out)
+
+        unlim_config = self.config.get("config", None)
+
+        if unlim_config is None:
+            # nothing left to do if no unlimited conifg
+            return
+        # otherwise sort all records, seems we occasionally get out of order records
+        # close and re-open file just to be safe
+        with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
+            # get argsort along the configured unlimited dims
+            unlim_argsorts = {
+                unlim_dim: self.argsort_for_unlim(nc_out, unlim_dim) for unlim_dim in unlim_config.keys()
+            }
+            for var in vars_with_unlim:
+                var_out_name = var.get("map_to", var["name"])
+                slices = [unlim_argsorts.get(dim, slice(None)) for dim in nc_out.variables[var_out_name].dimensions]
+                nc_out.variables[var_out_name][:] = nc_out.variables[var_out_name][slices]
+
+    def argsort_for_unlim(self, nc_out, unlim_dim):
+        """
+
+        :type nc_out: nc.Dataset
+        :param nc_out: netcdf out to argsort against
+        :param unlim_dim:
+        :return:
+        """
+        unlim_mapping = self.config["config"][unlim_dim]
+        index_by = unlim_mapping["index_by"]
+        slices = tuple([slice(None) if d == unlim_dim else unlim_mapping.get("other_dim_indicies", {}).get(d, 0)
+                        for d in nc_out[index_by].dimensions])
+        return np.argsort(nc_out.variables[index_by][slices])
+
 
     def initialize_aggregation_file(self, fullpath):
         """

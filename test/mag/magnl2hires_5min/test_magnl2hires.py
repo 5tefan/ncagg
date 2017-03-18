@@ -118,7 +118,7 @@ class TestEvaluateAggregationList(unittest.TestCase):
     def test_time(self):
         """Make sure the time array looks ok. Evenly spaced, bounds are correct."""
         numeric_times = self.output.variables["time"][:]
-        self.assertAlmostEqual(np.mean(np.diff(numeric_times)), 0.1)
+        self.assertAlmostEqual(np.mean(np.diff(numeric_times)), 0.1, delta=0.01)
         self.assertAlmostEqual(np.min(np.diff(numeric_times)), 0.1, delta=0.01)
         self.assertAlmostEqual(np.max(np.diff(numeric_times)), 0.1, delta=0.01)
 
@@ -130,6 +130,6 @@ class TestEvaluateAggregationList(unittest.TestCase):
         """Make sure there is some data in the file."""
         self.assertEqual(self.output.variables["b_gse"].shape, (3000, 3))
         b_gse = self.output.variables["b_gse"][:]
-        self.assertEqual(np.ma.count(b_gse), 9000)
+        self.assertEqual(np.ma.count(b_gse), 3000*3)
 
 

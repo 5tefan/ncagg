@@ -15,6 +15,8 @@ class DataLocationMapper(object):
         # that needs to be filled in before giving this to the generate_aggregation_list
         # function
         self.mapping = {
+
+            ## MAG
             "MAG-L1b-GEOF": {
                 "base": os.path.join(base, "spades_mag_prod/archive/", sat),
                 "rc": {
@@ -53,6 +55,7 @@ class DataLocationMapper(object):
                 }
             },
 
+            ## EXIS
             "EXIS-L1b-SFXR": {
                 "base": os.path.join(base, "spades_exis_prod/archive/", sat),
                 "rc": {
@@ -77,6 +80,35 @@ class DataLocationMapper(object):
                     "record_number": {
                         "index_by": "time",
                         "expected_cadence": {"record_number": 1.0/60.},
+                    }
+                }
+            },
+
+            ## SEIS
+            "SEIS-L1b-MPSH": {
+                "base": os.path.join(base, "spades_seis_prod/archive/", sat),
+                "rc": {
+                    "report_number": {
+                        "index_by": "L1a_SciData_TimeStamp",
+                        "expected_cadence": {"report_number": 1},
+                    }
+                }
+            },
+            "SEIS-L1b-MPSL": {
+                "base": os.path.join(base, "spades_seis_prod/archive/", sat),
+                "rc": {
+                    "report_number": {
+                        "index_by": "L1a_SciData_TimeStamp",
+                        "expected_cadence": {"report_number": 1},
+                    }
+                }
+            },
+            "SEIS-L1b-SGPS": {
+                "base": os.path.join(base, "spades_seis_prod/archive/", sat),
+                "rc": {
+                    "report_number": {
+                        "index_by": "L1a_SciData_TimeStamp",
+                        "expected_cadence": {"report_number": 1, "sensor_unit": 0},
                     }
                 }
             },
