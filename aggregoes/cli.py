@@ -47,7 +47,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
         files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
         files += glob(os.path.join(time_dir_base, (start_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
-        files = glob(os.path.join(datadir, "%s*/nc" % env))
+        files = glob(os.path.join(datadir, "%s*.nc" % env))
 
     # TODO: when primary is implemented
     runtime_config = mapper.get_config(product)
@@ -94,7 +94,7 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
         files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
         files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
-        files = glob(os.path.join(datadir, "%s*/nc" % env))
+        files = glob(os.path.join(datadir, "%s*.nc" % env))
 
     # TODO: when primary is implemented
     runtime_config = mapper.get_config(product)
@@ -137,7 +137,7 @@ def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, deb
         files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
         files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
-        files = glob(os.path.join(datadir, "%s*/nc" % env))
+        files = glob(os.path.join(datadir, "%s*.nc" % env))
 
     # TODO: when primary is implemented
     runtime_config = mapper.get_config(product)
