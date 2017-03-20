@@ -28,8 +28,7 @@ class TestMag(unittest.TestCase):
                 "expected_cadence": {"report_number": 1, "number_samples_per_report": 10}
             }
         })
-        self.assertEqual(len(aggregation_list), 63)
-        print aggregation_list
+        self.assertEqual(len(aggregation_list), 60)
 
     def test_giving_extra_files(self):
         pwd = os.path.dirname(__file__)

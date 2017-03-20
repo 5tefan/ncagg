@@ -306,7 +306,7 @@ class AttributeHandler(object):
             handler = self.attr_handlers.get(attr["name"], None)
             if handler is not None and handler[1] is not None:
                 try:
-                    attr_val = str(handler[1](nc_out))
+                    attr_val = handler[1](nc_out)
                     if attr_val != "":
                         nc_out.setncattr(attr["name"], attr_val)
                 except Exception as e:

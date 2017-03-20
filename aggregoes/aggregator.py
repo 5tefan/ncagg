@@ -251,12 +251,10 @@ class Aggregator(object):
                                                                                           self.config["dimensions"],
                                                                                           attribute_handler.process_file)
                     except Exception as e:
-                        logger.debug(component.data_for(var, self.config["dimensions"]))
                         logger.debug(component.data_for(var, self.config["dimensions"]).shape)
                         logger.debug(write_slices)
-                        logger.debug(var["name"])
                         logger.debug(traceback.format_exc())
-                        logger.error("For var %s: %s, continuing" % (var, repr(e)))
+                        logger.error("For var %s: %s, continuing" % (var["name"], repr(e)))
 
                 if callback is not None:
                     callback()

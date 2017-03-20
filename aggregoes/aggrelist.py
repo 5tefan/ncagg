@@ -255,14 +255,19 @@ class InputFileNode(AbstractNode):
                         # if significantly less than tolerance of cadence, remove value, ie cutoff and restart
                         dim_agg_list.append(slice(slice_start, i - 1))
                         in_slice = False
-                    elif stepdiff > (2 / (cadence_uncert * cadence_hz)):
+                    elif stepdiff > (2 / ((2 - cadence_uncert) * cadence_hz)):
                         # too big a time step, cutoff slice and insert fill
-                        num_overlap = np.abs(np.floor(stepdiff * cadence_hz))
+                        dim_agg_list.append(slice(slice_start, i))
+
+                        num_missing = int(np.abs(np.floor(stepdiff * cadence_hz)))-1
                         f = FillNode(self.unlimited_dim_indexed_by_time_var_map)
-                        f.set_size_along(unlim_dim, num_overlap)
-                        f.set_unlim_dim_index_start(unlim_dim, times[aggsort[i - 1]])
+                        f.set_size_along(unlim_dim, num_missing)
+                        f.set_unlim_dim_index_start(unlim_dim, times[aggsort[i-1]])
                         dim_agg_list.append(f)
-                        in_slice = False
+
+                        # jump right back into a slice.
+                        slice_start = i
+                        in_slice = True
                         # else:
                         #    # otherwise if distance from last is within tolerance, continue
                         #    pass
@@ -300,6 +305,7 @@ class InputFileNode(AbstractNode):
             # get the slices we need to fetch the index according to the config, note that the
             # .get may fail to find a mapping for the unlimited dim and so will default to
             # 0, which should be the first record, and thus what we're after
+            index = self.sort_unlim[unlim_dim][index] if unlim_dim in self.sort_unlim.keys() else index
             slices = tuple([
                                index if d == unlim_dim
                                else unlim_mapping.get("other_dim_indicies", {}).get(d, 0)
@@ -412,7 +418,12 @@ class InputFileNode(AbstractNode):
             return self.dim_slices[dim]
         else:
             with nc.Dataset(self.filename) as nc_in:
-                if dim in nc_in.dimensions.keys() and nc_in:
+                if dim in nc_in.dimensions.keys() and nc_in.dimensions[dim].isunlimited():
+                    # must return none if unlimited so that get_size_along uses length from
+                    # get_file_internal_aggregation_size - which takes into account the internal agg list
+                    # and then falls back on nc_in.dimesionse[dim].size if there is no agg list
+                    return slice(None)
+                elif dim in nc_in.dimensions.keys():
                     # it's ok if dim is unlimited here, will still have a size.
                     return slice(nc_in.dimensions[dim].size)
                 else:
@@ -435,8 +446,9 @@ class InputFileNode(AbstractNode):
         for each in internal_aggregation_list:
             if isinstance(each, FillNode):
                 dim_length += each.get_size_along(unlim_dim)
-            assert isinstance(each, slice)
-            dim_length += (each.stop - each.start)
+            else:
+                assert isinstance(each, slice)
+                dim_length += (each.stop - each.start)
 
         return dim_length
 
@@ -467,10 +479,14 @@ class InputFileNode(AbstractNode):
             or 0
         )
 
-        dim_end_i = (
-            (dim_length + dim_slice.stop if dim_slice.stop is not None and dim_slice.stop < 0 else dim_slice.stop)
-            or dim_length
-        )
+        if dim_slice.stop is None:
+            dim_end_i = dim_length
+        else:
+            assert dim_slice.stop is not None
+            if dim_slice.stop < 0:
+                dim_end_i = dim_length + dim_slice.stop
+            else:
+                dim_end_i = dim_slice.stop
 
         assert dim_start_i <= dim_end_i, "dim size can't be negative"
         return dim_end_i - dim_start_i
@@ -502,6 +518,7 @@ class InputFileNode(AbstractNode):
             if internal_agg_dim is not None:
                 growing = None  # will become an np.ndarray
                 for internal_agg_segment in self.file_internal_aggregation_list[internal_agg_dim]:
+
                     if isinstance(internal_agg_segment, slice):
                         # if the agg segment is a slice, get it directly out of the nc and add to growing
                         var_slices = []
@@ -515,14 +532,18 @@ class InputFileNode(AbstractNode):
                         if growing is None:
                             # initialize growing, this is done here since further concatenations must
                             # have the same shape
+                            # assumption: the first internal_agg_segment is NOT a FillNode
                             growing = from_file
                         else:
                             growing = np.concatenate((growing, from_file))
+
                     else:
+                        # if not a slice, it must be a FillNode, assert so and handle accordingly
                         assert isinstance(internal_agg_segment, FillNode)
                         growing = np.concatenate((growing, internal_agg_segment.data_for(
                             variable, dimensions
                         )))
+
                 return growing[[self.get_dim_slice(dim) for dim in variable["dimensions"]]]
 
             # if there's no internal_aggregation_list set up, it's just a regular pull the data from the file
