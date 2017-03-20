@@ -186,9 +186,9 @@ class StratStatic(StratWithConfig):
         self.attr = self.attr_config.get("value", "")
 
 
-class StratTimeCoverageBegin(StratWithConfig):
+class StratTimeCoverageStart(StratWithConfig):
     def __init__(self, *args, **kwargs):
-        super(StratTimeCoverageBegin, self).__init__(*args, **kwargs)
+        super(StratTimeCoverageStart, self).__init__(*args, **kwargs)
 
     def finalize(self, nc_out):
         # do raise exceptions
@@ -254,7 +254,7 @@ class AttributeHandler(object):
         "float_sum": StratFloatSum,
         "constant": StratAssertConst,
         "date_created": StratDateCreated,
-        "time_coverage_begin": StratTimeCoverageBegin,
+        "time_coverage_start": StratTimeCoverageStart,
         "time_coverage_end": StratTimeCoverageEnd,
         "filename": StratOutputFilename,
         "remove": StratRemove

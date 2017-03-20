@@ -5,7 +5,7 @@ import netCDF4 as nc
 import os
 
 from aggregoes.attributes import StratFirst, StratLast,StratUniqueList, StratIntSum, StratFloatSum, StratAssertConst
-from aggregoes.attributes import StratDateCreated, StratStatic, StratTimeCoverageBegin, StratTimeCoverageEnd
+from aggregoes.attributes import StratDateCreated, StratStatic, StratTimeCoverageStart, StratTimeCoverageEnd
 
 from aggregoes.attributes import datetime_format
 
