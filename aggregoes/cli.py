@@ -33,8 +33,9 @@ def cli():
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.")
 @click.option("--output", default=None, help="Override the output filename.")
+@click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
-def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, debug=False):
+def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
     start_time = datetime.strptime(yyyymmdd, "%Y%m%d")
     end_time = start_time + timedelta(days=1) - timedelta(microseconds=1)
 
@@ -44,8 +45,9 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
         files = glob(os.path.join(time_dir_base, start_time.strftime("%Y/%m/%d"), "%s*.nc" % env))
         # add the day before and the day after as well, just in case (yes, really only need maybe
         # a couple of bounding files, but this is the lazy approach).
-        files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-        files += glob(os.path.join(time_dir_base, (start_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
+        if not simple:
+            files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
+            files += glob(os.path.join(time_dir_base, (start_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
         files = glob(os.path.join(datadir, "%s*.nc" % env))
 
@@ -57,7 +59,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
     })
 
     a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(files, runtime_config)
+    aggregation_list = a.generate_aggregation_list(files, runtime_config if not simple else None)
 
     if debug:
         print aggregation_list
@@ -77,8 +79,9 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Override the directory to pull data from.")
 @click.option("--output", default=None, help="Override the output filename.")
+@click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
-def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, debug=False):
+def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
     start_time = datetime.strptime(yyyymm, "%Y%m")
     if start_time.day < 12:
         end_time = datetime(start_time.year, start_time.month + 1, start_time.day) - timedelta(microseconds=1)
@@ -91,8 +94,9 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
         files = glob(os.path.join(time_dir_base, start_time.strftime("%Y/%m/**"), "%s*.nc" % env))
         # add the day before and the day after as well, just in case (yes, really only need maybe
         # a couple of bounding files, but this is the lazy approach).
-        files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-        files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
+        if not simple:
+            files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
+            files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
         files = glob(os.path.join(datadir, "%s*.nc" % env))
 
@@ -104,7 +108,7 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
     })
 
     a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(files, runtime_config)
+    aggregation_list = a.generate_aggregation_list(files, runtime_config if not simple else None)
 
     if debug:
         print aggregation_list
@@ -123,8 +127,9 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Override the directory to pull data from.")
 @click.option("--output", default=None, help="Override the output filename.")
+@click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
-def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, debug=False):
+def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
     start_time = datetime.strptime(yyyy, "%Y")
     end_time = datetime(start_time.year + 1, 1, 1) - timedelta(microseconds=1)
 
@@ -134,8 +139,9 @@ def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, deb
         files = glob(os.path.join(time_dir_base, start_time.strftime("%Y/**/**"), "%s*.nc" % env))
         # add the day before and the day after as well, just in case (yes, really only need maybe
         # a couple of bounding files, but this is the lazy approach).
-        files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-        files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
+        if not simple:
+            files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
+            files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
         files = glob(os.path.join(datadir, "%s*.nc" % env))
 
@@ -147,7 +153,7 @@ def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, deb
     })
 
     a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(files, runtime_config)
+    aggregation_list = a.generate_aggregation_list(files, runtime_config if not simple else None)
 
     if debug:
         print aggregation_list

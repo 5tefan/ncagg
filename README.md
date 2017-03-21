@@ -22,6 +22,7 @@ Options:
   --env TEXT       Which environment to use.
   --datadir TEXT   Explicitly set your own directory to pull data from.
   --output TEXT    Override the output filename.
+  --simple         No filling, no sorting, just aggregate.
   --debug          Enable verbose/debug printing.
   --help           Show this message and exit.
 ```
