@@ -33,6 +33,20 @@ Notes:
  - --output to your own path instead of /nfs/goesr-private
  - Taking tens of minutes is normal, a progress bar will indicate time remaining.
 
+ ### goes_mount_base
+
+ To use on a system where spades_[inst]_prod directories are not mounted under /nfs, use the environment
+ variable `goes_mount_base` to locate them to aggregoes.
+
+ The following is a recommended setup:
+
+ ```
+ mkdir -p ~/mounts/spades_[inst]_prod
+ sshfs -o ro user@spadesdev:/nfs/spades_[inst]_prod ~/mounts/spades_[inst]_prod
+ # with the nfs volume mounted locally, you can run aggregoes against that
+ goes_mount_base=~/mounts/ aggregoes do_day [OPTIONS] YYYYMMDD PRODUCT
+```
+
 ## High level overview
 
 Aggregation works in two stages:

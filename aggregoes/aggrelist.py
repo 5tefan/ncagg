@@ -528,6 +528,7 @@ class InputFileNode(AbstractNode):
                                 var_slices.append(aggsort[internal_agg_segment])
                             else:
                                 var_slices.append(self.get_dim_slice(dim))
+                        var_slices = tuple(var_slices)
                         from_file = np.ma.filled(nc_in.variables[variable["name"]][var_slices], fill_value=fill)
                         if growing is None:
                             # initialize growing, this is done here since further concatenations must
