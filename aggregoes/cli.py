@@ -32,13 +32,14 @@ def cli():
 @click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.")
-@click.option("--output", default=None, help="Override the output filename.")
+@click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
 @click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
 def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
     start_time = datetime.strptime(yyyymmdd, "%Y%m%d")
     end_time = start_time + timedelta(days=1) - timedelta(microseconds=1)
 
+    # Step 1: get the files
     mapper = DataLocationMapper(sat)
     if datadir is None:
         time_dir_base = mapper.get_product(product)
@@ -51,22 +52,29 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
     else:
         files = glob(os.path.join(datadir, "%s*.nc" % env))
 
-    # TODO: when primary is implemented
-    runtime_config = mapper.get_config(product)
-    runtime_config.values()[0].update({
-        "min": start_time,
-        "max": end_time
-    })
+    if not simple:
+        # TODO: when primary is implemented
+        runtime_config = mapper.get_config(product)
+        runtime_config.values()[0].update({
+            "min": start_time,
+            "max": end_time
+        })
+    else:
+        runtime_config = None
 
+    # Step 2: generate the aggregation list
     a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(files, runtime_config if not simple else None)
+    aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
     if debug:
         print aggregation_list
 
-    if output is None or not isinstance(output, str):
+    if output is None:
         output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyymmdd, env))
+    else:
+        output = click.format_filename(output)
 
+    # Step 3: evaluate the aggregation list
     click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)
     click.echo("Finished: %s" % output)
@@ -78,7 +86,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
 @click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Override the directory to pull data from.")
-@click.option("--output", default=None, help="Override the output filename.")
+@click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
 @click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
 def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
@@ -100,21 +108,26 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
     else:
         files = glob(os.path.join(datadir, "%s*.nc" % env))
 
-    # TODO: when primary is implemented
-    runtime_config = mapper.get_config(product)
-    runtime_config.values()[0].update({
-        "min": start_time,
-        "max": end_time
-    })
+    if not simple:
+        # TODO: when primary is implemented
+        runtime_config = mapper.get_config(product)
+        runtime_config.values()[0].update({
+            "min": start_time,
+            "max": end_time
+        })
+    else:
+        runtime_config = None
 
     a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(files, runtime_config if not simple else None)
+    aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
     if debug:
         print aggregation_list
 
-    if output is None or not isinstance(output, str):
+    if output is None:
         output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyymm, env))
+    else:
+        output = click.format_filename(output)
 
     click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)
@@ -126,7 +139,7 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
 @click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
 @click.option("--env", default="", help="Which environment to use.")
 @click.option("--datadir", default=None, help="Override the directory to pull data from.")
-@click.option("--output", default=None, help="Override the output filename.")
+@click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
 @click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
 def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
@@ -145,21 +158,26 @@ def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, sim
     else:
         files = glob(os.path.join(datadir, "%s*.nc" % env))
 
-    # TODO: when primary is implemented
-    runtime_config = mapper.get_config(product)
-    runtime_config.values()[0].update({
-        "min": start_time,
-        "max": end_time
-    })
+    if not simple:
+        # TODO: when primary is implemented
+        runtime_config = mapper.get_config(product)
+        runtime_config.values()[0].update({
+            "min": start_time,
+            "max": end_time
+        })
+    else:
+        runtime_config = None
 
     a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(files, runtime_config if not simple else None)
+    aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
     if debug:
         print aggregation_list
 
-    if output is None or not isinstance(output, str):
+    if output is None:
         output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyy, env))
+    else:
+        output = click.format_filename(output)
 
     click.echo("Evaluating aggregation list...")
     a.evaluate_aggregation_list(aggregation_list, output)
