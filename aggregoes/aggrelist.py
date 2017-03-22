@@ -251,7 +251,7 @@ class InputFileNode(AbstractNode):
                     if not in_slice:
                         slice_start = i
                         in_slice = True
-                    elif stepdiff < (0.5 / ((2 - cadence_uncert) * cadence_hz)):
+                    elif stepdiff < (0.5 / ((2 - cadence_uncert) * cadence_hz)) or np.isnan(stepdiff):
                         # if significantly less than tolerance of cadence, remove value, ie cutoff and restart
                         dim_agg_list.append(slice(slice_start, i - 1))
                         in_slice = False
@@ -312,7 +312,15 @@ class InputFileNode(AbstractNode):
                                for d in index_by.dimensions
                                ])
 
-            return index_by[slices]
+            try:
+                # safer to do np.nan, but this block could be simplified to always make the fill
+                # value 0.
+                return np.ma.filled(index_by[slices], fill_value=np.nan)
+            except ValueError:
+                # can't convert nan to int, then fill with 0, will be taken out by slices.
+                # this would need to change if you're ever going to have an unlimited dimension
+                # that regularly is indexed by 0
+                return np.ma.filled(index_by[slices], fill_value=0)
 
     def get_units_of_index_by(self, unlim_dim):
         """
@@ -488,7 +496,7 @@ class InputFileNode(AbstractNode):
             else:
                 dim_end_i = dim_slice.stop
 
-        assert dim_start_i <= dim_end_i, "dim size can't be negative"
+        assert dim_start_i <= dim_end_i, "dim size can't be negative, got [%s,%s] for %s" % (dim_start_i, dim_end_i, self)
         return dim_end_i - dim_start_i
 
     def data_for(self, variable, dimensions, attribute_processor=None):
