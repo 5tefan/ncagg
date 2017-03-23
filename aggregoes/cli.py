@@ -31,7 +31,7 @@ def cli():
 @click.argument("product")
 @click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
 @click.option("--env", default="", help="Which environment to use.")
-@click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.")
+@click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.", type=click.Path(exists=True))
 @click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
 @click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
@@ -50,7 +50,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
             files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
             files += glob(os.path.join(time_dir_base, (start_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
-        files = glob(os.path.join(datadir, "%s*.nc" % env))
+        files = glob(os.path.join(click.format_filename(datadir), "%s*.nc" % env))
 
     if not simple:
         # TODO: when primary is implemented
@@ -85,7 +85,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
 @click.argument("product")
 @click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
 @click.option("--env", default="", help="Which environment to use.")
-@click.option("--datadir", default=None, help="Override the directory to pull data from.")
+@click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.", type=click.Path(exists=True))
 @click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
 @click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
@@ -106,7 +106,7 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
             files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
             files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
-        files = glob(os.path.join(datadir, "%s*.nc" % env))
+        files = glob(os.path.join(click.format_filename(datadir), "%s*.nc" % env))
 
     if not simple:
         # TODO: when primary is implemented
@@ -138,7 +138,7 @@ def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, 
 @click.argument("product")
 @click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
 @click.option("--env", default="", help="Which environment to use.")
-@click.option("--datadir", default=None, help="Override the directory to pull data from.")
+@click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.", type=click.Path(exists=True))
 @click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
 @click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
@@ -156,7 +156,7 @@ def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, sim
             files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
             files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
     else:
-        files = glob(os.path.join(datadir, "%s*.nc" % env))
+        files = glob(os.path.join(click.format_filename(datadir), "%s*.nc" % env))
 
     if not simple:
         # TODO: when primary is implemented

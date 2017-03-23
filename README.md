@@ -20,8 +20,8 @@ Usage: aggregoes do_year [OPTIONS] YYYYMMDD PRODUCT
 Options:
   --sat [GOES-16]  Which satellite to use.
   --env TEXT       Which environment to use.
-  --datadir TEXT   Explicitly set your own directory to pull data from.
-  --output TEXT    Override the output filename.
+  --datadir PATH   Explicitly set your own directory to pull data from.
+  --output PATH    Override the output filename.
   --simple         No filling, no sorting, just aggregate.
   --debug          Enable verbose/debug printing.
   --help           Show this message and exit.
@@ -31,7 +31,8 @@ Notes:
 
  - The PRODUCT argument should be a L1b or l2+ data short name.
  - --env will restrict to taking files only from the specified env, like OR, dn, etc. (case sensitive)
- - --output to your own path instead of /nfs/goesr-private
+ - --output path to filename to write to instead of default behavior.
+ - Using both --simple and --datadir will try to aggregate all data in your datadir, regardless of bounds
  - Taking tens of minutes is normal, a progress bar will indicate time remaining.
 
  ### goes_mount_base
@@ -41,7 +42,7 @@ Notes:
 
  The following is a recommended setup:
 
- ```
+```
  mkdir -p ~/mounts/spades_[inst]_prod
  sshfs -o ro user@spadesdev:/nfs/spades_[inst]_prod ~/mounts/spades_[inst]_prod
  # with the nfs volume mounted locally, you can run aggregoes against that
