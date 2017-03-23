@@ -233,13 +233,16 @@ class InputFileNode(AbstractNode):
 
                 for i in to_iter:
                     # cut off conditions first,
-                    if times[aggsort[i]] == 0:
-                        if in_slice and i - slice_start > 1:
-                            # only if there is content (len > 1) in the slice and we are actually in a slice...
-                            # cut off slice and insert a fill
+                    if times[aggsort[i]] == 0 or np.isnan(times[aggsort[i]]):
+                        if in_slice:
+                            # only if we are actually in a slice... cut off slice and insert a fill
                             dim_agg_list.append(slice(slice_start, i))
                         if cadence_hz is None:
-                            # keep in_slice == True
+                            # when cadence_hz is none, that means we're going though np.where(times==0)
+                            # instead of every value, so in that case, we jump right back into the slice
+                            # because next time around though this loop will again be a time == 0, and we'll
+                            # slice again. No intermediate loop to hit the if not in_slice below to reset back
+                            # in, so keep in_slice == True
                             slice_start = i + 1
                         else:
                             in_slice = False
@@ -251,7 +254,7 @@ class InputFileNode(AbstractNode):
                     if not in_slice:
                         slice_start = i
                         in_slice = True
-                    elif stepdiff < (0.5 / ((2 - cadence_uncert) * cadence_hz)) or np.isnan(stepdiff):
+                    elif stepdiff < (0.5 / ((2 - cadence_uncert) * cadence_hz)):
                         # if significantly less than tolerance of cadence, remove value, ie cutoff and restart
                         dim_agg_list.append(slice(slice_start, i - 1))
                         in_slice = False
@@ -268,9 +271,9 @@ class InputFileNode(AbstractNode):
                         # jump right back into a slice.
                         slice_start = i
                         in_slice = True
-                        # else:
-                        #    # otherwise if distance from last is within tolerance, continue
-                        #    pass
+                    # else:
+                    #    # otherwise if distance from last is within tolerance, continue
+                    #    pass
 
                 # when loop terminates, if still in_slice, add that final slice.
                 # EXCEPT, check for the edge case where cadence_hz is none and the time is a 0

@@ -1,4 +1,5 @@
 import logging
+import warnings
 import traceback
 from datetime import datetime
 
@@ -18,6 +19,8 @@ logger.setLevel(logging.DEBUG)
 console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
 logging.getLogger().addHandler(console)
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 class Aggregator(object):
