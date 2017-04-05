@@ -26,37 +26,48 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 class Aggregator(object):
     """
     Nominally, this is a three step process.
-        # STEP 1. input files and config
-        self.config = config
-        # STEP 2. generate aggregation list
-        aggregation_list = self.generate_aggregation_list()
+        # STEP 1. Initialize with an optional config.
+        aggregator = Aggregator()
+        # STEP 2. generate aggregation list from a list of files
+        aggregation_list = aggregator.generate_aggregation_list(files)
         # STEP 3. finally, evaluate the aggregation list
-        self.evaluate_aggregation_list(aggregation_list)
-
-
-    Ways to run:
-
-    These will automatically go to the /nfs/... archive and get the required data.
-        Aggregator.doDay("YYYYMMDD", "data-short-name")
-        Aggregator.doMonth("YYYYMM", "data-short-name")
-        Aggregator.doYear("YYYY", "data-short-name")
-
-    Aggregator.doCustom(file_list, start_date, end_date)
+        aggregator.evaluate_aggregation_list(aggregation_list, filename)
     """
 
     def __init__(self, config=None):
+        """
+        Initialize an aggregator, taking an optional config dict which can contain the keys ["variables",
+        "dimensions", "global attributes"].
+        
+        If the config is missing any of the expected keys, they will be automatically configured 
+        when generate_aggregation_list is called based on the first file in the list to aggregate
+        as a template.
+        
+        :type config: dict
+        :param config: Optional config
+        """
         super(Aggregator, self).__init__()
         self.config = config or {}
+
+        # Validate each component of the config. Failing validation, an exception will be raised.
+        # TODO: user cerberus to validate these instead.
         [validate_a_variable_block(b) for b in self.config.get("variables", [])]
         [validate_a_dimension_block(b) for b in self.config.get("dimensions", [])]
         [validate_a_global_attribute_block(b) for b in self.config.get("global attributes", [])]
 
         self.timing_certainty = 0.9
-        # if config doesn't come with either a "global attributes" or a "data variables" key,
-        # they will be automatically configured when generate_aggregation_list is called based
-        # on the first file in the list to aggregate as a template.
 
-    def generate_aggregation_list(self, files_to_aggregate, config=None):
+    def generate_aggregation_list(self, files_to_aggregate, index_config=None):
+        """
+        Generate an aggregation list from a list of input files.
+
+        :type files_to_aggregate: list[str]
+        :param files_to_aggregate: a list of filenames to aggregate.
+        :type index_config: dict
+        :param index_config: dict configuring variables to index unlimited dimensions by.
+        :rtype: AggreList
+        :return: an aggregation list
+        """
         aggregation_list = AggreList()
 
         if len(files_to_aggregate) == 0:
@@ -77,7 +88,7 @@ class Aggregator(object):
             logger.debug("\tvariables configuration not found, creating default")
             self.config["variables"] = generate_default_variables_config(files_to_aggregate[0])
 
-        self.config["config"] = unlim_config = validate_unlim_config(config, files_to_aggregate[0])
+        self.config["config"] = unlim_config = validate_unlim_config(index_config, files_to_aggregate[0])
 
         logger.info("Initializing input file nodes...")
         input_files = []
@@ -180,12 +191,11 @@ class Aggregator(object):
         # if the gap is less than 0, we'll need to trim something, ie two files overlap and
         # we'll need to pick one of the overlapping
         gap_too_small_upper_bound_seconds = 1.0 / ((2.0 - self.timing_certainty) * cadence_hz) if cadence_hz else 0
-        gap_too_small = coverage_diff <= gap_too_small_upper_bound_seconds
-        where_gap_too_small = np.where(gap_too_small)[0]
+        where_gap_too_small = np.where(coverage_diff <= gap_too_small_upper_bound_seconds)[0]
         for problem_index in where_gap_too_small:
             num_overlap = np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))
             # Take the gap off from front of following file, ie. bias towards first values that arrived.
-            # On the end, when there is no following file, instead chop the end from the previous file.
+            # On the end, when there is no following file, instead chop the end from the last file.
             if problem_index < len(input_files) - 1:
                 # this np.floor is consistent with np.ceil (pretty sure, bias towards keeping data
                 # with the previous agg interval if a record falls over?

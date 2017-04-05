@@ -41,7 +41,7 @@ class TestInputFileNode(unittest.TestCase):
             }
         })
         end_found = num2date([a.get_last_of_index_by("report_number")], "seconds since 2000-01-01 12:00:00")[0]
-        self.assertEqual(end_found, datetime(2017, 2, 12, 15, 0, 57, 900859))
+        self.assertEqual(end_found, datetime(2017, 2, 12, 15, 0, 58, 900926))
 
     def test_get_start_time_with_cadence(self):
         a = InputFileNode(test_input_file, {
@@ -63,6 +63,5 @@ class TestInputFileNode(unittest.TestCase):
             }
         })
         end_found = num2date([a.get_last_of_index_by("report_number")], "seconds since 2000-01-01 12:00:00")[0]
-        self.assertEqual(end_found, datetime(2017, 2, 12, 15, 0, 57, 900859))
+        self.assertEqual(end_found, datetime(2017, 2, 12, 15, 0, 58, 900926))
 
-        # TODO make test with cadence

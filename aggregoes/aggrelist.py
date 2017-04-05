@@ -215,7 +215,7 @@ class InputFileNode(AbstractNode):
                 cadence_hz = self.unlimited_dim_indexed_by_time_var_map[unlim_dim].get("expected_cadence", {}).get(unlim_dim, None)
 
                 # big picture, if cadence_hz is None, then we'll go through np.where(times==0) and put slices in
-                # the gaps
+                # the gaps. If we DO have a cadence, then go through and look at the spacing between each.
                 # if no cadence, np.where(times == 0) for each insert slice between
                 times = self.get_index_of_index_by(slice(None), unlim_dim)
                 self.sort_unlim[unlim_dim] = aggsort = np.argsort(times)

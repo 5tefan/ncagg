@@ -68,5 +68,8 @@ class TestAttributeStrategies(unittest.TestCase):
         process, finalize = StratDateCreated.setup_handler()
         for attr in self.mock_str_attributes:
             process(attr)
-        self.assertAlmostEqual(finalize(self.test_nc), datetime_format(datetime.now()))
+        # since both of these date time strings may not be created exactly at the same time,
+        # only check to make sure they are mostly the same, it's ok if there is some difference
+        # in the last milliseconds piece.
+        self.assertEqual(finalize(self.test_nc)[:-3], datetime_format(datetime.now())[:-3])
 
