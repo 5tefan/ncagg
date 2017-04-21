@@ -223,7 +223,7 @@ class InputFileNode(AbstractNode):
 
                 # find the first good value, ie value is not zero
                 slice_start = 0
-                while times[aggsort[slice_start]] == 0 and slice_start < times.size:
+                while times[aggsort[slice_start]] <= 0 and slice_start < times.size:
                     slice_start += 1
 
                 dim_agg_list = []
@@ -233,7 +233,7 @@ class InputFileNode(AbstractNode):
 
                 for i in to_iter:
                     # cut off conditions first,
-                    if times[aggsort[i]] == 0 or np.isnan(times[aggsort[i]]):
+                    if times[aggsort[i]] <= 0 or np.isnan(times[aggsort[i]]):
                         if in_slice:
                             # only if we are actually in a slice... cut off slice and insert a fill
                             dim_agg_list.append(slice(slice_start, i))
