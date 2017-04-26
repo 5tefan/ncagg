@@ -112,7 +112,24 @@ class DataLocationMapper(object):
                     }
                 }
             },
-
+            "mpsh-l2-avg5m": {
+                "base": os.path.join(base, "spades_seis_prod/archive/", sat),
+                "rc": {
+                    "record_number": {
+                        "index_by": "L2_SciData_TimeStamp",
+                        "expected_cadence": {"record_number": 1.0 / (60.0 * 5.0)}
+                    }
+                }
+            },
+            "sgps-l2-avg5m": {
+                "base": os.path.join(base, "spades_seis_prod/archive/", sat),
+                "rc": {
+                    "record_number": {
+                        "index_by": "L2_SciData_TimeStamp",
+                        "expected_cadence": {"record_number": 1.0 / (60.0 * 5.0)}
+                    }
+                }
+            }
         }
 
     def get_product(self, product):

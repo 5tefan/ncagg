@@ -5,6 +5,12 @@ import numpy as np
 
 
 def get_fill_for(variable):
+    """
+    Get an appropriate fill value for a netcdf variable.
+    
+    :param variable: A netcdf variable object.
+    :return: A fill value for variable.
+    """
     datatype = np.dtype(variable["datatype"])
     try:
         return datatype.type(np.nan)
@@ -12,7 +18,7 @@ def get_fill_for(variable):
         # for an integer type, there is no concept of nan, this will raise
         # ValueError: cannot convert float NaN to integer, so use -9999 instead
         # main reason for this complexity is to handle exis integer datatypes
-        nc_default_fill = datatype.type( nc.default_fillvals[datatype.str[1:]] )
+        nc_default_fill = datatype.type(nc.default_fillvals[datatype.str[1:]])
         return datatype.type(variable.get("attributes", {}).get("_FillValue", nc_default_fill))
 
 
@@ -23,7 +29,6 @@ class AbstractNode(object):
     At aggregation time, an AggreList expects to be able to call
     - size_along to get the size along the unlimited dimension that it will get from data_for
     - data_for to get the data corresponding to this Node
-
     """
 
     def __init__(self):
@@ -392,7 +397,7 @@ class InputFileNode(AbstractNode):
         :rtype: None
         :return: None
         """
-        if isinstance(start, int):
+        if isinstance(start, int):  # possibly need to use int or long here
             old_slice = self.dim_slices.get(dim, slice(None))
             self.dim_slices[dim] = slice(start, old_slice.stop)
         else:

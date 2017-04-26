@@ -323,7 +323,7 @@ class Aggregator(object):
             for var in self.config["variables"]:
                 var_name = var.get("map_to", var["name"])
                 var_out = nc_out.createVariable(var_name, np.dtype(var["datatype"]), var["dimensions"],
-                                                zlib=True)
+                                                chunksizes=var.get("chunksizes", None), zlib=True)
                 var_out.setncatts(var["attributes"])
 
     def handle_unexpected_condition(self, message, fatal=False, email=None):
