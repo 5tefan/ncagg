@@ -73,13 +73,24 @@ def generate_default_dimensions_config(an_input_file):
 
 
 def generate_default_variables_config(an_input_file):
+    def chunked(var):
+        """
+        Return chunking info for var if var is chunked, not contiguous.
+        :type var: nc.Variable
+        :param var: netcdf variable to check for chunking
+        :return: list of chunk sizes if chunked, otherwise None
+        """
+        chunking = var.chunking()
+        if isinstance(chunking, list):
+            return chunking
+
     with nc.Dataset(an_input_file) as nc_in:
         result = [{
             "name": k,
             "dimensions": nc_in.variables[k].dimensions,
             "datatype": str(nc_in.variables[k].datatype),
             "attributes": {ak: nc_in.variables[k].getncattr(ak) for ak in nc_in.variables[k].ncattrs()},
-            "chunksizes": nc_in.variables[k].chunking()
+            "chunksizes": chunked(nc_in.variables[k])
         } for k in nc_in.variables.keys()]
 
         # If the variable doesn't come with an explicit fill value, set it to the netcdf.default_fillvals value
