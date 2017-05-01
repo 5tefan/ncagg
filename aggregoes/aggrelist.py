@@ -163,10 +163,10 @@ class FillNode(AbstractNode):
                         [1 if index != i else -1 for i in xrange(len(variable["dimensions"]))]
                     )
                 )
-                # if this is THE unlimited dimension, add the cadence. Since we start at 0, but the value in
+                # if this is THE unlimited dimension, add one cadence. Since we start at 0, but the value in
                 # self.unlimited_dim_index_start is the actual existing value,
                 if dim_is_unlim:
-                    linspaces[-1] += dim_expected_cadence
+                    linspaces[-1] += 1./dim_expected_cadence
 
         if var_indexes is not None:
             # unfortunately, I couldn't get np.sum to work here. Keeps giving
@@ -234,7 +234,7 @@ class InputFileNode(AbstractNode):
                 dim_agg_list = []
                 in_slice = True
 
-                to_iter = xrange(slice_start + 1, times.size) if cadence_hz else np.where(times == 0)[0]
+                to_iter = xrange(slice_start + 1, times.size) if cadence_hz else np.where(times <= 0)[0]
 
                 for i in to_iter:
                     # cut off conditions first,
@@ -261,7 +261,7 @@ class InputFileNode(AbstractNode):
                         in_slice = True
                     elif stepdiff < (0.5 / ((2 - cadence_uncert) * cadence_hz)):
                         # if significantly less than tolerance of cadence, remove value, ie cutoff and restart
-                        dim_agg_list.append(slice(slice_start, i - 1))
+                        dim_agg_list.append(slice(slice_start, i))
                         in_slice = False
                     elif stepdiff > (2 / ((2 - cadence_uncert) * cadence_hz)):
                         # too big a time step, cutoff slice and insert fill
