@@ -1,0 +1,1076 @@
+{
+    "dimensions": [
+        {
+            "name": "energy_T1", 
+            "size": 6
+        }, 
+        {
+            "name": "energy_T2", 
+            "size": 2
+        }, 
+        {
+            "name": "energy_T3", 
+            "size": 5
+        }, 
+        {
+            "name": "sensor_unit", 
+            "size": 2
+        }, 
+        {
+            "name": "channel", 
+            "size": 3
+        }, 
+        {
+            "name": "report_number", 
+            "size": null
+        }, 
+        {
+            "name": "solar_array_current_channel_index", 
+            "size": 4
+        }, 
+        {
+            "name": "number_of_time_bounds", 
+            "size": 2
+        }, 
+        {
+            "name": "sensor_unit_str_len", 
+            "size": 6
+        }, 
+        {
+            "name": "energy_T1_str_len", 
+            "size": 25
+        }, 
+        {
+            "name": "energy_T2_str_len", 
+            "size": 22
+        }, 
+        {
+            "name": "energy_T3_str_len", 
+            "size": 26
+        }, 
+        {
+            "name": "channel_str_len", 
+            "size": 16
+        }, 
+        {
+            "name": "solar_array_mnemonic_str_len", 
+            "size": 25
+        }
+    ], 
+    "global attributes": [
+        {
+            "name": "production_site", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "dataset_name", 
+            "strategy": "filename"
+        }, 
+        {
+            "name": "naming_authority", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "institution", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "project", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "iso_series_metadata_id", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "Metadata_Conventions", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "keywords_vocabulary", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "title", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "summary", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "license", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "keywords", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "cdm_data_type", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "orbital_slot", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "platform_ID", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "SGPS-X_instrument_ID", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "SGPS+X_instrument_ID", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "instrument_type", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "processing_level", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "production_data_source", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "production_environment", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "time_coverage_start", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "time_coverage_end", 
+            "strategy": "time_coverage_end"
+        }, 
+        {
+            "name": "date_created", 
+            "strategy": "date_created"
+        }, 
+        {
+            "name": "L1b_processing_parm_version", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "algorithm_version", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "product_version", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "id", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "time_coverage_begin", 
+            "strategy": "time_coverage_begin"
+        }, 
+        {
+            "name": "L1b_processing_param_version", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "records_present", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "records_data", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "records_fill", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "records_missing", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "NCO", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "time_coverage_duration", 
+            "strategy": "remove"
+        }
+    ], 
+    "variables": [
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "differential proton flux at specific energy bands for telescope 1\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "cm-2 sr-1 s-1 keV-1", 
+                "valid_range": [
+                    -9999999.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                6
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T1"
+            ], 
+            "name": "T1_DifferentialProtonFluxes"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "dynamic error estimate of differential proton flux at specific energy bands for telescope 1\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "cm-2 sr-1 s-1 keV-1", 
+                "valid_range": [
+                    -9999999.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                6
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T1"
+            ], 
+            "name": "T1_DifferentialProtonFluxUncertainties"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    31, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_missing_L0_data_or_not_operational_mode_qf invalid_due_to_calibration_failed_qf degraded_due_to_deadtime_correction_threshold_exceeded_qf degraded_due_to_out_of_band_contamination_level_threshold_exceeded_qf degraded_due_to_dynamic_error_threshold_exceeded_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16
+                ], 
+                "long_name": "differential proton flux data quality flag at specific energy bands for telescope 1\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    28
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                6
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T1"
+            ], 
+            "name": "T1_DifferentialProtonFluxDQFs"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "differential proton flux at specific energy bands for telescope 2\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "cm-2 sr-1 s-1 keV-1", 
+                "valid_range": [
+                    -9999999.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                2
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T2"
+            ], 
+            "name": "T2_DifferentialProtonFluxes"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "dynamic error estimate of differential proton flux at specific energy bands for telescope 2\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "cm-2 sr-1 s-1 keV-1", 
+                "valid_range": [
+                    -9999999.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                2
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T2"
+            ], 
+            "name": "T2_DifferentialProtonFluxUncertainties"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    31, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_missing_L0_data_or_not_operational_mode_qf invalid_due_to_calibration_failed_qf degraded_due_to_deadtime_correction_threshold_exceeded_qf degraded_due_to_out_of_band_contamination_level_threshold_exceeded_qf degraded_due_to_dynamic_error_threshold_exceeded_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16
+                ], 
+                "long_name": "differential proton flux data quality flag at specific energy bands for telescope 2\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    28
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                2
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T2"
+            ], 
+            "name": "T2_DifferentialProtonFluxDQFs"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "differential proton flux at specific energy bands for telescope 3\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "cm-2 sr-1 s-1 keV-1", 
+                "valid_range": [
+                    -9999999.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                5
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T3"
+            ], 
+            "name": "T3_DifferentialProtonFluxes"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "dynamic error estimate of differential proton flux at specific energy bands for telescope 3\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "cm-2 sr-1 s-1 keV-1", 
+                "valid_range": [
+                    -9999999.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                5
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T3"
+            ], 
+            "name": "T3_DifferentialProtonFluxUncertainties"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    31, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_missing_L0_data_or_not_operational_mode_qf invalid_due_to_calibration_failed_qf degraded_due_to_deadtime_correction_threshold_exceeded_qf degraded_due_to_out_of_band_contamination_level_threshold_exceeded_qf degraded_due_to_dynamic_error_threshold_exceeded_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16
+                ], 
+                "long_name": "differential proton flux data quality flag at specific energy bands for telescope 3\u2019s primary proton data channels on each of the two sensor units", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    28
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                5
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "energy_T3"
+            ], 
+            "name": "T3_DifferentialProtonFluxDQFs"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "integral proton flux at energy band > 500 MeV for telescope 3\u2019s primary integral data channel P11 on each of the two sensor units", 
+                "units": "cm-2 sr-1 s-1", 
+                "valid_range": [
+                    -9999999.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "T3P11_IntegralProtonFlux"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "dynamic error estimate of integral proton flux at energy band > 500 MeV for telescope 3\u2019s primary integral data channel P11 on each of the two sensor units", 
+                "units": "cm-2 sr-1 s-1", 
+                "valid_range": [
+                    -9999999.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "T3P11_IntegralProtonFluxUncertainties"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    31, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_missing_L0_data_or_not_operational_mode_qf invalid_due_to_calibration_failed_qf degraded_due_to_deadtime_correction_threshold_exceeded_qf degraded_due_to_out_of_band_contamination_level_threshold_exceeded_qf degraded_due_to_dynamic_error_threshold_exceeded_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16
+                ], 
+                "long_name": "integral proton flux data quality flag at energy band > 500 MeV for telescope 3\u2019s primary integral data channel P11 on each of the two sensor units", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    28
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "T3P11_IntegralProtonFluxDQFs"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "all_data_available some_data_available all_data_missing", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2
+                ], 
+                "long_name": "flags indicating availability of instrument engineering telemetry data on each of the two sensor units", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    2
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "L1a_EngData_Flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "all_data_available some_data_available all_data_missing", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2
+                ], 
+                "long_name": "flags indicating availability of instrument proton count science data on each of the two sensor units", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    2
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "L1a_SciData_Flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "good_processing_qf failed_processing_qf processing_not_attempted_due_to_missing_L0_data_qf processing_not_attempted_due_to_non_operational_mode_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    3
+                ], 
+                "long_name": "flags indicating status of L1b product processing", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    3
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "L1b_Processing_Flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 0, 
+                "_Unsigned": "true", 
+                "long_name": "number of one second blocks of SGPS data used to create Solar and Galactic Protons product reports on each of the two sensor units", 
+                "units": "count", 
+                "valid_range": [
+                    1, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "N_blocks"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "no_mode_indicated standby_operational_mode operational_mode instrument_diagnostic_mode in-flight_calibration_mode", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    3, 
+                    4
+                ], 
+                "long_name": "SGPS-X and SGPS+X instrument (sensor) mode", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    4
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "Instrument_Mode"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "SEISS SGPS-X and SGPS+X instrument (sensor) serial number", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    -1
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "Instrument_Serial_Number"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "on_board_contamination_removal_disabled on_board_contamination_removal_enabled", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether on-board out-of-band contamination removal is enabled for primary proton data channels P7, P8CF and P9F on each of the two sensor units", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2, 
+                3
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit", 
+                "channel"
+            ], 
+            "name": "D3-D1_Logic_Flags"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "time of observation, accurate to within 0.5 seconds of onboard data acquisition start time, for the two sensor units for each report", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number", 
+                "sensor_unit"
+            ], 
+            "name": "L1a_SciData_TimeStamp"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q0", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q0"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q1", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q2", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q3", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q3"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF X coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -42171520.0, 
+                    42171520.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_X"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF Y coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -42171520.0, 
+                    42171520.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_Y"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF Z coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -7360.0, 
+                    7360.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_Z"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "upright neither inverted", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2
+                ], 
+                "long_name": "flags indicating whether spacecraft is operating in yaw flip configuration", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    2
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "yaw_flip_flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "false true", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether sun is obscured by earth as provided by spacecraft", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "eclipse_flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "solar array current in DN for 4 channel groups (1-4, 5-8, 9-12, 13-16)", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    -2
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                4
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number", 
+                "solar_array_current_channel_index"
+            ], 
+            "name": "solar_array_current"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "start and end time of observations associated with product", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "float64", 
+            "dimensions": [
+                "number_of_time_bounds"
+            ], 
+            "name": "product_time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for the two Solar and Galactic Proton Sensor units nominally (i.e. no yaw flip) providing fields of view in the westward (-X) and eastward (+X) direction. labels are ordered the same as applicable data variables"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "sensor_unit", 
+                "sensor_unit_str_len"
+            ], 
+            "name": "sensor_unit_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for six energy bands reported from telescope 1 spanning from 1 to 25 MeV. labels are ordered the same as applicable data variables"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "energy_T1", 
+                "energy_T1_str_len"
+            ], 
+            "name": "energy_T1_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for two energy bands reported from telescope 2 spanning from 25 to 80 MeV. labels are ordered the same as applicable data variables"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "energy_T2", 
+                "energy_T2_str_len"
+            ], 
+            "name": "energy_T2_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for five energy bands reported from telescope 3 spanning from 80 to 500 MeV. labels are ordered the same as applicable data variables"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "energy_T3", 
+                "energy_T3_str_len"
+            ], 
+            "name": "energy_T3_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for three primary proton channels supporting on-board out-of-band contamination removal. labels are ordered the same as applicable data variable"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "channel", 
+                "channel_str_len"
+            ], 
+            "name": "D3-D1_logic_channel_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for four solar array current telemetry mnemonics. labels are ordered the same as applicable data variable"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "solar_array_current_channel_index", 
+                "solar_array_mnemonic_str_len"
+            ], 
+            "name": "solar_array_current_channel_index_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "percent data lost due to uncorrectable L0 errors", 
+                "units": "percent", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "float32", 
+            "dimensions": [], 
+            "name": "percent_uncorrectable_L0_errors"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -2147483647, 
+                "input_SGPS_L0_data": "OR_SEIS-L0_G16_s20171162303000_e20171162303590_c*.nc", 
+                "long_name": "container for filenames of dynamic algorithm input data"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "int32", 
+            "dimensions": [], 
+            "name": "algorithm_dynamic_input_data_container"
+        }
+    ]
+}

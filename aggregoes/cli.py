@@ -35,7 +35,9 @@ def cli():
 @click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
 @click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
 @click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
-def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
+@click.option("--config", default=None, help="Use a specifc configuration instead of the default based on the first"
+                                             "data file", type=click.File())
+def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False, config=None):
     start_time = datetime.strptime(yyyymmdd, "%Y%m%d")
     end_time = start_time + timedelta(days=1) - timedelta(microseconds=1)
 
@@ -63,7 +65,7 @@ def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, 
         runtime_config = None
 
     # Step 2: generate the aggregation list
-    a = ProgressAggregator()
+    a = ProgressAggregator(config=config)
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
 
     if debug:

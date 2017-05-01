@@ -1,0 +1,959 @@
+{
+    "dimensions": [
+        {
+            "name": "report_number", 
+            "size": null
+        }, 
+        {
+            "name": "number_samples_per_report", 
+            "size": 10
+        }, 
+        {
+            "name": "number_of_sensors", 
+            "size": 2
+        }, 
+        {
+            "name": "coordinate", 
+            "size": 3
+        }, 
+        {
+            "name": "solar_array_current_channel_index", 
+            "size": 4
+        }, 
+        {
+            "name": "number_of_time_bounds", 
+            "size": 2
+        }, 
+        {
+            "name": "sensor_str_len", 
+            "size": 20
+        }, 
+        {
+            "name": "coordinate_str_len", 
+            "size": 1
+        }, 
+        {
+            "name": "solar_array_mnemonic_str_len", 
+            "size": 25
+        }
+    ], 
+    "global attributes": [
+        {
+            "name": "production_site", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "dataset_name", 
+            "strategy": "filename"
+        }, 
+        {
+            "name": "naming_authority", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "institution", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "project", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "iso_series_metadata_id", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "Metadata_Conventions", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "keywords_vocabulary", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "title", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "summary", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "license", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "keywords", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "cdm_data_type", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "processing_level", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "orbital_slot", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "platform_ID", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "inboard_MAG_instrument_ID", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "outboard_MAG_instrument_ID", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "instrument_type", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "production_data_source", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "production_environment", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "time_coverage_start", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "time_coverage_end", 
+            "strategy": "time_coverage_end"
+        }, 
+        {
+            "name": "date_created", 
+            "strategy": "date_created"
+        }, 
+        {
+            "name": "L1b_processing_parm_version", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "algorithm_version", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "product_version", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "id", 
+            "strategy": "first"
+        }, 
+        {
+            "name": "time_coverage_begin", 
+            "strategy": "time_coverage_begin"
+        }, 
+        {
+            "name": "L1b_processing_param_version", 
+            "strategy": "unique_list"
+        }, 
+        {
+            "name": "records_present", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "records_data", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "records_fill", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "records_missing", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "NCO", 
+            "strategy": "remove"
+        }, 
+        {
+            "name": "time_coverage_duration", 
+            "strategy": "remove"
+        }
+    ], 
+    "variables": [
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "compensated (temperature calibrated and misalignment corrected) magnetic field for x, y, and z direction in calibrated orthogonal reference frame for inboard magnetometer (MFIB)", 
+                "units": "nT", 
+                "valid_range": [
+                    -512.0, 
+                    512.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10, 
+                3
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report", 
+                "coordinate"
+            ], 
+            "name": "IB_data"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "compensated (temperature calibrated and misalignment corrected) magnetic field for x, y, and z direction in calibrated orthogonal  reference frame for outboard magnetometer (MFOB)", 
+                "units": "nT", 
+                "valid_range": [
+                    -512.0, 
+                    512.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10, 
+                3
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report", 
+                "coordinate"
+            ], 
+            "name": "OB_data"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "estimated ambient magnetic field for x, y, and z direction in Earth Polar Normal reference frame", 
+                "units": "nT", 
+                "valid_range": [
+                    -512.0, 
+                    512.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10, 
+                3
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report", 
+                "coordinate"
+            ], 
+            "name": "amb_mag_EPN"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "estimated ambient magnetic field for x, y, and z direction in J2000 Earth-Centered Inertial reference frame", 
+                "units": "nT", 
+                "valid_range": [
+                    -512.0, 
+                    512.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10, 
+                3
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report", 
+                "coordinate"
+            ], 
+            "name": "amb_mag_ECI"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "estimated ambient magnetic field for x, y, and z direction in spacecraft\u2019s Body Reference Frame", 
+                "units": "nT", 
+                "valid_range": [
+                    -512.0, 
+                    512.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10, 
+                3
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report", 
+                "coordinate"
+            ], 
+            "name": "amb_mag_BRF"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "estimated total ambient magnetic field in spacecraft\u2019s Attitude Control Reference Frame", 
+                "units": "nT", 
+                "valid_range": [
+                    -512.0, 
+                    512.0
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report"
+            ], 
+            "name": "total_mag_ACRF"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    8388607, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144, 
+                    524288, 
+                    1048576, 
+                    2097152, 
+                    4194304
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_missing_L0_IB_and_OB_MAG_data_qf degraded_due_to_IB_MAG_x-axis_potential_failure_or_off_state_or_IB_mag_potentially_in_maintenance_mode_qf degraded_due_to_IB_MAG_y-axis_potential_failure_or_off_state_or_IB_mag_potentially_in_maintenance_mode_qf degraded_due_to_IB_MAG_z-axis_potential_failure_or_off_state_or_IB_mag_potentially_in_maintenance_mode_qf degraded_due_to_OB_MAG_x-axis_potential_failure_or_off_state_or_OB_mag_potentially_in_maintenance_mode_qf degraded_due_to_OB_MAG_y-axis_potential_failure_or_off_state_or_OB_mag_potentially_in_maintenance_mode_qf degraded_due_to_OB_MAG_z-axis_potential_failure_or_off_state_or_OB_mag_potentially_in_maintenance_mode_qf degraded_due_to_IB_MAG_x-axis_magnetic_field_at_saturation_qf degraded_due_to_IB_MAG_y-axis_magnetic_field_at_saturation_qf degraded_due_to_IB_MAG_z-axis_magnetic_field_at_saturation_qf degraded_due_to_OB_MAG_x-axis_magnetic_field_at_saturation_qf degraded_due_to_OB_MAG_y-axis_magnetic_field_at_saturation_qf degraded_due_to_OB_MAG_z-axis_magnetic_field_at_saturation_qf degraded_due_to_MAG_calibration_maneuver_in_progress_qf degraded_due_to_potentially_stale_MAG_engineering_data_qf potentially_degraded_due_to_out_of_valid_range_IB_MAG_x-axis_thermistor_temperature_qf potentially_degraded_due_to_out_of_valid_range_IB_MAG_y-axis_thermistor_temperature_qf potentially_degraded_due_to_out_of_valid_range_IB_MAG_z-axis_thermistor_temperature_qf potentially_degraded_due_to_out_of_valid_range_OB_MAG_x-axis_thermistor_temperature_qf potentially_degraded_due_to_out_of_valid_range_OB_MAG_y-axis_thermistor_temperature_qf potentially_degraded_due_to_out_of_valid_range_OB_MAG_z-axis_thermistor_temperature_qf potentially_degraded_due_to_out_of_valid_range_IB_electronics_temperature_qf potentially_degraded_due_to_out_of_valid_range_OB_electronics_temperature_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144, 
+                    524288, 
+                    1048576, 
+                    2097152, 
+                    4194304
+                ], 
+                "long_name": "magnetometer L1b processing and data quality flags", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    8388607
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10
+            ], 
+            "datatype": "int32", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report"
+            ], 
+            "name": "DQF"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    1, 
+                    1, 
+                    8190, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096
+                ], 
+                "flag_meanings": "operational_mode instrument_diagnostic_mode good_status x-axis_data_error y-axis_data_error z-axis_data_error unrecoverable_RAM_error_detected_by_EDAC uncorrected_EEPROM_page_0_embedded_software_image_error uncorrected_EEPROM_page_1_embedded_software_image_error uncorrected_EEPROM_page_2_embedded_software_image_error uncorrected_EEPROM_page_3_embedded_software_image_error uncorrected_EEPROM_page_0_calibration_factor_error uncorrected_EEPROM_page_1_calibration_factor_error uncorrected_EEPROM_page_2_calibration_factor_error uncorrected_EEPROM_page_3_calibration_factor_error", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    0, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096
+                ], 
+                "long_name": "inboard magnetometer status flags", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    8191
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report"
+            ], 
+            "name": "IB_status"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    1, 
+                    1, 
+                    8190, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096
+                ], 
+                "flag_meanings": "operational_mode instrument_diagnostic_mode good_status x-axis_data_error y-axis_data_error z-axis_data_error unrecoverable_RAM_error_detected_by_EDAC uncorrected_EEPROM_page_0_embedded_software_image_error uncorrected_EEPROM_page_1_embedded_software_image_error uncorrected_EEPROM_page_2_embedded_software_image_error uncorrected_EEPROM_page_3_embedded_software_image_error uncorrected_EEPROM_page_0_calibration_factor_error uncorrected_EEPROM_page_1_calibration_factor_error uncorrected_EEPROM_page_2_calibration_factor_error uncorrected_EEPROM_page_3_calibration_factor_error", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    0, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096
+                ], 
+                "long_name": "outboard magnetometer status flags", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    8191
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                10
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report"
+            ], 
+            "name": "OB_status"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "magnetometer instrument (sensor) serial number", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    -2
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                2
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number", 
+                "number_of_sensors"
+            ], 
+            "name": "Instrument_ID"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "upright neither inverted", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2
+                ], 
+                "long_name": "flags indicating whether spacecraft is operating in yaw flip configuration", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    2
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "yaw_flip"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "false true", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether sun is obscured by earth as provided by spacecraft", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "eclipse_flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "time of 10 Hz inboard magnetometer observations for each report", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": [
+                256, 
+                10
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report"
+            ], 
+            "name": "IB_time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "time of 10 Hz outboard magnetometer observations for each report", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": [
+                256, 
+                10
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number", 
+                "number_samples_per_report"
+            ], 
+            "name": "OB_time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q0", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "attitude_quat_Q0"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q1", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "attitude_quat_Q1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q2", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "attitude_quat_Q2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q3", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "attitude_quat_Q3"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF X coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -42171520.0, 
+                    42171520.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_X"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF Y coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -42171520.0, 
+                    42171520.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_Y"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF Z coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -7360.0, 
+                    7360.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_Z"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "J2000 ECI to spacecraft ORF orbit quaternion Q0", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "orbit_quat_Q0"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "J2000 ECI to spacecraft ORF orbit quaternion Q1", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "orbit_quat_Q1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "J2000 ECI to spacecraft ORF orbit quaternion Q2", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "orbit_quat_Q2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.9999999999999996e+30, 
+                "long_name": "J2000 ECI to spacecraft ORF orbit quaternion Q3", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "orbit_quat_Q3"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "time of corresponding ACRF to J2000 ECI attitude and J2000 ECI to ORF orbit quaternions for each report", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quat_timestamp"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "solar array current in DN for 4 channel groups (1-4, 5-8, 9-12, 13-16)", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    -2
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                4
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number", 
+                "solar_array_current_channel_index"
+            ], 
+            "name": "solar_array_current"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "long_name": "number of magnetometer observations associated with each L1b report in product file", 
+                "units": "count", 
+                "valid_range": [
+                    10, 
+                    10
+                ]
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "int32", 
+            "dimensions": [], 
+            "name": "number_samples_per_report"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "start and end time of observations associated with product", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "float64", 
+            "dimensions": [
+                "number_of_time_bounds"
+            ], 
+            "name": "product_time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for the two magnetometers on the satellite. labels are ordered the same as applicable data variable"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "number_of_sensors", 
+                "sensor_str_len"
+            ], 
+            "name": "sensor_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for the 3 orthogonal axes in a 3-D coordinate reference system. labels are ordered the same as applicable data variables"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "coordinate", 
+                "coordinate_str_len"
+            ], 
+            "name": "coordinate_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": "\u0000", 
+                "long_name": "labels for four solar array current telemetry mnemonics. labels are ordered the same as applicable data variable"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "|S1", 
+            "dimensions": [
+                "solar_array_current_channel_index", 
+                "solar_array_mnemonic_str_len"
+            ], 
+            "name": "solar_array_current_channel_index_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "percent data lost due to uncorrectable L0 errors", 
+                "units": "percent", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "float32", 
+            "dimensions": [], 
+            "name": "percent_uncorrectable_L0_errors"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -2147483647, 
+                "input_MAG_L0_data": "OR_MAG-L0_G16_s20171162303000_e20171162303599_c*.nc", 
+                "long_name": "container for filenames of dynamic algorithm input data"
+            }, 
+            "chunksizes": "contiguous", 
+            "datatype": "int32", 
+            "dimensions": [], 
+            "name": "algorithm_dynamic_input_data_container"
+        }
+    ]
+}
