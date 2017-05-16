@@ -272,8 +272,8 @@ class Aggregator(object):
                 if callback is not None:
                     callback()
 
-                # write buffered data to disk
-                nc_out.sync()
+            # write buffered data to disk
+            nc_out.sync()
 
             # after aggregation finished, finalize the global attributes
             attribute_handler.finalize_file(nc_out)
