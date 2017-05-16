@@ -322,8 +322,15 @@ class Aggregator(object):
                 nc_out.createDimension(dim["name"], dim["size"])
             for var in self.config["variables"]:
                 var_name = var.get("map_to", var["name"])
-                var_out = nc_out.createVariable(var_name, np.dtype(var["datatype"]), var["dimensions"],
+                var_type = np.dtype(var["datatype"])
+                var_out = nc_out.createVariable(var_name, var_type, var["dimensions"],
                                                 chunksizes=var.get("chunksizes", None), zlib=True)
+                for k, v in var["attributes"].items():
+                    if k in ["_FillValue", "valid_min", "valid_max"]:
+                        var["attributes"][k] = var_type.type(v)
+                    if k in ["valid_range", "flag_masks", "flag_values"]:
+                        var["attributes"][k] = np.array(v, dtype=var_type)
+
                 var_out.setncatts(var["attributes"])
 
     def handle_unexpected_condition(self, message, fatal=False, email=None):
