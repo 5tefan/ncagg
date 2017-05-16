@@ -27,7 +27,7 @@ def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
 
     :type mapping: dict | None
     :param mapping: specification of mapping between unlim dimension and a variable indexing it
-    :type input_file: str
+    :type input_file: basestring
     :param input_file: a sample input file to check the mapping against
     :rtype: dict
     :return: a validated mapping
@@ -130,8 +130,8 @@ def validate_a_variable_block(block):
         return None
 
     block_keys = block.keys()
-    if "name" not in block_keys or not isinstance(block["name"], str):
-        raise ValueError("Variable block does not name (str) the variable it configures!")
+    if "name" not in block_keys or not isinstance(block["name"], basestring):
+        raise ValueError("Variable block does not name (basestring) the variable it configures!")
 
     if "dimensions" not in block_keys:
         raise ValueError("Variable configuration for %s must be a list of dimensions." % block["name"])

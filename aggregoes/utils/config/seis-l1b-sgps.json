@@ -144,7 +144,7 @@
         }, 
         {
             "name": "time_coverage_start", 
-            "strategy": "first"
+            "strategy": "time_coverage_start"
         }, 
         {
             "name": "time_coverage_end", 
@@ -169,10 +169,6 @@
         {
             "name": "id", 
             "strategy": "first"
-        }, 
-        {
-            "name": "time_coverage_begin", 
-            "strategy": "time_coverage_begin"
         }, 
         {
             "name": "L1b_processing_param_version", 
@@ -961,7 +957,7 @@
                 "long_name": "start and end time of observations associated with product", 
                 "units": "seconds since 2000-01-01 12:00:00"
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "float64", 
             "dimensions": [
                 "number_of_time_bounds"
@@ -973,7 +969,7 @@
                 "_FillValue": "\u0000", 
                 "long_name": "labels for the two Solar and Galactic Proton Sensor units nominally (i.e. no yaw flip) providing fields of view in the westward (-X) and eastward (+X) direction. labels are ordered the same as applicable data variables"
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "|S1", 
             "dimensions": [
                 "sensor_unit", 
@@ -986,7 +982,7 @@
                 "_FillValue": "\u0000", 
                 "long_name": "labels for six energy bands reported from telescope 1 spanning from 1 to 25 MeV. labels are ordered the same as applicable data variables"
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "|S1", 
             "dimensions": [
                 "energy_T1", 
@@ -999,7 +995,7 @@
                 "_FillValue": "\u0000", 
                 "long_name": "labels for two energy bands reported from telescope 2 spanning from 25 to 80 MeV. labels are ordered the same as applicable data variables"
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "|S1", 
             "dimensions": [
                 "energy_T2", 
@@ -1012,7 +1008,7 @@
                 "_FillValue": "\u0000", 
                 "long_name": "labels for five energy bands reported from telescope 3 spanning from 80 to 500 MeV. labels are ordered the same as applicable data variables"
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "|S1", 
             "dimensions": [
                 "energy_T3", 
@@ -1025,7 +1021,7 @@
                 "_FillValue": "\u0000", 
                 "long_name": "labels for three primary proton channels supporting on-board out-of-band contamination removal. labels are ordered the same as applicable data variable"
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "|S1", 
             "dimensions": [
                 "channel", 
@@ -1038,7 +1034,7 @@
                 "_FillValue": "\u0000", 
                 "long_name": "labels for four solar array current telemetry mnemonics. labels are ordered the same as applicable data variable"
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "|S1", 
             "dimensions": [
                 "solar_array_current_channel_index", 
@@ -1056,7 +1052,7 @@
                     1.0
                 ]
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "float32", 
             "dimensions": [], 
             "name": "percent_uncorrectable_L0_errors"
@@ -1064,10 +1060,10 @@
         {
             "attributes": {
                 "_FillValue": -2147483647, 
-                "input_SGPS_L0_data": "OR_SEIS-L0_G16_s20171162303000_e20171162303590_c*.nc", 
+                "input_SGPS_L0_data": "OR_SEIS-L0_G16_s20171362012000_e20171362012590_c*.nc", 
                 "long_name": "container for filenames of dynamic algorithm input data"
             }, 
-            "chunksizes": "contiguous", 
+            "chunksizes": null, 
             "datatype": "int32", 
             "dimensions": [], 
             "name": "algorithm_dynamic_input_data_container"

@@ -44,7 +44,7 @@ def generate_default_global_attributes_config(an_input_file):
             attr.update(config)
 
     set_default("date_created", "date_created")
-    set_default("time_coverage_begin", "time_coverage_begin")
+    set_default("time_coverage_start", "time_coverage_start")
     set_default("time_coverage_end", "time_coverage_end")
     set_default("production_site", "unique_list")
     set_default("production_environment", "unique_list")
