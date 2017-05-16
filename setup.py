@@ -14,7 +14,14 @@ setup(
     entry_points='''
         [console_scripts]
         aggregoes=aggregoes.cli:cli
+        ncei-l1b-cli=aggregoes.ncei-l1b-cli:cli
     ''',
+    include_package_data=True,
+    package_data={
+        # https://setuptools.readthedocs.io/en/latest/setuptools.html#including-data-files
+        # If any package contains *.json, include them:
+        '': ['*.json'],
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
     ]
