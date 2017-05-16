@@ -324,7 +324,8 @@ class Aggregator(object):
                 var_name = var.get("map_to", var["name"])
                 var_type = np.dtype(var["datatype"])
                 var_out = nc_out.createVariable(var_name, var_type, var["dimensions"],
-                                                chunksizes=var.get("chunksizes", None), zlib=True)
+                                                chunksizes=var.get("chunksizes", None), zlib=True,
+                                                complevel=7)
                 for k, v in var["attributes"].items():
                     if k in ["_FillValue", "valid_min", "valid_max"]:
                         var["attributes"][k] = var_type.type(v)
