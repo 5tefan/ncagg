@@ -81,7 +81,7 @@ def get_runtime_config(product):
 
 
 def get_product_config(product):
-    config = pkg_resources.resource_filename("aggregoes", "util/config/%s.json" % product)
+    config = pkg_resources.resource_filename("aggregoes", "utils/config/%s.json" % product)
     with open(config) as config_file:
         return json.load(config_file)
 
