@@ -191,7 +191,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10, 
                 3
             ], 
@@ -214,7 +214,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10, 
                 3
             ], 
@@ -237,7 +237,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10, 
                 3
             ], 
@@ -260,7 +260,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10, 
                 3
             ], 
@@ -283,7 +283,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10, 
                 3
             ], 
@@ -306,7 +306,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10
             ], 
             "datatype": "float32", 
@@ -381,7 +381,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10
             ], 
             "datatype": "int32", 
@@ -438,7 +438,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10
             ], 
             "datatype": "int16", 
@@ -495,7 +495,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10
             ], 
             "datatype": "int16", 
@@ -517,7 +517,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 2
             ], 
             "datatype": "int8", 
@@ -545,7 +545,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "int8", 
             "dimensions": [
@@ -570,7 +570,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "int8", 
             "dimensions": [
@@ -585,7 +585,7 @@
                 "units": "seconds since 2000-01-01 12:00:00"
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10
             ], 
             "datatype": "float64", 
@@ -602,7 +602,7 @@
                 "units": "seconds since 2000-01-01 12:00:00"
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 10
             ], 
             "datatype": "float64", 
@@ -623,7 +623,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -642,7 +642,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -661,7 +661,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -680,7 +680,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -699,7 +699,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float32", 
             "dimensions": [
@@ -718,7 +718,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float32", 
             "dimensions": [
@@ -737,7 +737,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float32", 
             "dimensions": [
@@ -756,7 +756,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -775,7 +775,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -794,7 +794,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -813,7 +813,7 @@
                 ]
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -828,7 +828,7 @@
                 "units": "seconds since 2000-01-01 12:00:00"
             }, 
             "chunksizes": [
-                256
+                36000
             ], 
             "datatype": "float64", 
             "dimensions": [
@@ -848,7 +848,7 @@
                 ]
             }, 
             "chunksizes": [
-                256, 
+                36000,
                 4
             ], 
             "datatype": "int16", 
