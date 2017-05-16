@@ -11,8 +11,8 @@ def cli():
 
 
 @cli.command()
-@click.argument("yyyymmdd", help="What %Y%m%d (YYYYMMDD) format date to aggregate.")
-@click.argument("product", type=click.Choice(mapping.keys()), help="Which L1b product.")
+@click.argument("yyyymmdd")
+@click.argument("product", type=click.Choice(mapping.keys()))
 @click.option("--sat", default="goes16", type=click.Choice(["goes16", "goes17", "goes18"]), help="Which satellite.")
 @click.option("--env", default="OR", help="Which environment.")
 def agg_day(yyyymmdd, product, sat="goes16", env="OR"):
