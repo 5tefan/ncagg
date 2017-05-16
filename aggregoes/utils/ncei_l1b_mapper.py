@@ -69,7 +69,9 @@ def get_files_for(sat, product, dt, env="OR"):
     check_product(product)
     check_sat(sat)
 
-    path = os.path.join(in_base, sat, product, dt.strftime("%Y/%m/%d"), "%s-%s-*.nc" % (env, product))
+    case_insensitive_product = "".join(['[%s%s]' % (c.lower(), c.upper()) if c.isalpha() else c for c in product])
+
+    path = os.path.join(in_base, sat, product, dt.strftime("%Y/%m/%d"), "%s-%s-*.nc" % (env, case_insensitive_product))
     return sorted(glob.glob(path))
 
 
