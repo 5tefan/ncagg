@@ -108,7 +108,7 @@ def get_output_filename(sat, product, datestr, env="xx"):
     # create base of path if it doesn't exist already
     path = os.path.join(out_base, path_from_base)
     if not os.path.exists(path):
-        os.mkdir(path)
+        os.makedirs(path)
     filename_sat = "g%s" % int(sat[-2:])
     filename = "%s_%s_%s_%s%s.nc" % (env, product, filename_sat, agg_length_prefix, datestr)
     return os.path.join(path, filename)
