@@ -21,10 +21,6 @@
             "size": 4
         }, 
         {
-            "name": "number_of_time_bounds", 
-            "size": 2
-        }, 
-        {
             "name": "sensor_str_len", 
             "size": 20
         }, 
@@ -875,19 +871,6 @@
         }, 
         {
             "attributes": {
-                "_FillValue": -999.0, 
-                "long_name": "start and end time of observations associated with product", 
-                "units": "seconds since 2000-01-01 12:00:00"
-            }, 
-            "chunksizes": null, 
-            "datatype": "float64", 
-            "dimensions": [
-                "number_of_time_bounds"
-            ], 
-            "name": "product_time"
-        }, 
-        {
-            "attributes": {
                 "_FillValue": "\u0000", 
                 "long_name": "labels for the two magnetometers on the satellite. labels are ordered the same as applicable data variable"
             }, 
@@ -939,17 +922,6 @@
             "datatype": "float32", 
             "dimensions": [], 
             "name": "percent_uncorrectable_L0_errors"
-        }, 
-        {
-            "attributes": {
-                "_FillValue": -2147483647, 
-                "input_MAG_L0_data": "OR_MAG-L0_G16_s20171362012000_e20171362012599_c*.nc", 
-                "long_name": "container for filenames of dynamic algorithm input data"
-            }, 
-            "chunksizes": null, 
-            "datatype": "int32", 
-            "dimensions": [], 
-            "name": "algorithm_dynamic_input_data_container"
-        }
+        },
     ]
 }
