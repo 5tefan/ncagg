@@ -1,6 +1,6 @@
 import logging
-import warnings
 import traceback
+import warnings
 from datetime import datetime
 
 import netCDF4 as nc
@@ -8,11 +8,11 @@ import numpy as np
 
 from aggregoes.aggrelist import FillNode, InputFileNode, AggreList
 from aggregoes.attributes import AttributeHandler
-from utils.init_config_template import generate_default_variables_config, \
+from aggregoes.init_config_template import generate_default_variables_config, \
     generate_default_global_attributes_config, generate_default_dimensions_config
-from utils.validate_configs import validate_unlimited_dim_indexed_by_time_var_map as validate_unlim_config
-from utils.validate_configs import validate_a_dimension_block, validate_a_global_attribute_block, \
+from aggregoes.validate_configs import validate_a_dimension_block, validate_a_global_attribute_block, \
     validate_a_variable_block
+from aggregoes.validate_configs import validate_unlimited_dim_indexed_by_time_var_map as validate_unlim_config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

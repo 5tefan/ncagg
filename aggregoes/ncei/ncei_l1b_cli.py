@@ -1,6 +1,6 @@
 from aggregoes.aggregator import Aggregator
-from aggregoes.utils.ncei_l1b_mapper import get_files_for, get_product_config, get_runtime_config, get_output_filename
-from aggregoes.utils.ncei_l1b_mapper import mapping
+from aggregoes.ncei.ncei_l1b_mapper import get_files_for, get_product_config, get_runtime_config, get_output_filename
+from aggregoes.ncei.ncei_l1b_mapper import mapping
 from datetime import datetime, timedelta
 import click
 
@@ -19,11 +19,11 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR"):
     start_time = datetime.strptime(yyyymmdd, "%Y%m%d")
     end_time = start_time + timedelta(days=1) - timedelta(microseconds=1)
 
-    # get the files for the day, and add on the first 100 files for the surrounding days, just in case
+    # get the files for the day, and add on first/last 60 files for the surrounding days, just in case
     # there is anything severely out of order.
-    files = get_files_for(sat, product, start_time - timedelta(days=1), env)[-100:]
+    files = get_files_for(sat, product, start_time - timedelta(days=1), env)[-60:]
     files += get_files_for(sat, product, start_time, env)
-    files += get_files_for(sat, product, start_time + timedelta(days=1), env)[:100]
+    files += get_files_for(sat, product, start_time + timedelta(days=1), env)[:60]
 
     product_config = get_product_config(product)
     a = Aggregator(config=product_config)

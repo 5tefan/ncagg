@@ -1,7 +1,7 @@
-from aggregoes.utils.validate_configs import validate_unlimited_dim_indexed_by_time_var_map
-from datetime import datetime
-import unittest
 import os
+import unittest
+
+from aggregoes.validate_configs import validate_unlimited_dim_indexed_by_time_var_map
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
 test_input_file = os.path.join(test_dir, "data/OR_MAG-L1b-GEOF_G16_s20170431500000_e20170431500599_c20170431501005.nc")

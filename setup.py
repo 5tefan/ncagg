@@ -14,7 +14,7 @@ setup(
     entry_points='''
         [console_scripts]
         aggregoes=aggregoes.cli:cli
-        ncei-l1b-cli=aggregoes.ncei-l1b-cli:cli
+        ncei-l1b-cli=aggregoes.ncei.ncei_l1b_cli:cli
     ''',
     include_package_data=True,
     package_data={

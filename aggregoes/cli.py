@@ -1,14 +1,6 @@
 from aggregoes.aggregator import Aggregator
-from aggregoes.utils.data_location_mapper import DataLocationMapper as DataLocationMapper
-from datetime import datetime, timedelta
-from glob import glob
 import click
-import os
-
-"""
-All data is expected to be in a YYYYMMDD structure under the path
-returned by DataLocationMapper.
-"""
+from datetime import datetime
 
 
 class ProgressAggregator(Aggregator):
@@ -21,169 +13,57 @@ class ProgressAggregator(Aggregator):
             )
 
 
-@click.group()
-def cli():
-    pass
+def parse_time(dt_str):
+    """
+    Parse a YYYYMMDD[HH[MM]] type string. HH and MM are optional.
+    :param dt_str: datetime string to parse
+    :return: interpreted datetime
+    """
+    year = int(dt_str[:4])
+    month = int(dt_str[4:6])
+    day = int(dt_str[6:8])
+    hour = int(dt_str[8:10] or 0)
+    minute = int(dt_str[10:12] or 0)
+    return datetime(year, month, day, hour, minute)
 
 
-@cli.command()
-@click.argument("yyyymmdd")
-@click.argument("product")
-@click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
-@click.option("--env", default="", help="Which environment to use.")
-@click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.", type=click.Path(exists=True))
-@click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
-@click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
-@click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
-@click.option("--config", default=None, help="Use a specifc configuration instead of the default based on the first"
-                                             "data file", type=click.File())
-def do_day(yyyymmdd, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False, config=None):
-    start_time = datetime.strptime(yyyymmdd, "%Y%m%d")
-    end_time = start_time + timedelta(days=1) - timedelta(microseconds=1)
+@click.command()
+@click.argument("dst", type=click.Path(exists=False))
+@click.argument("src", nargs=-1, type=click.Path(exists=True))
+@click.option("-u", help="Give an Unlimited Dimension Configuration as udim:ivar[:hz[:hz]]")
+@click.option("-b", help="If -u given, specify bounds for ivar as min:max. min and max should be numbers, or "
+                         "start with T to indicate a time and then should be TYYYYMMDD[HH[MM]] format.")
+def cli(dst, src, u=None, b=None):
+    runtime_config = {}
+    if u is not None:
+        # we have an Unlimited Dim Configuration, fill out runtime_config
+        u_split = u.split(":")
+        runtime_config[u_split[0]] = {
+            "index_by": u_split[1]
+        }
+        if len(u_split) > 2:
+            # TODO: handle multidim indexby, might have to look in one of the src files.
+            runtime_config[u_split[0]]["expected_cadence"] = {u_split[0]: u_split[2]}
 
-    # Step 1: get the files
-    mapper = DataLocationMapper(sat)
-    if datadir is None:
-        time_dir_base = mapper.get_product(product)
-        files = glob(os.path.join(time_dir_base, start_time.strftime("%Y/%m/%d"), "%s*.nc" % env))
-        # add the day before and the day after as well, just in case (yes, really only need maybe
-        # a couple of bounding files, but this is the lazy approach).
-        if not simple:
-            files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-            files += glob(os.path.join(time_dir_base, (start_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-    else:
-        files = glob(os.path.join(click.format_filename(datadir), "%s*.nc" % env))
+        if b is not None:
+            b_split = b.split(":")
+            if not len(b_split) == 2: raise click.BadParameter("Expected min:max format.", param="-b")
+            if b_split[0].startswith("T"):
+                # parse as a time indication, cut out the T before sending to parse
+                b_split[0] = parse_time(b_split[0][1:])
+                b_split[1] = parse_time(b_split[1][1:])
 
-    if not simple:
-        # TODO: when primary is implemented
-        runtime_config = mapper.get_config(product)
-        runtime_config.values()[0].update({
-            "min": start_time,
-            "max": end_time
-        })
-    else:
-        runtime_config = None
+            runtime_config[u_split[0]]["min"] = b_split[0]
+            runtime_config[u_split[0]]["max"] = b_split[1]
 
     # Step 2: generate the aggregation list
-    a = ProgressAggregator(config=config)
-    aggregation_list = a.generate_aggregation_list(files, runtime_config)
-
-    if debug:
-        print aggregation_list
-
-    if output is None:
-        output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyymmdd, env))
-    else:
-        output = click.format_filename(output)
+    a = ProgressAggregator()
+    aggregation_list = a.generate_aggregation_list(src, runtime_config)
 
     # Step 3: evaluate the aggregation list
     click.echo("Evaluating aggregation list...")
-    a.evaluate_aggregation_list(aggregation_list, output)
-    click.echo("Finished: %s" % output)
-
-
-@cli.command()
-@click.argument("yyyymm")
-@click.argument("product")
-@click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
-@click.option("--env", default="", help="Which environment to use.")
-@click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.", type=click.Path(exists=True))
-@click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
-@click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
-@click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
-def do_month(yyyymm, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
-    start_time = datetime.strptime(yyyymm, "%Y%m")
-    if start_time.day < 12:
-        end_time = datetime(start_time.year, start_time.month + 1, start_time.day) - timedelta(microseconds=1)
-    else:
-        end_time = datetime(start_time.year + 1, 1, 1) - timedelta(microseconds=1)
-
-    mapper = DataLocationMapper(sat)
-    if datadir is None:
-        time_dir_base = mapper.get_product(product)
-        files = glob(os.path.join(time_dir_base, start_time.strftime("%Y/%m/**"), "%s*.nc" % env))
-        # add the day before and the day after as well, just in case (yes, really only need maybe
-        # a couple of bounding files, but this is the lazy approach).
-        if not simple:
-            files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-            files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-    else:
-        files = glob(os.path.join(click.format_filename(datadir), "%s*.nc" % env))
-
-    if not simple:
-        # TODO: when primary is implemented
-        runtime_config = mapper.get_config(product)
-        runtime_config.values()[0].update({
-            "min": start_time,
-            "max": end_time
-        })
-    else:
-        runtime_config = None
-
-    a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(files, runtime_config)
-
-    if debug:
-        print aggregation_list
-
-    if output is None:
-        output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyymm, env))
-    else:
-        output = click.format_filename(output)
-
-    click.echo("Evaluating aggregation list...")
-    a.evaluate_aggregation_list(aggregation_list, output)
-    click.echo("Finished: %s" % output)
-
-@cli.command()
-@click.argument("yyyy")
-@click.argument("product")
-@click.option("--sat", default="GOES-16", type=click.Choice(["GOES-16"]), help="Which satellite to use.")
-@click.option("--env", default="", help="Which environment to use.")
-@click.option("--datadir", default=None, help="Explicitly set your own directory to pull data from.", type=click.Path(exists=True))
-@click.option("--output", default=None, help="Override the output filename.", type=click.Path(exists=False))
-@click.option("--simple", is_flag=True, help="No filling, no sorting, just aggregate.")
-@click.option("--debug", is_flag=True, help="Enable verbose/debug printing.")
-def do_year(yyyy, product, sat="GOES-16", env="", datadir=None, output=None, simple=False, debug=False):
-    start_time = datetime.strptime(yyyy, "%Y")
-    end_time = datetime(start_time.year + 1, 1, 1) - timedelta(microseconds=1)
-
-    mapper = DataLocationMapper(sat)
-    if datadir is None:
-        time_dir_base = mapper.get_product(product)
-        files = glob(os.path.join(time_dir_base, start_time.strftime("%Y/**/**"), "%s*.nc" % env))
-        # add the day before and the day after as well, just in case (yes, really only need maybe
-        # a couple of bounding files, but this is the lazy approach).
-        if not simple:
-            files += glob(os.path.join(time_dir_base, (start_time-timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-            files += glob(os.path.join(time_dir_base, (end_time+timedelta(days=1)).strftime("%Y/%m/%d"), "%s*.nc" % env))
-    else:
-        files = glob(os.path.join(click.format_filename(datadir), "%s*.nc" % env))
-
-    if not simple:
-        # TODO: when primary is implemented
-        runtime_config = mapper.get_config(product)
-        runtime_config.values()[0].update({
-            "min": start_time,
-            "max": end_time
-        })
-    else:
-        runtime_config = None
-
-    a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(files, runtime_config)
-
-    if debug:
-        print aggregation_list
-
-    if output is None:
-        output = os.path.join(mapper.get_output_base(product), mapper.get_filename(product, yyyy, env))
-    else:
-        output = click.format_filename(output)
-
-    click.echo("Evaluating aggregation list...")
-    a.evaluate_aggregation_list(aggregation_list, output)
-    click.echo("Finished: %s" % output)
+    a.evaluate_aggregation_list(aggregation_list, dst)
+    click.echo("Finished: %s" % dst)
 
 
 if __name__ == "__main__":

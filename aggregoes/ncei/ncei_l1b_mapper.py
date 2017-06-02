@@ -68,9 +68,7 @@ def get_files_for(sat, product, dt, env="OR"):
     # check inputs
     check_product(product)
     check_sat(sat)
-
     case_insensitive_product = "".join(['[%s%s]' % (c.lower(), c.upper()) if c.isalpha() else c for c in product])
-
     path = os.path.join(in_base, sat, product, dt.strftime("%Y/%m/%d"), "%s_%s_*.nc" % (env, case_insensitive_product))
     return sorted(glob.glob(path))
 
@@ -78,12 +76,12 @@ def get_files_for(sat, product, dt, env="OR"):
 def get_runtime_config(product):
     # check inputs
     check_product(product)
-
     return mapping[product]
 
 
 def get_product_config(product):
-    config = pkg_resources.resource_filename("aggregoes", "utils/config/%s.json" % product)
+    check_product(product)
+    config = pkg_resources.resource_filename("aggregoes", "ncei/config/%s.json" % product)
     with open(config) as config_file:
         return json.load(config_file)
 
@@ -93,7 +91,6 @@ def get_output_filename(sat, product, datestr, env="xx"):
     assert int(datestr), "datestr should be numerical %Y, %Y%m, or %Y%m%d"
     check_product(product)
     check_sat(sat)
-
     if len(datestr) == 4:  # is a year file
         agg_length_prefix = "y"
         # put all year files in the product directory
@@ -108,15 +105,12 @@ def get_output_filename(sat, product, datestr, env="xx"):
         path_from_base = os.path.join(sat, product, datestr[:4], datestr[4:6])
     else:
         raise ValueError("Unknown datestr: %s, expected %Y, %Y%m, or %Y%m%d")
-
     # create base of path if it doesn't exist already
     path = os.path.join(out_base, path_from_base)
     if not os.path.exists(path):
         os.mkdir(path)
-
     filename_sat = "g%s" % int(sat[-2:])
     filename = "%s_%s_%s_%s%s.nc" % (env, product, filename_sat, agg_length_prefix, datestr)
-
     return os.path.join(path, filename)
 
 
