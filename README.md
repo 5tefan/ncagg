@@ -33,8 +33,8 @@ Notes:
 
 In addition, command line interfaces customized for NCEI systems are available:
 
- - Specific to the aggregation workspace - see [ncei-l1b-cli](ncei-l1b-cli.md)
- - Specific to the spades mounts - see [ncei-spades-cli](ncei-spades-cli.md)
+ - Specific to the aggregation workspace - see [ncei-l1b-cli](docs/ncei-l1b-cli.md)
+ - Specific to the spades mounts - see [ncei-spades-cli](docs/ncei-spades-cli.md)
 
 ## High level overview
 
