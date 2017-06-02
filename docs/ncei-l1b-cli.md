@@ -29,6 +29,6 @@ will be stored forever in CLASS and we want to store only one copy of the data (
 serve to users.
 
 For manual aggregation operations, other clis may be more appropriate:
- - The general cli for aggregating arbitrary files - [README.md](README.md)
- - For SPADES specific aggregation (from /nfs/spades_[inst]_prod), see [ncei-spades-cli](docs/ncei-spades-cli.md)
+ - The general cli for aggregating arbitrary files - [README.md](/README.md)
+ - For SPADES specific aggregation (from /nfs/spades_[inst]_prod), see [ncei-spades-cli](ncei-spades-cli.md)
 

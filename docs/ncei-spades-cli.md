@@ -28,6 +28,6 @@ Options:
 
 
 For other aggregation operations, other clis may be more appropriate:
- - The general cli for aggregating arbitrary files - [README.md](README.md)
- - For aggregation workspace specific aggregation, see [ncei-l1b-cli](docs/ncei-l1b-cli.md)
+ - The general cli for aggregating arbitrary files - [README.md](/README.md)
+ - For aggregation workspace specific aggregation, see [ncei-l1b-cli](ncei-l1b-cli.md)
 
