@@ -13,10 +13,6 @@
             "size": 4
         }, 
         {
-            "name": "number_of_time_bounds", 
-            "size": 2
-        }, 
-        {
             "name": "solar_array_mnemonic_str_len", 
             "size": 25
         }
@@ -135,30 +131,10 @@
             "strategy": "unique_list"
         }, 
         {
-            "name": "records_present", 
-            "strategy": "remove"
-        }, 
-        {
-            "name": "records_data", 
-            "strategy": "remove"
-        }, 
-        {
-            "name": "records_fill", 
-            "strategy": "remove"
-        }, 
-        {
-            "name": "records_missing", 
-            "strategy": "remove"
-        }, 
-        {
             "name": "NCO", 
             "strategy": "remove"
-        }, 
-        {
-            "name": "time_coverage_duration", 
-            "strategy": "remove"
         }
-    ], 
+    ],
     "variables": [
         {
             "attributes": {
@@ -1299,19 +1275,6 @@
         }, 
         {
             "attributes": {
-                "_FillValue": -999.0, 
-                "long_name": "start and end time of observations associated with product", 
-                "units": "seconds since 2000-01-01 12:00:00"
-            }, 
-            "chunksizes": null, 
-            "datatype": "float64", 
-            "dimensions": [
-                "number_of_time_bounds"
-            ], 
-            "name": "product_time"
-        }, 
-        {
-            "attributes": {
                 "_FillValue": "\u0000", 
                 "long_name": "labels for four solar array current telemetry mnemonics. labels are ordered the same as applicable data variable"
             }, 
@@ -1337,17 +1300,6 @@
             "datatype": "float32", 
             "dimensions": [], 
             "name": "percent_uncorrectable_L0_errors"
-        }, 
-        {
-            "attributes": {
-                "_FillValue": -2147483647, 
-                "input_EUVS_L0_data": "OR_EXIS-L0_G16_s20171362013000_e20171362013290_c*.nc", 
-                "long_name": "container for filenames of dynamic algorithm input data"
-            }, 
-            "chunksizes": null, 
-            "datatype": "int32", 
-            "dimensions": [], 
-            "name": "algorithm_dynamic_input_data_container"
         }
     ]
 }
