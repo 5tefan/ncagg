@@ -922,6 +922,6 @@
             "datatype": "float32", 
             "dimensions": [], 
             "name": "percent_uncorrectable_L0_errors"
-        },
+        }
     ]
 }
