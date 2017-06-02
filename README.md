@@ -25,10 +25,16 @@ Options:
 ```
 
 Notes:
+
  - DST is the filename for the output aggregation and should not already exist.
  - SRC is a list of files to aggregate.
  - -u should specify an Unlimited Dimension Configuration. See below for details.
  - Taking tens of minutes for a day is normal, a progress bar will indicate time remaining.
+
+In addition, command line interfaces customized for NCEI systems are available:
+
+ - Specific to the aggregation workspace - see [ncei-l1b-cli](ncei-l1b-cli.md)
+ - Specific to the spades mounts - see [ncei-spades-cli](ncei-spades-cli.md)
 
 ## High level overview
 
