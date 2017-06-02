@@ -1,4 +1,4 @@
-from aggregoes.aggregator import Aggregator
+from aggregoes.cli import ProgressAggregator as Aggregator
 from aggregoes.ncei.ncei_l1b_mapper import get_files_for, get_product_config, get_runtime_config, get_output_filename
 from aggregoes.ncei.ncei_l1b_mapper import mapping
 from datetime import datetime, timedelta
