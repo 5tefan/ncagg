@@ -25,6 +25,7 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR"):
     files += get_files_for(sat, product, start_time, env)
     files += get_files_for(sat, product, start_time + timedelta(days=1), env)[:60]
 
+    # Step 1: initialize the aggregator.
     product_config = get_product_config(product)
     a = Aggregator(config=product_config)
 

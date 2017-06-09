@@ -100,7 +100,9 @@ class Aggregator(object):
 
         # calculate file coverage if any unlimited dimensions are configured.
         if unlim_config is not None:
-            logger.info("\tFound config for unlimited dim indexing, calculating coverage.")
+            logger.info("\tFound config for unlimited dim indexing, sorting and calculating coverage.")
+            # sort input_files by the start time of the first unlimited dim.
+            input_files = sorted(input_files, key=lambda i: i.get_first_of_index_by(unlim_config.keys()[0]))
             unlim_fills_needed = {
                 unlim_dim: self.get_coverage_for(input_files, unlim_dim) for unlim_dim in unlim_config.keys()
             }
@@ -308,7 +310,6 @@ class Aggregator(object):
         slices = tuple([slice(None) if d == unlim_dim else unlim_mapping.get("other_dim_indicies", {}).get(d, 0)
                         for d in nc_out[index_by].dimensions])
         return np.argsort(nc_out.variables[index_by][slices])
-
 
     def initialize_aggregation_file(self, fullpath):
         """
