@@ -70,16 +70,17 @@ generation of the AggreList.
  - Unlimited dim config -> concat and fill within, between files as needed
  - Product config -> reshape, subset, and configure global attr strategies
 
-### Unlimited Dimension Config
+### Unlimited Dimension Configuration
 
-The unlimited dimension config associates a particular unlimited dimension with a variable by which
-it can be indexed.
+The Unlimited Dimension Configuration associates a particular unlimited dimension with a variable by which
+it can be indexed. Commonly, a dimension named time is associated with a variable also named time which 
+indicates some epoch value for all data associated with that index of the dimension.
 
 For example, a file may have a dimension "record_number" which is indexed by a variable "time". Using
 the Unlimited Dimension Configuration, we can specify to aggregate record_number such that the variable
 "time" forms a monotonic sequence increasing at some expected frequency.
 
-Here is what a typical L1b product aggregation output looks like:
+Here is what a typical GOES-R L1b product aggregation output looks like:
 
 ```
 "report_number": {
@@ -100,29 +101,90 @@ to even index by multidimensional time: (ehem, mag with 10 samples per report)
 }
 ```
 
+One design constraint was to not reshape the data, so above, we order the data by looking at index 0 of 
+samples_per_record for every value along the report_number dimension. We assume that the timestamps along
+samples_per_record are correct. Also, given the configuration above, we only insert fill records of OB_time
+if a full report_number type is missing.
 
-### Product Config
+
+### Product Configuration
 
 The product config contains a lot of the same information as a NetCDF CDL would, but in json format, extended
 with fields custom to aggregation. If not provided, a default version will be created using the routines in 
 `init_config_template.py` using the first file in the list to aggregate.
 
+The Product Configuration is used for a number of things:
 
-## More than you wanted to know
+#### Specify Global Attribute Aggregation Strategies
+
+The aggregated result file contains global attributes formed from the constituent granules. A number of
+strategies exist to aggregate Global Attributes across the granules. Most are quite self explanatory:
+
+ -         "first": StratFirst
+ -         "last": StratLast
+ -         "unique_list": StratUniqueList
+ -         "int_sum": StratIntSum
+ -         "float_sum": StratFloatSum
+ -         "constant": StratAssertConst
+ -         "date_created": StratDateCreated
+ -         "time_coverage_start": StratTimeCoverageStart
+ -         "time_coverage_end": StratTimeCoverageEnd
+ -         "filename": StratOutputFilename
+ -         "remove": StratRemove
+ 
+ The configuration format expects a key "global attributes" associated with a list of objects each containing 
+ a global attribute name and strategy. A list is used to preserve order, as the order in the configuration will
+ be the resulting order in the output NetCDF.
+ 
+
+```json
+{
+    "global attributes": [
+        {
+            "name": "production_site", 
+            "strategy": "unique_list"
+        }, {
+        ...
+        }
+     ]
+}
+```
+
+#### Specify Dimension Indecies to Extract and Flatten
+
+Consider SEIS SGPS files which contain the data from two sensor units, +X and -X. Most variables are of the form
+var[record_number, sensor_unit, channel, ...]. It is possible to create an aggregate file for +X and -X individually
+using the take_dim_indicies configuration key.
+
+```json
+{
+    "take_dim_indicies": {
+        "sensor_unit": 0
+    }
+}
+```
+
+With the above configuration, sensor_unit must be removed from the dimensions configuration. Please also ensure that
+variables do not list sensor_unit as a dimension, and also update chunk sizes accordingly. Chunk sizes must be a list
+of values of the same length as dimensions.
+
+
+
+## Technical and Implementation details
 
 An AggreList is composed of two types of objects, InputFileNode and FillNode objects. These inherit in common
-from an AbstractNode and must implement the `get_size_along(unlimited_dim)` and `data_for(var, dim, att_processor)` 
+from an AbstractNode and must implement the `get_size_along(unlimited_dim)` and `data_for(var, dim)` 
 methods. Evaluating an aggregation list is simply going though the AggreList and calling something like:
 
 ```
 write_slice = slice(written_up_to, written_up_to + node.get_size_along(dim))
-nc_out.variable[var][write_slice] = node.data_for(var, dim, att_processor)
+nc_out.variable[var][write_slice] = node.data_for(var, dim)
 ```
 
 The `data_for` must return data consistent with the shape promised from `get_size_along`.
 
 The complixity of aggregation comes in handling the dimensions and building the aggregation list. In addition to
-the interface exposed by an AbstractNode, each InputFileNode and FillNode implement Node specific functionality.
+the interface exposed by an AbstractNode, each InputFileNode and FillNode implement their own specific functionality.
 
 A FillNode is simpler, and needs to be told how many fills to insert along a certain unlimited dimension and 
 optionally, can be configured to return values from `data_for` that are increasing along multiple dimensions
@@ -146,18 +208,3 @@ virtualenv venv
 . venv/bin/activate
 pip install --editable .
 ```
-
- ### goes_mount_base
-
- To use on a system where spades_[inst]_prod directories are not mounted under /nfs, use the environment
- variable `goes_mount_base` to locate them to aggregoes.
-
- The following is a recommended setup:
-
-```
- mkdir -p ~/mounts/spades_[inst]_prod
- sshfs -o ro user@spadesdev:/nfs/spades_[inst]_prod ~/mounts/spades_[inst]_prod
- # with the nfs volume mounted locally, you can run aggregoes against that
- goes_mount_base=~/mounts/ aggregoes do_day [OPTIONS] YYYYMMDD PRODUCT
-```
-

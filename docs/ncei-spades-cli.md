@@ -32,3 +32,18 @@ For other aggregation operations, other clis may be more appropriate:
  - The general cli for aggregating arbitrary files - [README.md](../README.md)
  - For aggregation workspace specific aggregation, see [ncei-l1b-cli](ncei-l1b-cli.md)
 
+
+ ### goes_mount_base
+
+ To use on a system where spades_[inst]_prod directories are not mounted under /nfs, use the environment
+ variable `goes_mount_base` to locate them to aggregoes.
+
+ The following is a recommended setup:
+
+```
+ mkdir -p ~/mounts/spades_[inst]_prod
+ sshfs -o ro user@spadesdev:/nfs/spades_[inst]_prod ~/mounts/spades_[inst]_prod
+ # with the nfs volume mounted locally, you can run aggregoes against that
+ goes_mount_base=~/mounts/ aggregoes do_day [OPTIONS] YYYYMMDD PRODUCT
+```
+
