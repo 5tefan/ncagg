@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='aggregoes',
     version='0.1',
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
-    py_modules=['aggregoes'],
+    packages=find_packages(),
     install_requires=[
         'Click',
         'numpy',
