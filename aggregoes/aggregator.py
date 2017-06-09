@@ -11,7 +11,7 @@ from aggregoes.attributes import AttributeHandler
 from aggregoes.init_config_template import generate_default_variables_config, \
     generate_default_global_attributes_config, generate_default_dimensions_config
 from aggregoes.validate_configs import validate_a_dimension_block, validate_a_global_attribute_block, \
-    validate_a_variable_block
+    validate_a_variable_block, validate_take_dim_indicies_block
 from aggregoes.validate_configs import validate_unlimited_dim_indexed_by_time_var_map as validate_unlim_config
 
 logger = logging.getLogger(__name__)
@@ -21,6 +21,9 @@ console.setLevel(logging.DEBUG)
 logging.getLogger().addHandler(console)
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+DIMS = "dimensions"
+VARS = "variables"
 
 
 class Aggregator(object):
@@ -36,8 +39,8 @@ class Aggregator(object):
 
     def __init__(self, config=None):
         """
-        Initialize an aggregator, taking an optional config dict which can contain the keys ["variables",
-        "dimensions", "global attributes"].
+        Initialize an aggregator, taking an optional config dict which can contain the keys [VARS,
+        DIMS, "global attributes"].
         
         If the config is missing any of the expected keys, they will be automatically configured 
         when generate_aggregation_list is called based on the first file in the list to aggregate
@@ -51,8 +54,9 @@ class Aggregator(object):
 
         # Validate each component of the config. Failing validation, an exception will be raised.
         # TODO: user cerberus to validate these instead.
-        [validate_a_variable_block(b) for b in self.config.get("variables", [])]
-        [validate_a_dimension_block(b) for b in self.config.get("dimensions", [])]
+        [validate_a_variable_block(b) for b in self.config.get(VARS, [])]
+        [validate_a_dimension_block(b) for b in self.config.get(DIMS, [])]
+        validate_take_dim_indicies_block(self.config.get("take_dim_indicies", None), self.config.get(DIMS, []))
         [validate_a_global_attribute_block(b) for b in self.config.get("global attributes", [])]
 
         self.timing_certainty = 0.9
@@ -81,12 +85,12 @@ class Aggregator(object):
         if "global attributes" not in self.config.keys():
             logger.debug("\tglobal attributes configuration not found, creating default.")
             self.config["global attributes"] = generate_default_global_attributes_config(files_to_aggregate[0])
-        if "dimensions" not in self.config.keys():
+        if DIMS not in self.config.keys():
             logger.debug("\tdimensions configuration not found, creating default")
-            self.config["dimensions"] = generate_default_dimensions_config(files_to_aggregate[0])
-        if "variables" not in self.config.keys():
+            self.config[DIMS] = generate_default_dimensions_config(files_to_aggregate[0])
+        if VARS not in self.config.keys():
             logger.debug("\tvariables configuration not found, creating default")
-            self.config["variables"] = generate_default_variables_config(files_to_aggregate[0])
+            self.config[VARS] = generate_default_variables_config(files_to_aggregate[0])
 
         self.config["config"] = unlim_config = validate_unlim_config(index_config, files_to_aggregate[0])
 
@@ -142,7 +146,7 @@ class Aggregator(object):
         :rtype: np.ndarray
         :return: boolean array indicating where the gap sizes are too big between files
         """
-        # cadence_hz = next((d["expected_cadence"] for d in self.config["dimensions"] if d["name"] == unlim_dim), None)
+        # cadence_hz = next((d["expected_cadence"] for d in self.config[DIMS] if d["name"] == unlim_dim), None)
         cadence_hz = self.config["config"][unlim_dim]["expected_cadence"][unlim_dim]
 
         def cast_bound(bound):
@@ -236,9 +240,9 @@ class Aggregator(object):
 
         vars_with_unlim = [
             v
-            for d in [di["name"] for di in self.config["dimensions"] if di["size"] is None]
-            for v in self.config["variables"]
-            if d in v["dimensions"]
+            for d in [di["name"] for di in self.config[DIMS] if di["size"] is None]
+            for v in self.config[VARS]
+            if d in v[DIMS]
         ]
         with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
             # get a list of variables that depend on an unlimited dimension, after the first file is
@@ -249,7 +253,8 @@ class Aggregator(object):
                 # the new appended size, which doesn't help us index the rest of the variables to fill in
                 unlim_dim_start_lens = {d.name: d.size for d in nc_out.dimensions.values() if d.isunlimited()}
 
-                for var in (self.config["variables"] if index == 0 else vars_with_unlim):
+                # only do all variables once, otherwise we can just do the ones along an unlim
+                for var in (self.config[VARS] if index == 0 else vars_with_unlim):
                     var_out_name = var.get("map_to", var["name"])
                     write_slices = []
                     for dim in nc_out.variables[var_out_name].dimensions:
@@ -259,17 +264,18 @@ class Aggregator(object):
                         else:
                             write_slices.append(slice(None))
 
-                    # if there were no dimensions... write_slices will still be []
+                    # if there were no dimensions... write_slices will still be [] so convert to slice(None)
                     write_slices = write_slices or slice(None)
                     try:
-                        nc_out.variables[var_out_name][write_slices] = component.data_for(var,
-                                                                                          self.config["dimensions"],
-                                                                                          attribute_handler.process_file)
+                        nc_out.variables[var_out_name][write_slices] = component.data_for(var, self.config[DIMS])
                     except Exception as e:
-                        logger.debug(component.data_for(var, self.config["dimensions"]).shape)
+                        logger.debug(component.data_for(var, self.config[DIMS]).shape)
                         logger.debug(write_slices)
                         logger.debug(traceback.format_exc())
                         logger.error("For var %s: %s, continuing" % (var["name"], repr(e)))
+
+                # do once per component
+                component.callback_with_file(attribute_handler.process_file)
 
                 if callback is not None:
                     callback()
@@ -319,12 +325,12 @@ class Aggregator(object):
         :return: None
         """
         with nc.Dataset(fullpath, 'w') as nc_out:
-            for dim in self.config["dimensions"]:
+            for dim in self.config[DIMS]:
                 nc_out.createDimension(dim["name"], dim["size"])
-            for var in self.config["variables"]:
+            for var in self.config[VARS]:
                 var_name = var.get("map_to", var["name"])
                 var_type = np.dtype(var["datatype"])
-                var_out = nc_out.createVariable(var_name, var_type, var["dimensions"],
+                var_out = nc_out.createVariable(var_name, var_type, var[DIMS],
                                                 chunksizes=var.get("chunksizes", None), zlib=True,
                                                 complevel=7)
                 for k, v in var["attributes"].items():

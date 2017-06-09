@@ -150,3 +150,18 @@ def validate_a_variable_block(block):
     else:
         if not isinstance(block["attributes"], dict):
             raise ValueError("Variable %s attributes configuration should be a dict" % block["name"])
+
+
+
+def validate_take_dim_indicies_block(block, dim_config):
+    if block is None or len(block) == 0:
+        return None
+
+    # the validity of take_dim_indicies depends on the dimension configuration...
+    # not valid to collapse a dimension and still have it in the dim_config
+    block_keys = block.keys()
+    dim_config_keys = [d["name"] for d in dim_config]
+    for key in block_keys:
+        if key in dim_config_keys:
+            raise ValueError("Cannot have a dimension that gets collapsed! Don't collapse or remove dim: %s" % key)
+

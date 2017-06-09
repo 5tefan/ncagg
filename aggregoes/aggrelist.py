@@ -29,6 +29,9 @@ class AbstractNode(object):
     At aggregation time, an AggreList expects to be able to call
     - size_along to get the size along the unlimited dimension that it will get from data_for
     - data_for to get the data corresponding to this Node
+    
+    This is basically the public interface implemented by Nodes (currently FillNode and InputFileNode). Anything
+    that is called externally should be templated here.
     """
 
     def __init__(self):
@@ -49,7 +52,7 @@ class AbstractNode(object):
         """
         raise NotImplementedError
 
-    def data_for(self, variable, dimensions, attribute_processor=None):
+    def data_for(self, variable, dimensions):
         """
         Get the data configured by this node for the given variable. It is expected that the size
         of the output of data_for along any unlimited dimensions is consistent with the return value
@@ -59,10 +62,11 @@ class AbstractNode(object):
         :param variable: A dict var spec for which this Node is getting data for.
         :type dimensions: dict
         :param dimensions: A list dimensions dicts specifying the size of dimensions, None for unlimited.
-        :type attribute_processor: function
-        :param attribute_processor: A callback which expects a netcdf object and handles the global attributes
-        :return: np.ndarray
+        :return: np.array
         """
+        raise NotImplementedError
+
+    def callback_with_file(self, callback=None):
         raise NotImplementedError
 
 
@@ -127,12 +131,11 @@ class FillNode(AbstractNode):
         # default 0, ie... we are not inserting anything.
         return self.unlimited_dim_sizes.get(unlimited_dim, 0)
 
-    def data_for(self, variable, dimensions, attribute_processor=None):
+    def data_for(self, variable, dimensions):
         """
 
         :param variable:
         :param dimensions:
-        :param attribute_processor: ignored in FillNodes
         :return:
         """
 
@@ -177,6 +180,14 @@ class FillNode(AbstractNode):
         # return np.full(result_shape, variable["attributes"].get("_FillValue", np.nan),
         #                dtype=np.dtype(variable["datatype"]))
         return np.full(result_shape, get_fill_for(variable), dtype=np.dtype(variable["datatype"]))
+
+    def callback_with_file(self, callback=None):
+        """
+        Fill node not associated with a file, so there is nothing to do here. Ignored basically.
+        :param callback: A function.
+        :return:  None
+        """
+        pass
 
 
 class InputFileNode(AbstractNode):
@@ -507,22 +518,17 @@ class InputFileNode(AbstractNode):
         assert dim_start_i <= dim_end_i, "dim size can't be negative, got [%s,%s] for %s" % (dim_start_i, dim_end_i, self)
         return dim_end_i - dim_start_i
 
-    def data_for(self, variable, dimensions, attribute_processor=None):
+    def data_for(self, variable, dimensions):
         """
         Get the data configured by this Node for the variable given.
         :type variable: dict
         :param variable: a dict specification of the variable to get
         :type dimensions: list
         :param dimensions: list of dimensions in the output.
-        :type attribute_processor: function
-        :param attribute_processor: global attribute processor
-        :return:
+        :return: array of data for variable
         """
 
         with nc.Dataset(self.filename) as nc_in:
-            if attribute_processor is not None:
-                attribute_processor(nc_in)
-
             fill = get_fill_for(variable)  # get the fill value, needed in both branches below
 
             # Sorry, there's a limitation here, can only handle 1 unlimited dimension with internal aggregation
@@ -580,6 +586,16 @@ class InputFileNode(AbstractNode):
                 return np.ma.filled(nc_in.variables[variable["name"]][var_slices or slice(None)], fill_value=fill)
             except ValueError:
                 return nc_in.variables[variable["name"]][var_slices or slice(None)]
+
+    def callback_with_file(self, callback=None):
+        """
+        Callback for anything that needs access to the file object stored in the node.
+        :param callback: 
+        :return: 
+        """
+        if callback is not None:
+            with nc.Dataset(self.filename) as nc_in:
+                callback(nc_in)
 
 
 class AggreList(list):
