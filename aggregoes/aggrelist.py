@@ -34,8 +34,12 @@ class AbstractNode(object):
     that is called externally should be templated here.
     """
 
-    def __init__(self):
+    def __init__(self, config):
+        """
+        :param config: a product config, should be what is kept by Aggregator
+        """
         super(AbstractNode, self).__init__()
+        self.config = config
 
     def __repr__(self):
         return self.__str__()
@@ -52,7 +56,7 @@ class AbstractNode(object):
         """
         raise NotImplementedError
 
-    def data_for(self, variable, dimensions):
+    def data_for(self, variable, config):
         """
         Get the data configured by this node for the given variable. It is expected that the size
         of the output of data_for along any unlimited dimensions is consistent with the return value
@@ -60,8 +64,8 @@ class AbstractNode(object):
 
         :type variable: dict
         :param variable: A dict var spec for which this Node is getting data for.
-        :type dimensions: dict
-        :param dimensions: A list dimensions dicts specifying the size of dimensions, None for unlimited.
+        :type config: dict
+        :param config: A list dimensions dicts specifying the size of dimensions, None for unlimited.
         :return: np.array
         """
         raise NotImplementedError
@@ -76,8 +80,8 @@ class FillNode(AbstractNode):
     to be filled with fill values at aggregation time.
     """
 
-    def __init__(self, unlimited_dim_indexed_by_time_var_map=None):
-        super(FillNode, self).__init__()
+    def __init__(self, config=None, unlimited_dim_indexed_by_time_var_map=None):
+        super(FillNode, self).__init__(config)
         # should be a mapping between unlimited dimensions and how many elements to put in
         self.unlimited_dim_sizes = {}
         # should be a mapping between unlimited dimensions and the last valid value, so in
@@ -131,11 +135,11 @@ class FillNode(AbstractNode):
         # default 0, ie... we are not inserting anything.
         return self.unlimited_dim_sizes.get(unlimited_dim, 0)
 
-    def data_for(self, variable, dimensions):
+    def data_for(self, variable, config):
         """
 
         :param variable:
-        :param dimensions:
+        :param config:
         :return:
         """
 
@@ -147,7 +151,7 @@ class FillNode(AbstractNode):
         unlimited_dim = None  # Set to none until we know the unlimited
 
         for index, dim in enumerate(variable["dimensions"]):
-            size_from_dimensions = next((d["size"] for d in dimensions if d["name"] == dim), None)
+            size_from_dimensions = next((d["size"] for d in config if d["name"] == dim), None)
             dim_is_unlim = size_from_dimensions is None
             # save the unlimited dim name to lookup initial base value outside of loop
             if dim_is_unlim:
@@ -191,15 +195,17 @@ class FillNode(AbstractNode):
 
 
 class InputFileNode(AbstractNode):
-    def __init__(self, filename, unlimited_dim_indexed_by_time_var_map=None):
+    def __init__(self, filename, config=None, unlimited_dim_indexed_by_time_var_map=None):
         """
         For sake of optimization, we're going to assume that the unlimited_dim map has been
         validated before being passed here.
 
+        :type config: object
+        :param config: Product configuration as is in the Aggregator.
         :param filename:
         :param unlimited_dim_indexed_by_time_var_map:
         """
-        super(InputFileNode, self).__init__()
+        super(InputFileNode, self).__init__(config)
         self.filename = filename
         # along the unlimited dimensions of the file, we'll need to potentially trim, so keep a lookup dict
         # with "dim name": [None: None] -> slice(*[None, None]) -> [:], or "dim name": [3:None] -> [3:], or
@@ -279,7 +285,7 @@ class InputFileNode(AbstractNode):
                         dim_agg_list.append(slice(slice_start, i))
 
                         num_missing = int(np.abs(np.floor(stepdiff * cadence_hz)))-1
-                        f = FillNode(self.unlimited_dim_indexed_by_time_var_map)
+                        f = FillNode(self.config, self.unlimited_dim_indexed_by_time_var_map)
                         f.set_size_along(unlim_dim, num_missing)
                         f.set_unlim_dim_index_start(unlim_dim, times[aggsort[i-1]])
                         dim_agg_list.append(f)
@@ -445,7 +451,9 @@ class InputFileNode(AbstractNode):
             return self.dim_slices[dim]
         else:
             with nc.Dataset(self.filename) as nc_in:
-                if dim in nc_in.dimensions.keys() and nc_in.dimensions[dim].isunlimited():
+                if dim in self.config.get("take_dim_indicies", {}).keys():
+                    return self.config["take_dim_indicies"][dim]
+                elif dim in nc_in.dimensions.keys() and nc_in.dimensions[dim].isunlimited():
                     # must return none if unlimited so that get_size_along uses length from
                     # get_file_internal_aggregation_size - which takes into account the internal agg list
                     # and then falls back on nc_in.dimesionse[dim].size if there is no agg list
@@ -518,16 +526,16 @@ class InputFileNode(AbstractNode):
         assert dim_start_i <= dim_end_i, "dim size can't be negative, got [%s,%s] for %s" % (dim_start_i, dim_end_i, self)
         return dim_end_i - dim_start_i
 
-    def data_for(self, variable, dimensions):
+    def data_for(self, variable, config):
         """
         Get the data configured by this Node for the variable given.
         :type variable: dict
         :param variable: a dict specification of the variable to get
-        :type dimensions: list
-        :param dimensions: list of dimensions in the output.
+        :type config: list
+        :param config: list of dimensions in the output.
         :return: array of data for variable
         """
-
+        dimensions = config["dimensions"]
         with nc.Dataset(self.filename) as nc_in:
             fill = get_fill_for(variable)  # get the fill value, needed in both branches below
 
@@ -538,7 +546,7 @@ class InputFileNode(AbstractNode):
                 None
             )
             if internal_agg_dim is not None:
-                growing = None  # will become an np.ndarray
+                growing = None  # will become an np.array
                 for internal_agg_segment in self.file_internal_aggregation_list[internal_agg_dim]:
 
                     if isinstance(internal_agg_segment, slice):
@@ -579,7 +587,7 @@ class InputFileNode(AbstractNode):
                 else:
                     var_slices.append(self.get_dim_slice(dim))
 
-            # there are some variables that have no dimensions, ie. they are just a
+            # there are some variables that have no config, ie. they are just a
             # scalar value (seems odd to me, but these are values like "number_samples_per_report" in mag
             # L1b.
             try:

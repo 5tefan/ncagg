@@ -8,6 +8,7 @@ test_dir = os.path.dirname(os.path.realpath(__file__))
 test_input_file = os.path.join(test_dir, "data/OR_MAG-L1b-GEOF_G16_s20170431500000_e20170431500599_c20170431501005.nc")
 another_input_file = os.path.join(test_dir, "data/dn_magn-l2-hires_g16_s20170414T202800Z_e20170414T202859Z_v2_0_0.nc")
 
+
 @unittest.skipIf(not os.path.exists(test_input_file), "Missing test input data file.")
 class TestInputFileNode(unittest.TestCase):
     def test_instantiation_basic(self):
@@ -16,7 +17,7 @@ class TestInputFileNode(unittest.TestCase):
 
     def test_instantiation_with_config(self):
         """Test that a valid dim_configs is accepted."""
-        InputFileNode(test_input_file, {
+        InputFileNode(test_input_file, None, {
             "report_number": {
                 "index_by": "OB_time",
                 "other_dim_indicies": {"number_samples_per_report": 0}
@@ -24,7 +25,7 @@ class TestInputFileNode(unittest.TestCase):
         })
 
     def test_get_start_time(self):
-        a = InputFileNode(test_input_file, {
+        a = InputFileNode(test_input_file, None, {
             "report_number": {
                 "index_by": "OB_time",
                 "other_dim_indicies": {"number_samples_per_report": 0}
@@ -34,7 +35,7 @@ class TestInputFileNode(unittest.TestCase):
         self.assertEqual(start_found, datetime(2017, 2, 12, 14, 59, 59, 900905))
 
     def test_get_end_time(self):
-        a = InputFileNode(test_input_file, {
+        a = InputFileNode(test_input_file, None, {
             "report_number": {
                 "index_by": "OB_time",
                 "other_dim_indicies": {"number_samples_per_report": 0}
@@ -44,7 +45,7 @@ class TestInputFileNode(unittest.TestCase):
         self.assertEqual(end_found, datetime(2017, 2, 12, 15, 0, 58, 900926))
 
     def test_get_start_time_with_cadence(self):
-        a = InputFileNode(test_input_file, {
+        a = InputFileNode(test_input_file, None, {
             "report_number": {
                 "index_by": "OB_time",
                 "other_dim_indicies": {"number_samples_per_report": 0},
@@ -55,7 +56,7 @@ class TestInputFileNode(unittest.TestCase):
         self.assertEqual(start_found, datetime(2017, 2, 12, 14, 59, 59, 900905))
 
     def test_get_end_time_with_cadence(self):
-        a = InputFileNode(test_input_file, {
+        a = InputFileNode(test_input_file, None, {
             "report_number": {
                 "index_by": "OB_time",
                 "other_dim_indicies": {"number_samples_per_report": 0},
@@ -76,7 +77,7 @@ class TestAnotherInputFileNode(unittest.TestCase):
 
     def test_instantiation_with_config(self):
         """Test that a valid dim_configs is accepted."""
-        InputFileNode(another_input_file, {
+        InputFileNode(another_input_file, None, {
             "time": {
                 "index_by": "time"
             }
@@ -84,7 +85,7 @@ class TestAnotherInputFileNode(unittest.TestCase):
 
     def test_get_start_time(self):
         """Test that a valid dim_configs is accepted."""
-        a = InputFileNode(another_input_file, {
+        a = InputFileNode(another_input_file, None, {
             "time": {
                 "index_by": "time"
             }
@@ -94,7 +95,7 @@ class TestAnotherInputFileNode(unittest.TestCase):
 
     def test_get_end_time(self):
         """Test that a valid dim_configs is accepted."""
-        a = InputFileNode(another_input_file, {
+        a = InputFileNode(another_input_file, None, {
             "time": {
                 "index_by": "time"
             }

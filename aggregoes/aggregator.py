@@ -98,12 +98,12 @@ class Aggregator(object):
         input_files = []
         for fn in sorted(files_to_aggregate):
             try:
-                input_files.append(InputFileNode(fn, unlim_config))
+                input_files.append(InputFileNode(fn, self.config, unlim_config))
             except Exception as e:
                 logger.error("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
 
         # calculate file coverage if any unlimited dimensions are configured.
-        if unlim_config is not None:
+        if isinstance(unlim_config, dict) and len(unlim_config) > 0:
             logger.info("\tFound config for unlimited dim indexing, sorting and calculating coverage.")
             # sort input_files by the start time of the first unlimited dim.
             input_files = sorted(input_files, key=lambda i: i.get_first_of_index_by(unlim_config.keys()[0]))
@@ -117,7 +117,7 @@ class Aggregator(object):
             # calculating calculate, the length of num_missing and missing_start == len(input_files) + 1
 
             # noinspection PyUnboundLocalVariable
-            if unlim_config is not None and len(unlim_fills_needed) > 0:
+            if isinstance(unlim_config, dict) and len(unlim_config) > 0 and len(unlim_fills_needed) > 0:
                 fill_node = FillNode(unlim_config)  # init, may not be used though
                 for unlim_dim in unlim_config.keys():
                     # this element is tuple, first is np.ndarray of number missing between each
@@ -267,9 +267,9 @@ class Aggregator(object):
                     # if there were no dimensions... write_slices will still be [] so convert to slice(None)
                     write_slices = write_slices or slice(None)
                     try:
-                        nc_out.variables[var_out_name][write_slices] = component.data_for(var, self.config[DIMS])
+                        nc_out.variables[var_out_name][write_slices] = component.data_for(var, self.config)
                     except Exception as e:
-                        logger.debug(component.data_for(var, self.config[DIMS]).shape)
+                        logger.debug(component.data_for(var, self.config).shape)
                         logger.debug(write_slices)
                         logger.debug(traceback.format_exc())
                         logger.error("For var %s: %s, continuing" % (var["name"], repr(e)))
