@@ -5,7 +5,7 @@ setup(
     version='0.1',
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
-    packages=find_packages(exclude=["test"]),
+    packages=["aggregoes", "aggregoes.ncei", "aggregoes.ncei.config"],
     install_requires=[
         'Click',
         'numpy',
