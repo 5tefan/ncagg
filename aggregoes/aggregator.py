@@ -118,7 +118,7 @@ class Aggregator(object):
 
             # noinspection PyUnboundLocalVariable
             if isinstance(unlim_config, dict) and len(unlim_config) > 0 and len(unlim_fills_needed) > 0:
-                fill_node = FillNode(unlim_config)  # init, may not be used though
+                fill_node = FillNode(self.config, unlim_config)  # init, may not be used though
                 for unlim_dim in unlim_config.keys():
                     # this element is tuple, first is np.ndarray of number missing between each
                     # file, and second np.ndarray of last present value before missing if there is a gap
@@ -267,9 +267,9 @@ class Aggregator(object):
                     # if there were no dimensions... write_slices will still be [] so convert to slice(None)
                     write_slices = write_slices or slice(None)
                     try:
-                        nc_out.variables[var_out_name][write_slices] = component.data_for(var, self.config)
+                        nc_out.variables[var_out_name][write_slices] = component.data_for(var)
                     except Exception as e:
-                        logger.debug(component.data_for(var, self.config).shape)
+                        logger.debug(component.data_for(var).shape)
                         logger.debug(write_slices)
                         logger.debug(traceback.format_exc())
                         logger.error("For var %s: %s, continuing" % (var["name"], repr(e)))

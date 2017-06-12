@@ -56,7 +56,7 @@ class AbstractNode(object):
         """
         raise NotImplementedError
 
-    def data_for(self, variable, config):
+    def data_for(self, variable):
         """
         Get the data configured by this node for the given variable. It is expected that the size
         of the output of data_for along any unlimited dimensions is consistent with the return value
@@ -135,11 +135,10 @@ class FillNode(AbstractNode):
         # default 0, ie... we are not inserting anything.
         return self.unlimited_dim_sizes.get(unlimited_dim, 0)
 
-    def data_for(self, variable, config):
+    def data_for(self, variable):
         """
 
         :param variable:
-        :param config:
         :return:
         """
 
@@ -151,7 +150,7 @@ class FillNode(AbstractNode):
         unlimited_dim = None  # Set to none until we know the unlimited
 
         for index, dim in enumerate(variable["dimensions"]):
-            size_from_dimensions = next((d["size"] for d in config if d["name"] == dim), None)
+            size_from_dimensions = next((d["size"] for d in self.config["dimensions"] if d["name"] == dim), None)
             dim_is_unlim = size_from_dimensions is None
             # save the unlimited dim name to lookup initial base value outside of loop
             if dim_is_unlim:
@@ -526,16 +525,14 @@ class InputFileNode(AbstractNode):
         assert dim_start_i <= dim_end_i, "dim size can't be negative, got [%s,%s] for %s" % (dim_start_i, dim_end_i, self)
         return dim_end_i - dim_start_i
 
-    def data_for(self, variable, config):
+    def data_for(self, variable):
         """
         Get the data configured by this Node for the variable given.
         :type variable: dict
         :param variable: a dict specification of the variable to get
-        :type config: list
-        :param config: list of dimensions in the output.
         :return: array of data for variable
         """
-        dimensions = config["dimensions"]
+        dimensions = self.config["dimensions"]
         with nc.Dataset(self.filename) as nc_in:
             fill = get_fill_for(variable)  # get the fill value, needed in both branches below
 
@@ -571,9 +568,7 @@ class InputFileNode(AbstractNode):
                     else:
                         # if not a slice, it must be a FillNode, assert so and handle accordingly
                         assert isinstance(internal_agg_segment, FillNode)
-                        growing = np.concatenate((growing, internal_agg_segment.data_for(
-                            variable, dimensions
-                        )))
+                        growing = np.concatenate((growing, internal_agg_segment.data_for(variable)))
 
                 return growing[[self.get_dim_slice(dim) for dim in variable["dimensions"]]]
 
