@@ -5,7 +5,6 @@ from logging import handlers
 logger = logging.getLogger(__name__)
 
 SMTP_HOST = "localhost"
-SMTP_PORT = 587
 
 class BufferedEmailHandler(handlers.SMTPHandler):
     """
@@ -16,6 +15,8 @@ class BufferedEmailHandler(handlers.SMTPHandler):
     """
     def __init__(self, fromaddr, toaddrs, subject,
                  credentials=None, secure=None):
+        if isinstance(toaddrs, basestring):
+            toaddrs = [toaddrs]
         super(BufferedEmailHandler, self).__init__(SMTP_HOST, fromaddr, toaddrs, subject,
                                                    credentials, secure)
         self.setLevel(logging.ERROR)
@@ -46,7 +47,7 @@ class BufferedEmailHandler(handlers.SMTPHandler):
     def format(self, _=None):
         # ignore record _, handlers.SMTPHandler emit() calls self.format() to get the contents
         # of the email. In this case, the content of the message should be list of Error messages.
-        return "Unexpected errors occurred during aggregation:\n " + "\n".join(self.buffer)
+        return "Unexpected errors occurred during aggregation:\n\t" + "\n\t".join(self.buffer)
 
     def handleError(self, record=None):
         pass
@@ -61,7 +62,7 @@ class BufferedEmailHandler(handlers.SMTPHandler):
         :return: True or False, if can connect to SMTP_HOST on SMTP_PORT
         """
         try:
-            conn = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
+            conn = smtplib.SMTP(SMTP_HOST)
             status = conn.noop()[0]
         except:
             status = -1

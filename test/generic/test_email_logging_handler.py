@@ -6,15 +6,15 @@ from aggregoes.ncei.BufferedEmailHandler import BufferedEmailHandler
 error_messages = ["TEST ERROR!", "Oh no!, Another test ERROR!"]
 warning_messages = ["I'm just a harmless warning message.", "You should probably ignore warnings."]
 
+
 class TestBufferedEmailHandler(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.email = "Stefan.Codrescu@noaa.gov"
         cls.hostname = os.environ.get("HOSTNAME", "")
-        cls.email_handler = BufferedEmailHandler("localhost", "%s@%s" % (os.environ.get("USER", "aggregation"),
-                                                                         cls.hostname),
-                                             cls.email, "Aggregation errors - test!")
-        cls.email_handler.setLevel(logging.ERROR)
+        cls.username = os.environ.get("USER", "aggregation")
+        cls.email_handler = BufferedEmailHandler("%s@%s" % (cls.username, cls.hostname),
+                                                 cls.email, "Aggregation errors - test!")
         logging.getLogger().addHandler(cls.email_handler)
 
         for message in error_messages:
@@ -35,7 +35,6 @@ class TestBufferedEmailHandler(unittest.TestCase):
         """
         self.email_handler.finalize()
 
-
     def test_message(self):
         """
         Make sure the body of the email contains the error messages above.
@@ -48,4 +47,3 @@ class TestBufferedEmailHandler(unittest.TestCase):
 
         for message in warning_messages:
             self.assertNotIn(message, email_body)
-
