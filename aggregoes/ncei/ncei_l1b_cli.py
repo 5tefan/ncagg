@@ -3,7 +3,10 @@ from aggregoes.ncei.ncei_l1b_mapper import get_files_for, get_product_config, ge
 from aggregoes.ncei.ncei_l1b_mapper import mapping
 from datetime import datetime, timedelta
 import click
-
+import logging
+import os
+from aggregoes.ncei.BufferedEmailHandler import BufferedEmailHandler
+import atexit
 
 @click.group()
 def cli():
@@ -15,7 +18,17 @@ def cli():
 @click.argument("product", type=click.Choice(mapping.keys()))
 @click.option("--sat", default="goes16", type=click.Choice(["goes16", "goes17", "goes18"]), help="Which satellite.")
 @click.option("--env", default="OR", help="Which environment.")
-def agg_day(yyyymmdd, product, sat="goes16", env="OR"):
+@click.option("--email", "-e", multiple=True)
+def agg_day(yyyymmdd, product, sat="goes16", env="OR", email=list()):
+
+    if len(email) > 0:
+        hostname = os.environ.get("HOSTNAME", "")
+        username = os.environ.get("USER", "aggregation")
+        email_handler = BufferedEmailHandler("localhost", "%s@%s" % (username, hostname),
+                                             email, "Aggregation errors - %s %s %s %s" % (yyyymmdd, product, sat, env))
+        logging.getLogger().addHandler(email_handler)
+        atexit.register(email_handler.finalize)
+
     start_time = datetime.strptime(yyyymmdd, "%Y%m%d")
     end_time = start_time + timedelta(days=1) - timedelta(microseconds=1)
 
@@ -47,4 +60,9 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR"):
 
 
 if __name__ == "__main__":
+
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    logging.getLogger().addHandler(console)
+
     cli()

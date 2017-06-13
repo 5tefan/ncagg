@@ -15,10 +15,6 @@ from aggregoes.validate_configs import validate_a_dimension_block, validate_a_gl
 from aggregoes.validate_configs import validate_unlimited_dim_indexed_by_time_var_map as validate_unlim_config
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-logging.getLogger().addHandler(console)
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -76,7 +72,7 @@ class Aggregator(object):
 
         if len(files_to_aggregate) == 0:
             # no files to aggregate, exit immediately, do nothing
-            logger.warn("No files to aggregate!")
+            logger.error("No files to aggregate!")
             return aggregation_list
 
         # if global attributes and data variables are not configured, set them to defaults based on the first
@@ -96,11 +92,19 @@ class Aggregator(object):
 
         logger.info("Initializing input file nodes...")
         input_files = []
+        n_errors = 0.0
         for fn in sorted(files_to_aggregate):
             try:
                 input_files.append(InputFileNode(fn, self.config, unlim_config))
             except Exception as e:
-                logger.error("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+                n_errors += 1
+                logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+                if n_errors / len(files_to_aggregate) >= 0.5:
+                    logger.error("Exceeding 50% errors from granules. Something likely wrong, but continuing."
+                                 "Latest error was:\n"
+                                 "Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+                    # once logger.error triggered once for input problem, make sure it won't trigger again.
+                    n_errors = -1.0
 
         # calculate file coverage if any unlimited dimensions are configured.
         if isinstance(unlim_config, dict) and len(unlim_config) > 0:
@@ -146,7 +150,7 @@ class Aggregator(object):
         :rtype: np.ndarray
         :return: boolean array indicating where the gap sizes are too big between files
         """
-        # cadence_hz = next((d["expected_cadence"] for d in self.config[DIMS] if d["name"] == unlim_dim), None)
+        # expects cadence_hz, do not call if cadence_hz is not available!
         cadence_hz = self.config["config"][unlim_dim]["expected_cadence"][unlim_dim]
 
         def cast_bound(bound):
@@ -269,10 +273,9 @@ class Aggregator(object):
                     try:
                         nc_out.variables[var_out_name][write_slices] = component.data_for(var)
                     except Exception as e:
-                        logger.debug(component.data_for(var).shape)
-                        logger.debug(write_slices)
-                        logger.debug(traceback.format_exc())
-                        logger.error("For var %s: %s, continuing" % (var["name"], repr(e)))
+                        logger.info(traceback.format_exc())
+                        logger.error("Problem writing var %s to file %s.\n" % (var_out_name, to_fullpath),
+                                     "Skipping and continuing. Error was %s" % repr(e))
 
                 # do once per component
                 component.callback_with_file(attribute_handler.process_file)
@@ -341,17 +344,3 @@ class Aggregator(object):
 
                 var_out.setncatts(var["attributes"])
 
-    def handle_unexpected_condition(self, message, fatal=False, email=None):
-        """
-        Do something when unexpected conditions are found. This may include actions
-        like emailing the DM, for example
-
-        :param email:
-        :param fatal:
-        :param message:
-        :return:
-        """
-        if fatal:
-            raise Exception(message)
-        else:
-            logger.warning(message)
