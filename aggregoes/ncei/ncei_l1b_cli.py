@@ -24,8 +24,8 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR", email=list()):
     if len(email) > 0:
         hostname = os.environ.get("HOSTNAME", "")
         username = os.environ.get("USER", "aggregation")
-        email_handler = BufferedEmailHandler("localhost", "%s@%s" % (username, hostname),
-                                             email, "Aggregation errors - %s %s %s %s" % (yyyymmdd, product, sat, env))
+        email_handler = BufferedEmailHandler("%s@%s" % (username, hostname), email,
+                                             "Aggregation errors - %s %s %s %s" % (yyyymmdd, product, sat, env))
         logging.getLogger().addHandler(email_handler)
         atexit.register(email_handler.finalize)
 
