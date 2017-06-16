@@ -100,8 +100,8 @@ class Aggregator(object):
                 n_errors += 1
                 logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
                 if n_errors / len(files_to_aggregate) >= 0.5:
-                    logger.error("Exceeding 50% errors from granules. Something likely wrong, but continuing."
-                                 "Latest error was:\n"
+                    logger.error("Exceeding half bad granules. Something likely wrong, but continuing."
+                                 "Resulting file will probably have lots of fill values. Latest error was:\n"
                                  "Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
                     # once logger.error triggered once for input problem, make sure it won't trigger again.
                     n_errors = -1.0
@@ -274,8 +274,8 @@ class Aggregator(object):
                         nc_out.variables[var_out_name][write_slices] = component.data_for(var)
                     except Exception as e:
                         logger.info(traceback.format_exc())
-                        logger.error("Problem writing var %s to file %s.\n" % (var_out_name, to_fullpath),
-                                     "Skipping and continuing. Error was %s" % repr(e))
+                        logger.error("Problem writing var %s to file %s.\n "
+                                     "Skipping and continuing. Error was %s" % (var_out_name, to_fullpath, repr(e)))
 
                 # do once per component
                 component.callback_with_file(attribute_handler.process_file)
