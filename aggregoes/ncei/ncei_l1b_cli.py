@@ -7,6 +7,7 @@ import tempfile
 import click
 import logging
 import os
+import shutil
 import atexit
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,7 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR", email=list()):
 
     # Rename (atomicish move) it to the final filename.
     final_filename = get_output_filename(sat, product, yyyymmdd, env)
-    os.rename(tmp_filename, final_filename)
+    shutil.move(tmp_filename, final_filename)
     logger.info("Finished: %s" % final_filename)
 
 
