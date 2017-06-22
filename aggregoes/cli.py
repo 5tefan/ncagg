@@ -22,7 +22,7 @@ def parse_time(dt_str):
     """
     year = int(dt_str[:4])
     month = int(dt_str[4:6])
-    day = int(dt_str[6:8])
+    day = int(dt_str[6:8] or 1)
     hour = int(dt_str[8:10] or 0)
     minute = int(dt_str[10:12] or 0)
     return datetime(year, month, day, hour, minute)
@@ -53,6 +53,9 @@ def cli(dst, src, u=None, b=None):
                 # parse as a time indication, cut out the T before sending to parse
                 b_split[0] = parse_time(b_split[0][1:])
                 b_split[1] = parse_time(b_split[1][1:])
+            else:
+                # otherwise convert to numerical
+                b_split = map(float, b_split)
 
             runtime_config[u_split[0]]["min"] = b_split[0]
             runtime_config[u_split[0]]["max"] = b_split[1]
