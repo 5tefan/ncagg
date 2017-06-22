@@ -112,8 +112,11 @@ Here is what a typical GOES-R L1b product aggregation output looks like:
 ```
 
 In English, the configuration above says "Order the dimension report_number by the values in the variable time, where
-time values are expected to increase along the dimension report_number incrementing at 1hz." The configuration allows
-to even index by multidimensional time: (ehem, mag with 10 samples per report)
+time values are expected to increase along the dimension report_number incrementing at 1hz." This would be specified 
+on the aggregoes command line using `aggregoes -u report_number:time:1 output.nc in1.nc in2.nc`. 
+
+The configuration allows to even index by multidimensional time (ehem, mag with 10 samples per report). On the command
+line specified as `-u report_number:OB_time:1:10`, or as json:
 
 ```
 "report_number": {
@@ -124,9 +127,9 @@ to even index by multidimensional time: (ehem, mag with 10 samples per report)
 ```
 
 One design constraint was to not reshape the data, so above, we order the data by looking at index 0 of 
-samples_per_record for every value along the report_number dimension. We assume that the timestamps along
+samples_per_record for every value along the report_number dimension. We assume that the other timestamps along
 samples_per_record are correct. Also, given the configuration above, we only insert fill records of OB_time
-if a full report_number type is missing.
+if a full report_number row type is missing.
 
 
 ### Product Configuration
@@ -142,17 +145,17 @@ The Product Configuration is used for a number of things:
 The aggregated result file contains global attributes formed from the constituent granules. A number of
 strategies exist to aggregate Global Attributes across the granules. Most are quite self explanatory:
 
- -         "first": StratFirst
- -         "last": StratLast
- -         "unique_list": StratUniqueList
- -         "int_sum": StratIntSum
+ -         "first": StratFirst  # first value seen will be taken as the output value for this global attribute
+ -         "last": StratLast    # the last value seen will be taken as global attribute
+ -         "unique_list": StratUniqueList  # compile values into a unique list "first, second, etc"
+ -         "int_sum": StratIntSum          # resulting in integer sum of the inputs
  -         "float_sum": StratFloatSum
  -         "constant": StratAssertConst
- -         "date_created": StratDateCreated
- -         "time_coverage_start": StratTimeCoverageStart
- -         "time_coverage_end": StratTimeCoverageEnd
- -         "filename": StratOutputFilename
- -         "remove": StratRemove
+ -         "date_created": StratDateCreated   # simply yeilds the current date when finalized, standard dt fmt
+ -         "time_coverage_start": StratTimeCoverageStart  # start bound, if specified, standard dt fmt
+ -         "time_coverage_end": StratTimeCoverageEnd      # end bound, if specified, standard dt fmt
+ -         "filename": StratOutputFilename                
+ -         "remove": StratRemove                          # remove/do not include this global attribute
  
  The configuration format expects a key "global attributes" associated with a list of objects each containing 
  a global attribute name and strategy. A list is used to preserve order, as the order in the configuration will
@@ -175,8 +178,8 @@ strategies exist to aggregate Global Attributes across the granules. Most are qu
 #### Specify Dimension Indecies to Extract and Flatten
 
 Consider SEIS SGPS files which contain the data from two sensor units, +X and -X. Most variables are of the form
-var[record_number, sensor_unit, channel, ...]. It is possible to create an aggregate file for +X and -X individually
-using the take_dim_indicies configuration key.
+var[record_number, sensor_unit, channel, ...]. It is possible to create an aggregate file for the +X and -X sensor 
+units individually using the take_dim_indicies configuration key.
 
 ```json
 {

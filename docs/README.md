@@ -1,6 +1,6 @@
 ## Aggregation Docs
 
-Core documentation is in the top level [README.md](../README.md)
+Core documentation is in the top level [README.md](/README.md)
 
 Other:
 
