@@ -1,6 +1,7 @@
 from aggregoes.aggregator import Aggregator
 import click
 from datetime import datetime
+import logging
 
 
 class ProgressAggregator(Aggregator):
@@ -43,7 +44,7 @@ def cli(dst, src, u=None, b=None):
         }
         if len(u_split) > 2:
             # TODO: handle multidim indexby, might have to look in one of the src files.
-            runtime_config[u_split[0]]["expected_cadence"] = {u_split[0]: u_split[2]}
+            runtime_config[u_split[0]]["expected_cadence"] = {u_split[0]: float(u_split[2])}
 
         if b is not None:
             b_split = b.split(":")
@@ -67,4 +68,9 @@ def cli(dst, src, u=None, b=None):
 
 
 if __name__ == "__main__":
+
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    logging.getLogger().addHandler(console)
+
     cli()
