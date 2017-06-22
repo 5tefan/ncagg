@@ -340,7 +340,10 @@ class Aggregator(object):
                     if k in ["_FillValue", "valid_min", "valid_max"]:
                         var["attributes"][k] = var_type.type(v)
                     if k in ["valid_range", "flag_masks", "flag_values"]:
-                        var["attributes"][k] = np.array(v, dtype=var_type)
+                        if isinstance(v, basestring):
+                            var["attributes"][k] = np.array(map(var_type.type, v.split(", ")), dtype=var_type)
+                        else:
+                            var["attributes"][k] = np.array(v, dtype=var_type)
 
                 var_out.setncatts(var["attributes"])
 
