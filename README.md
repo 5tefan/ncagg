@@ -26,10 +26,32 @@ Options:
 
 Notes:
 
- - DST is the filename for the output aggregation and should not already exist.
- - SRC is a list of files to aggregate.
+ - DST is the filename for the netcdf output and should not already exist, or will be overwritten.
+ - SRC is a list of input netcdf files to aggregate.
  - -u should specify an Unlimited Dimension Configuration. See below for details.
  - Taking tens of minutes for a day is normal, a progress bar will indicate time remaining.
+
+Examples:
+
+```
+# explicitly list files
+aggregoes output_filename.nc file_0.nc file_02.nc #...
+
+# glob all files in some directory
+aggregoes output_filename.nc path_to_files/*.nc
+
+# sort the unlimited dimension time, according to the variable time
+aggregoes -u record_number:time output_filename.nc path_to_files/*.nc
+
+# sort the unlimited dimension time, according to the variable time, and insert 
+# or remove fill values to ensure time occurrs at 10hz.
+aggregoes -u record_number:time:10 output_filename.nc path_to_files/*.nc
+
+# only include time values between 2017-06-01 to 2017-06-02 (bounds), including
+# sorting and filling, as above
+aggregoes -u record_number:time:10 -b T20170601:T20170602 output_filename.nc path_to_files/*.nc
+
+```
 
 In addition, command line interfaces customized for NCEI systems are available:
 
