@@ -69,6 +69,7 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR", email=list()):
     # Rename (atomicish move) it to the final filename.
     final_filename = get_output_filename(sat, product, yyyymmdd, env)
     shutil.move(tmp_filename, final_filename)
+    os.chmod(final_filename, 664)
     logger.info("Finished: %s" % final_filename)
 
 
