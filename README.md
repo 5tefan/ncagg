@@ -8,6 +8,8 @@ So... you want to aggregate? -- A utility to aggregate L1b and L2+ GOES Space We
 Install the utility with with pip:
 ```
 pip install git+https://stash.ngdc.noaa.gov:8443/scm/stp/goes-aggregation.git
+# or
+pip install git+https://ctor.space/gitlab/work/goes-aggregation.git
 ```
 
 On the command line, use `aggregoes`:
@@ -34,16 +36,16 @@ Notes:
 Examples:
 
 ```
-# explicitly list files
+# explicitly list files to aggregate
 aggregoes output_filename.nc file_0.nc file_02.nc #...
 
-# glob all files in some directory
+# aggregate by globbing all files in some directory
 aggregoes output_filename.nc path_to_files/*.nc
 
-# sort the unlimited dimension time, according to the variable time
+# sort the unlimited dimension record_number, according to the variable time
 aggregoes -u record_number:time output_filename.nc path_to_files/*.nc
 
-# sort the unlimited dimension time, according to the variable time, and insert 
+# sort the unlimited dimension record_number, according to the variable time, and insert
 # or remove fill values to ensure time occurrs at 10hz.
 aggregoes -u record_number:time:10 output_filename.nc path_to_files/*.nc
 
