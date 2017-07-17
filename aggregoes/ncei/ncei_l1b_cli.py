@@ -2,11 +2,13 @@ from aggregoes.cli import ProgressAggregator as Aggregator
 from aggregoes.ncei.BufferedEmailHandler import BufferedEmailHandler
 from aggregoes.ncei.ncei_l1b_mapper import get_files_for, get_product_config, get_runtime_config, get_output_filename
 from aggregoes.ncei.ncei_l1b_mapper import mapping
+from aggregoes.aggregator import FillNode
 from datetime import datetime, timedelta
 import tempfile
 import click
 import logging
 import os
+import sys
 import shutil
 import atexit
 
@@ -47,6 +49,10 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR", email=list()):
     files += get_files_for(sat, product, start_time + timedelta(days=1), env)[:60]
     logger.debug("Found %s files total" % len(files))
 
+    if len(files) == 0:
+        logger.info("No files to aggregate! Exiting.")
+        return
+
     # Initialize the aggregator.
     product_config = get_product_config(product)
     a = Aggregator(config=product_config)
@@ -61,6 +67,10 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR", email=list()):
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
     logger.debug("Aggregation list contains %s items" % len(aggregation_list))
 
+    if len(aggregation_list) == 1 and isinstance(aggregation_list[0], FillNode):
+        logger.info("Aggregation contains only FillValues! Exiting.")
+        return
+
     # Evaluate it to a temporary working file.
     logger.info("Evaluating aggregation list...")
     _, tmp_filename = tempfile.mkstemp(prefix="agg_%s_%s" % (product, yyyymmdd))
@@ -71,11 +81,12 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR", email=list()):
     shutil.move(tmp_filename, final_filename)
     os.chmod(final_filename, 0o664)
     logger.info("Finished: %s" % final_filename)
+    click.echo(final_filename)
 
 
 if __name__ == "__main__":
 
-    console = logging.StreamHandler()
+    console = logging.StreamHandler(sys.stderr)
     console.setLevel(logging.DEBUG)
     logging.getLogger().addHandler(console)
 
