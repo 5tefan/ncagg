@@ -39,15 +39,15 @@ mapping = {
 
     ## EXIS
     "xrsf-l2-flx1s": {
-        "record_number": {
+        "time": {
             "index_by": "time",
-            "expected_cadence": {"record_number": 1},
+            "expected_cadence": {"time": 1},
         }
     },
     "xrsf-l2-avg1m": {
-        "record_number": {
+        "time": {
             "index_by": "time",
-            "expected_cadence": {"record_number": 1.0/60.},
+            "expected_cadence": {"time": 1.0/60.},
         }
     },
 
