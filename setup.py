@@ -15,6 +15,7 @@ setup(
         [console_scripts]
         aggregoes=aggregoes.cli:cli
         ncei-l1b-agg=aggregoes.ncei.ncei_l1b_cli:cli
+        ncei-l2-agg=aggregoes.ncei.ncei_l2_cli:cli
     ''',
     include_package_data=True,
     package_data={
