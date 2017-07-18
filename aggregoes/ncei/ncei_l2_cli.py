@@ -2,11 +2,12 @@ from aggregoes.cli import ProgressAggregator as Aggregator
 from aggregoes.ncei.BufferedEmailHandler import BufferedEmailHandler
 from aggregoes.ncei.ncei_l2_mapper import get_files_for, get_product_config, get_runtime_config, get_output_filename
 from aggregoes.ncei.ncei_l2_mapper import mapping
-from aggregoes.aggregator import FillNode
+from aggregoes.aggregator import FillNode, InputFileNode
 from datetime import datetime, timedelta
 import tempfile
 import click
 import logging
+import re
 import os
 import sys
 import shutil
@@ -15,9 +16,40 @@ import atexit
 logger = logging.getLogger(__name__)
 
 
-@click.group()
-def cli():
-    pass
+def reduce_version(versions):
+    """
+    Given a list of version, determine what the output version should be. Examples:
+    1_0_0, 1_0_0, ...   => 1_0_0
+    1_0_0, 1_0_1        => 1_0_0-1
+    1_0_0, 2_0_0        => 1-2_0_0
+    1_0_0, 1_0_1, 2_0_0 => 1-2_0_x
+    
+    :rtype: list[str]
+    :param versions: A list of versions a_b_c where a, b, c are decimal major, minor and patch
+    :return: version for concatenated file
+    """
+    def cmp(a_str, b_str):
+        a = map(lambda s: s.split("-"), a_str.split("_"))  # eg 1-2_0_0 => [[1,2], [0], [0]]
+        b = map(lambda s: s.split("-"), b_str.split("_"))
+        assert len(a) == len(b) == 3, "Expected 3 element versions, found %s and %s" % (a_str, b_str)
+        change_detected = reduce(   # list of booleans, moving left to right, indicating if
+                                    # a change in version has been detected yet
+            lambda acc, n: acc + [True] if acc[-1] else acc + [n[0] != n[1]],
+            zip(a, b),  # so n above is a tuple containing 2 arrays
+            [False]    # initialize acc (accumulator) with no change detected.
+        )[:-1]  # shift over by 1 so that change is True _after_ detection. Works because initialization with False.
+
+        def cmp_comp(x, y, c):
+            if c and x != y:
+                return "x"
+            else:
+                return "-".join(sorted(set(x+y)))
+        return "_".join(map(cmp_comp, a, b, change_detected))
+
+    return reduce(cmp, set(versions))
+
+
+cli = click.group()(lambda: None)
 
 
 @cli.command()
@@ -53,7 +85,6 @@ def agg_day(yyyymmdd, product, sat="goes16", env="dr", email=list()):
         logger.info("No files to aggregate! Exiting.")
         return
 
-    # Initialize the aggregator.
     product_config = get_product_config(product)
     a = Aggregator(config=product_config)
 
@@ -67,6 +98,18 @@ def agg_day(yyyymmdd, product, sat="goes16", env="dr", email=list()):
     aggregation_list = a.generate_aggregation_list(files, runtime_config)
     logger.debug("Aggregation list contains %s items" % len(aggregation_list))
 
+    # derive version from the file names - first get list of filename from nodes that are InputFileNodes
+    file_names = map(lambda x: x.filename, filter(lambda n: isinstance(n, InputFileNode), aggregation_list))
+    version_match = re.compile("_v(?P<ver>[0-9][-0-9]*_[0-9x][-0-9]*_[0-9x][-0-9]*)")
+    def get_version(from_filename):
+        """Return version string or None if not found in from_filename."""
+        match = version_match.search(from_filename)
+        if match is not None:
+            return match.group("ver")
+    version = reduce_version(filter(lambda x: x is not None, map(lambda n: get_version(n), file_names)))
+
+    # Initialize the aggregator.
+
     if len(aggregation_list) == 1 and isinstance(aggregation_list[0], FillNode):
         logger.info("Aggregation contains only FillValues! Exiting.")
         return
@@ -77,7 +120,7 @@ def agg_day(yyyymmdd, product, sat="goes16", env="dr", email=list()):
     a.evaluate_aggregation_list(aggregation_list, tmp_filename)
 
     # Rename (atomicish move) it to the final filename.
-    final_filename = get_output_filename(sat, product, yyyymmdd, env)
+    final_filename = get_output_filename(sat, product, yyyymmdd, env, version)
     shutil.move(tmp_filename, final_filename)
     os.chmod(final_filename, 0o664)
     logger.info("Finished: %s" % final_filename)

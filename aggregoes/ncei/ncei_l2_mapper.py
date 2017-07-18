@@ -98,7 +98,7 @@ def get_product_config(product):
         return json.load(config_file)
 
 
-def get_output_filename(sat, product, datestr, env="xx", path=None):
+def get_output_filename(sat, product, datestr, env="xx", version="x_x_x"):
     # check inputs
     assert int(datestr), "datestr should be numerical %Y, %Y%m, or %Y%m%d"
     check_product(product)
@@ -118,11 +118,11 @@ def get_output_filename(sat, product, datestr, env="xx", path=None):
     else:
         raise ValueError("Unknown datestr: %s, expected %Y, %Y%m, or %Y%m%d")
     # create base of path if it doesn't exist already
-    path = os.path.join(out_base, path_from_base) if path is None else path
+    path = os.path.join(out_base, path_from_base)
     if not os.path.exists(path):
         os.makedirs(path)
     filename_sat = "g%s" % int(sat[-2:])
-    filename = "%s_%s_%s_%s%s.nc" % (env, product, filename_sat, agg_length_prefix, datestr)
+    filename = "%s_%s_%s_%s%s_v%s.nc" % (env, product, filename_sat, agg_length_prefix, datestr, version)
     return os.path.join(path, filename)
 
 
