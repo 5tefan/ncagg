@@ -289,37 +289,6 @@ class Aggregator(object):
             # after aggregation finished, finalize the global attributes
             attribute_handler.finalize_file(nc_out)
 
-        unlim_config = self.config.get("config", None)
-
-        if unlim_config is None:
-            # nothing left to do if no unlimited conifg
-            return
-        # otherwise sort all records, seems we occasionally get out of order records
-        # close and re-open file just to be safe
-        with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
-            # get argsort along the configured unlimited dims
-            unlim_argsorts = {
-                unlim_dim: self.argsort_for_unlim(nc_out, unlim_dim) for unlim_dim in unlim_config.keys()
-            }
-            for var in vars_with_unlim:
-                var_out_name = var.get("map_to", var["name"])
-                slices = [unlim_argsorts.get(dim, slice(None)) for dim in nc_out.variables[var_out_name].dimensions]
-                nc_out.variables[var_out_name][:] = nc_out.variables[var_out_name][slices]
-
-    def argsort_for_unlim(self, nc_out, unlim_dim):
-        """
-
-        :type nc_out: nc.Dataset
-        :param nc_out: netcdf out to argsort against
-        :param unlim_dim:
-        :return:
-        """
-        unlim_mapping = self.config["config"][unlim_dim]
-        index_by = unlim_mapping["index_by"]
-        slices = tuple([slice(None) if d == unlim_dim else unlim_mapping.get("other_dim_indicies", {}).get(d, 0)
-                        for d in nc_out[index_by].dimensions])
-        return np.argsort(nc_out.variables[index_by][slices])
-
     def initialize_aggregation_file(self, fullpath):
         """
         Based on the configuration in self.config, initialize a file in which to write the aggregated output.
