@@ -204,6 +204,8 @@ class Aggregator(object):
         where_gap_too_small = np.where(coverage_diff <= gap_too_small_upper_bound_seconds)[0]
         for problem_index in where_gap_too_small:
             num_overlap = np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))
+            if int(np.ceil(num_overlap)) == 0:
+                continue  # skip if num overlap == 0, nothing to do!
             # Take the gap off from front of following file, ie. bias towards first values that arrived.
             # On the end, when there is no following file, instead chop the end from the last file.
             if problem_index < len(input_files) - 1:

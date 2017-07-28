@@ -362,8 +362,8 @@ class InputFileNode(AbstractNode):
     def __str__(self):
         dim_strs = []
         for dim, val in self.dim_slices.items():
-            slice_first = val.start or ''
-            slice_last = val.stop or ''
+            slice_first = val.start if val.start is not None else ''
+            slice_last = val.stop if val.stop is not None else ''
             dim_strs.append("%s[%s:%s]" % (dim, slice_first, slice_last))
         return "%s[%s]" % (os.path.basename(self.filename), ",".join(dim_strs))
 
