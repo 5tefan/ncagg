@@ -2,6 +2,7 @@ from aggregoes.aggregator import Aggregator
 import click
 from datetime import datetime, timedelta
 import logging
+from fractions import Fraction
 
 
 class ProgressAggregator(Aggregator):
@@ -95,7 +96,7 @@ def cli(dst, src, u=None, b=None):
         }
         if len(u_split) > 2:
             # TODO: handle multidim indexby, might have to look in one of the src files.
-            runtime_config[u_split[0]]["expected_cadence"] = {u_split[0]: float(u_split[2])}
+            runtime_config[u_split[0]]["expected_cadence"] = {u_split[0]: float(Fraction(u_split[2]))}
 
         if b is not None:
             start, stop = parse_bound_arg(b)
