@@ -4,7 +4,8 @@ from aggregoes.aggregator import Aggregator
 from datetime import datetime
 import glob
 import os
-
+import netCDF4 as nc
+import numpy as np
 
 class TestMag(unittest.TestCase):
     def setUp(self):
@@ -29,3 +30,6 @@ class TestMag(unittest.TestCase):
             }
         })
         a.evaluate_aggregation_list(aggregation_list, self.file)
+        with nc.Dataset(self.file) as nc_out:
+            # make sure there is actually some data, not just fill values
+            self.assertEqual(np.ma.count_masked(nc_out.variables["total_mag_ACRF"][:]), 0)
