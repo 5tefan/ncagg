@@ -24,6 +24,7 @@ class TestBoundArgParsing(unittest.TestCase):
         self.assertEqual(stop, datetime(2014, 01, 01) - adjust)
 
     def test_many_times_with_start_and_stop(self):
+        # test all permuntations of the years, months, days
         for a, b in permutations(years.items() + months.items() + days.items(), 2):
             start, stop = parse_bound_arg("T%s:T%s" % (a[0], b[0]))
             self.assertEqual(start, a[1])
@@ -35,4 +36,16 @@ class TestBoundArgParsing(unittest.TestCase):
             self.assertEqual(start, b)
             self.assertEqual(stop, b + timedelta(days=1) - adjust)
 
+    def test_many_start_months(self):
+        for a, b in months.items():
+            start, stop = parse_bound_arg("T%s" % a)
+            self.assertEqual(start, b)
+            # going to be lazy and not actually calculate the month here,
+            # just make sure it's kinda where it should be :P
+            self.assertTrue(stop > start and start + timedelta(days=32) > stop)
 
+    def test_many_start_years(self):
+        for a, b in years.items():
+            start, stop = parse_bound_arg("T%s" % a)
+            self.assertEqual(start, b)
+            self.assertEqual(stop, datetime(start.year+1, 1, 1) - adjust)
