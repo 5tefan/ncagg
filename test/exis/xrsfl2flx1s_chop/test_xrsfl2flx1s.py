@@ -4,6 +4,8 @@ from aggregoes.aggregator import Aggregator
 from datetime import datetime, timedelta
 import glob
 import os
+import netCDF4 as nc
+import numpy as np
 
 class TestGenerateAggregationList(unittest.TestCase):
     def setUp(self):
@@ -26,6 +28,11 @@ class TestGenerateAggregationList(unittest.TestCase):
                 "expected_cadence": {"time": 1},
             }
         })
-        self.assertEqual(len(aggregation_list), 1)
+        a.evaluate_aggregation_list(aggregation_list, self.file)
+        with nc.Dataset(self.file) as nc_out:
+            for dt in nc.num2date(nc_out.variables["time"][:], nc_out.variables["time"].units):
+                # since this is an aggregation over a day, we shouldn't have any values
+                self.assertEqual(dt.year, start_time.year)
+                self.assertEqual(dt.day, start_time.day)
 
 
