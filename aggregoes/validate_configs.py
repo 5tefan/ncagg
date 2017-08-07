@@ -1,6 +1,8 @@
 import numpy as np
+import cerberus
 import netCDF4 as nc
 from aggregoes.attributes import AttributeHandler
+from collections import OrderedDict
 
 """
 This file contains functions that take some configuration, generally as the first parameter, and any other necessary
@@ -8,6 +10,69 @@ argument and confirms that the configuration is understood and sensible. Each fu
 should be used after validation. The validator may make changes to the configuration, eg. inserting inferred values
 that should be explicit, for example.
 """
+
+def validate(schema, config):
+    # type: (dict, dict) -> dict
+    """
+    Validate a config dict against a cerberus schema. Raise ValueError if there is a problem, otherwise
+    returns normalized config.
+
+    :param schema: cerberus schema
+    :param config: dict to validate
+    :return: normalized config dict
+    """
+    v = cerberus.Validator(schema)
+    if v.validate(config):
+        return v.document
+    else:
+        raise ValueError(v.errors)
+
+class Config(object):
+    def __init__(self):
+        """
+        Components to create an aggregation:
+            - Dimensions: name, index_by, index_by_dim_inds, flatten.
+            - Variables: name, dims, dtype, attributes, chunksize.
+            - Global attributes: name, strategy, value
+        """
+        self.dims = None
+        self.vars = None
+        self.attrs = None
+
+
+class ConfigDict(OrderedDict):
+    def __init__(self, a_list):
+        # Expecting a list because that's the only way to preserve ordering serializing to/from json.
+        self.schema = self.get_item_schema()
+        # transform [{"name": "a", "b": "something"}, {"name": "b", "b": "else"}] into
+        # [("a", {"b": "something"}), ("b", {"b": "else"})] then construct OrderedDict from that.
+        super(ConfigDict, self).__init__([(e.pop("name"), e) for e in a_list])
+
+    def get_item_schema(self):
+        """
+        Each config item must have at least a name. Add more in subclass.
+        :return: common schema, containing name field.
+        """
+        # type: () -> dict
+        return {"name": {"type": "string", "required": True}}
+
+    def __setitem__(self, key, value):
+        value.update({"name": key})
+        value = validate(self.schema, value)
+        super(ConfigDict, self).__setitem__(value.pop("name"), value)
+
+    def to_list(self):
+        """
+        Convert the ConfigDict to a list represntation.
+        :return:
+        """
+        res = []
+        for k, v in self.iteritems():
+            out = {"name": k}.update(v)
+            res.append(out)
+        return res
+
+
 
 
 def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
