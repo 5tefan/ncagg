@@ -63,10 +63,12 @@ def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
                 d: value["other_dim_indicies"].get(d, 0) for d in nc_in.variables[value["index_by"]].dimensions
                 }
 
-            # check that the specified dimension index is in range of the size of the dimension
-            # note the abs(v) as the index could be eg. -1 to go by the last one.
+            # Check that the specified dimension index is in range of the size of the dimension. Note the abs(v) as the index
+            # could be eg. -1 to go by the last one. Also, check if size is 0, in which case let this through. By now, we've 
+            # validated that the dimension exists - say we're unlucky and the input_file we're checking against is empty but
+            # one later in the list has data, don't fail validation here.
             check_other_dim_indicies_in_range = all(
-                (abs(v) < nc_in.dimensions[k].size for k, v in checked_other_dim_indicies.items())
+                (nc_in.dimensions[k].size == 0 or abs(v) < nc_in.dimensions[k].size for k, v in checked_other_dim_indicies.items())
             )
             if not check_other_dim_indicies_in_range:
                 raise ValueError("Specified other_dim_indicies value not in range of dimension.")
