@@ -88,7 +88,7 @@ def generate_default_variables_config(an_input_file):
         result = [{
             "name": k,
             "dimensions": nc_in.variables[k].dimensions,
-            "datatype": str(nc_in.variables[k].datatype),
+            "datatype": nc_in.variables[k].datatype,
             "attributes": {ak: nc_in.variables[k].getncattr(ak) for ak in nc_in.variables[k].ncattrs()},
             "chunksizes": chunked(nc_in.variables[k])
         } for k in nc_in.variables.keys()]
@@ -96,7 +96,19 @@ def generate_default_variables_config(an_input_file):
         # If the variable doesn't come with an explicit fill value, set it to the netcdf.default_fillvals value
         # https://github.com/Unidata/netcdf4-python/blob/6087ae9b77b538b9c0ab3cdde3118b4ceb6f8946/netCDF4/_netCDF4.pyx#L3359
         for each in result:
-            if "_FillValue" not in each["attributes"].keys():
+            # convert datatype to string, use dtype attr if exists (case for VLType like str) else is
+            # a basic type like np.float and just do str(np.dtype)
+            # must convert datatype attribute to a string representation
+            if isinstance(each["datatype"], nc._netCDF4.VLType):
+                # if it's a vlen type, grab the .dtype attribute and get the numpy name for it
+                each["datatype"] = np.dtype(each["datatype"].dtype).name
+            else:
+                # otherwise it's just a regular np.dtype object already
+                # eg:  str(np.dtype(np.float32)) ==> 'float32'
+                each["datatype"] = str(each["datatype"])
+
+            if "_FillValue" not in each["attributes"].keys() and not each["datatype"].startswith("str"):
+                # avoid AttributeError: cannot set _FillValue attribute for VLEN or compound variable
                 each["attributes"]["_FillValue"] = np.dtype(each["datatype"]).type(
                     nc.default_fillvals[np.dtype(each["datatype"]).str[1:]]
                 )
