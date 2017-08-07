@@ -98,6 +98,7 @@ class Aggregator(object):
                 input_files.append(InputFileNode(fn, self.config, unlim_config))
             except Exception as e:
                 n_errors += 1
+                raise e
                 logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
                 if n_errors / len(files_to_aggregate) >= 0.5:
                     logger.error("Exceeding half bad granules. Something likely wrong, but continuing."
@@ -107,7 +108,8 @@ class Aggregator(object):
                     n_errors = -1.0
 
         # calculate file coverage if any unlimited dimensions are configured.
-        if isinstance(unlim_config, dict) and len(unlim_config) > 0:
+        # must have an index_by dimension configured, flatten ones don't count
+        if isinstance(unlim_config, dict) and len([1 for v in unlim_config.values() if not v == "flatten"]) > 0:
             logger.info("\tFound config for unlimited dim indexing, sorting and calculating coverage.")
             # sort input_files by the start time of the first unlimited dim.
             input_files = sorted(input_files, key=lambda i: i.get_first_of_index_by(unlim_config.keys()[0]))
@@ -115,27 +117,27 @@ class Aggregator(object):
                 unlim_dim: self.get_coverage_for(input_files, unlim_dim) for unlim_dim in unlim_config.keys()
             }
 
-        logger.info("Building aggregation list...")
-        for index in xrange(len(input_files) + 1):
-            # + 1 since by taking into account the diff between last_value_before and first_value_after while
-            # calculating calculate, the length of num_missing and missing_start == len(input_files) + 1
+            for index in xrange(len(input_files) + 1):
+                # + 1 since by taking into account the diff between last_value_before and first_value_after while
+                # calculating calculate, the length of num_missing and missing_start == len(input_files) + 1
 
-            # noinspection PyUnboundLocalVariable
-            if isinstance(unlim_config, dict) and len(unlim_config) > 0 and len(unlim_fills_needed) > 0:
-                fill_node = FillNode(self.config, unlim_config)  # init, may not be used though
-                for unlim_dim in unlim_config.keys():
-                    # this element is tuple, first is np.ndarray of number missing between each
-                    # file, and second np.ndarray of last present value before missing if there is a gap
-                    num_missing, missing_start = unlim_fills_needed[unlim_dim]
-                    if num_missing[index] > 0:
-                        fill_node.set_size_along(unlim_dim, num_missing[index])
-                        fill_node.set_unlim_dim_index_start(unlim_dim, missing_start[index])
-                # if anything was filled out in the fill_node, add it to the aggregation list
-                if len(fill_node.unlimited_dim_sizes) > 0:
-                    aggregation_list.append(fill_node)
+                if len(unlim_fills_needed) > 0:
+                    fill_node = FillNode(self.config, unlim_config)  # init, may not be used though
+                    for unlim_dim in unlim_config.keys():
+                        # this element is tuple, first is np.ndarray of number missing between each
+                        # file, and second np.ndarray of last present value before missing if there is a gap
+                        num_missing, missing_start = unlim_fills_needed[unlim_dim]
+                        if num_missing[index] > 0:
+                            fill_node.set_size_along(unlim_dim, num_missing[index])
+                            fill_node.set_unlim_dim_index_start(unlim_dim, missing_start[index])
+                    # if anything was filled out in the fill_node, add it to the aggregation list
+                    if len(fill_node.unlimited_dim_sizes) > 0:
+                        aggregation_list.append(fill_node)
 
-            if index < len(input_files):
-                aggregation_list.append(input_files[index])
+                if index < len(input_files):
+                    aggregation_list.append(input_files[index])
+        else:
+            aggregation_list.extend(input_files)
 
         return aggregation_list
 
@@ -238,9 +240,10 @@ class Aggregator(object):
             logger.warn("No files in aggregation list, nothing to do.")
             return  # bail early
         self.initialize_aggregation_file(to_fullpath)
+        runtime_config = self.config["config"]
         attribute_handler = AttributeHandler(
             global_attr_config=self.config["global attributes"],
-            runtime_config=self.config["config"],
+            runtime_config=runtime_config,
             filename=to_fullpath
         )
 
@@ -257,7 +260,8 @@ class Aggregator(object):
                 # make a mapping between unlim dimensions and their initial length because even after we append
                 # only one variable that depends on the unlimited dimension, getting the size of it will return
                 # the new appended size, which doesn't help us index the rest of the variables to fill in
-                unlim_dim_start_lens = {d.name: d.size for d in nc_out.dimensions.values() if d.isunlimited()}
+                unlim_dim_start_lens = {d.name: 0 if runtime_config.get(d.name, None) == "flatten" else d.size
+                                        for d in nc_out.dimensions.values() if d.isunlimited()}
 
                 # only do all variables once, otherwise we can just do the ones along an unlim
                 for var in (self.config[VARS] if index == 0 else vars_with_unlim):

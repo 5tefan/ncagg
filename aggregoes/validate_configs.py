@@ -52,6 +52,10 @@ def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
             raise ValueError("Keys must be unlimited dimensions.")
 
         for key, value in mapping.items():
+            if value == "flatten":
+                continue  # don't need to do anything else. Flatten is valid.
+
+            # otherwise, check index_by syntax
             if not value["index_by"] in nc_in.variables.keys():
                 raise ValueError("Key index_by must map to a variable name.")
             # default other_dim_indicies to 0 if they aren't specified, this seems most reasonable thing to do.
@@ -61,7 +65,7 @@ def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
                 raise TypeError("Key other_dim_indicies must be a dict.")
             checked_other_dim_indicies = {
                 d: value["other_dim_indicies"].get(d, 0) for d in nc_in.variables[value["index_by"]].dimensions
-                }
+            }
 
             # Check that the specified dimension index is in range of the size of the dimension. Note the abs(v) as the index
             # could be eg. -1 to go by the last one. Also, check if size is 0, in which case let this through. By now, we've 

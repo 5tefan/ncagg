@@ -92,7 +92,9 @@ class FillNode(AbstractNode):
 
         # assuming this has already been validated
         self.unlimited_dim_indexed_by_time_var_map = unlimited_dim_indexed_by_time_var_map or {}
-        self._reverse_index = {v["index_by"]: k for k, v in self.unlimited_dim_indexed_by_time_var_map.items()}
+        self._reverse_index = {v["index_by"]: k
+                               for k, v in self.unlimited_dim_indexed_by_time_var_map.items()
+                               if "index_by" in v.keys()}
 
     def __str__(self):
         return "FillNode(%s)" % self.unlimited_dim_sizes
@@ -180,8 +182,6 @@ class FillNode(AbstractNode):
             # the reduce works as I want though.
             initial_value = self.unlimited_dim_index_start.get(unlimited_dim, 0)
             return reduce(lambda x, y: x + y, linspaces) + initial_value
-        # return np.full(result_shape, variable["attributes"].get("_FillValue", np.nan),
-        #                dtype=np.dtype(variable["datatype"]))
         return np.full(result_shape, get_fill_for(variable), dtype=np.dtype(variable["datatype"]))
 
     def callback_with_file(self, callback=None):
@@ -228,7 +228,7 @@ class InputFileNode(AbstractNode):
 
         # TODO: break this out into a function
         if self.unlimited_dim_indexed_by_time_var_map:
-            for unlim_dim in self.unlimited_dim_indexed_by_time_var_map.keys():
+            for unlim_dim in [k for k, v in self.unlimited_dim_indexed_by_time_var_map.items() if not v == "flatten"]:
 
                 # cadence_hz may be None in which case we'll simply look for fill or invalid values in the index_by
                 # variable. At the moment, this is hard coded to seek 0's since our main use case is index_by time
