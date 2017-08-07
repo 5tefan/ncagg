@@ -106,6 +106,10 @@ class Aggregator(object):
                     # once logger.error triggered once for input problem, make sure it won't trigger again.
                     n_errors = -1.0
 
+        if len(input_files) == 0:
+            # hmm... no files survived, bail
+            return aggregation_list
+
         # calculate file coverage if any unlimited dimensions are configured.
         if isinstance(unlim_config, dict) and len(unlim_config) > 0:
             logger.info("\tFound config for unlimited dim indexing, sorting and calculating coverage.")
