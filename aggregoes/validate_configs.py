@@ -3,6 +3,8 @@ import cerberus
 import netCDF4 as nc
 from aggregoes.attributes import AttributeHandler
 from collections import OrderedDict
+from attributes import AttributeHandler
+import json
 
 """
 This file contains functions that take some configuration, generally as the first parameter, and any other necessary
@@ -10,6 +12,7 @@ argument and confirms that the configuration is understood and sensible. Each fu
 should be used after validation. The validator may make changes to the configuration, eg. inserting inferred values
 that should be explicit, for example.
 """
+
 
 def validate(schema, config):
     # type: (dict, dict) -> dict
@@ -27,21 +30,124 @@ def validate(schema, config):
     else:
         raise ValueError(v.errors)
 
+
+class NumpyEncoder(json.JSONEncoder):
+    """
+    The default json encoder is not able to serialize numpy types, thus this helper is necessary.
+    """
+    def default(self, obj):
+        if isinstance(obj, np.generic):
+            return obj.item()
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NumpyEncoder, self).default(obj)
+
+
 class Config(object):
-    def __init__(self):
+    def __init__(self, dims, vars, attrs):
+        # type: (DimensionConfig, VariableConfig, GlobalAttributeConfig) -> None
         """
         Components to create an aggregation:
             - Dimensions: name, index_by, index_by_dim_inds, flatten.
             - Variables: name, dims, dtype, attributes, chunksize.
-            - Global attributes: name, strategy, value
+            - GlobalAttributes: name, strategy, value
+
+        The individual Dimension, Variable, and GlobalAttribute handlers are in charge
+        of validating their own individual schema. This Config object is in charge of validating
+        interlinking requirements between the individual (mainly) Dimensions and Variables: eg
+        All dimensions referenced by a variable exist in the Dimension config.
         """
-        self.dims = None
-        self.vars = None
-        self.attrs = None
+
+        # Make sure that configured dimensions and dimensions used by variables are consistent.
+        var_dims = set([d for v in vars.values() for d in v["dimensions"]])
+        dims_set = set(dims.keys())
+        if var_dims.issubset(dims_set) and not dims_set.issubset(var_dims):
+            # Not all dimensions were used by a variable, should remove these unused dims.
+            raise ValueError("Unused dimensions found in config: %s" % dims_set.difference(var_dims))
+        elif not var_dims.issubset(dims_set) and dims_set.issubset(var_dims):
+            # A variable used a dimensions that was not configured.
+            raise ValueError("Variable depends on unconfigured dimension: %s" % var_dims.difference(dims_set))
+
+        # Make sure that all index_by variables exist
+        indexed_by_vars = set([v["index_by"] for v in vars.values() if v.get("index_by", None) is not None])
+        if not indexed_by_vars.issubset(vars.keys()):
+            raise ValueError("index_by variable not found: %s" % indexed_by_vars.difference(vars.keys()))
+
+        # At the moment, anything else, we'll let fall through and error out at evaluation time.
+        self.dims = dims
+        self.vars = vars
+        self.attrs = attrs
+
+    @classmethod
+    def from_json(cls, config):
+        # type: (str) -> Config
+        dims = DimensionConfig(config.get("dimensions", []))
+        vars = VariableConfig(config.get("variables", []))
+        attrs = GlobalAttributeConfig(config.get("attributes", []))
+        return cls(dims, vars, attrs)
+
+    def to_json(self):
+        # type: () -> str
+        return json.dumps({
+            "dimensions": self.dims.to_list(),
+            "variables": self.vars.to_list(),
+            "attributes": self.attrs.to_list()
+        }, sort_keys=True, indent=4, cls=NumpyEncoder)
+
+    @classmethod
+    def from_nc(cls, nc):
+        with nc.Dataset(nc, "r") as nc_in:  # type: nc.Dataset
+            # Configure Dimensions
+            dims = DimensionConfig([{
+                "name": dim.name,
+                "size": None if dim.isunlimited() else dim.size
+            } for dim in nc_in.dimensions.values()])
+
+            # Configure Variables
+            vars = [{
+                "name": v.name,
+                "dimensions": v.dimensions,
+                "datatype": v.datatype,
+                "attributes": {ak: v.getncattr(ak) for ak in v.ncattrs()},
+                "chunksizes": v.chunking() if isinstance(v.chunking(), list) else None
+            } for v in nc_in.variables.values()]
+            # If the variable doesn't come with an explicit fill value, set it to the netcdf.default_fillvals value
+            # https://github.com/Unidata/netcdf4-python/blob/6087ae9b77b538b9c0ab3cdde3118b4ceb6f8946/netCDF4/_netCDF4.pyx#L3359
+            for v in vars:
+                # convert datatype to string, use dtype attr if exists (case for VLType like str) else is
+                # a basic type like np.float and just do str(np.dtype)
+                # must convert datatype attribute to a string representation
+                if isinstance(v["datatype"], nc._netCDF4.VLType):
+                    # if it's a vlen type, grab the .dtype attribute and get the numpy name for it
+                    v["datatype"] = np.dtype(v["datatype"].dtype).name
+                else:
+                    # otherwise it's just a regular np.dtype object already
+                    # eg:  str(np.dtype(np.float32)) ==> 'float32'
+                    v["datatype"] = str(v["datatype"])
+
+                if "_FillValue" not in v["attributes"].keys() and not v["datatype"].startswith("str"):
+                    # avoid AttributeError: cannot set _FillValue attribute for VLEN or compound variable
+                    v["attributes"]["_FillValue"] = np.dtype(v["datatype"]).type(
+                        nc.default_fillvals[np.dtype(v["datatype"]).str[1:]]
+                    )
+            vars = VariableConfig(vars)
+
+            # Configure Global Attributes
+            attrs = GlobalAttributeConfig([{
+                "name": att,
+                "strategy": "first"
+            } for att in nc_in.ncattrs()])
+            attrs["date_created"] = {"strategy": "date_created"}
+            attrs["time_coverage_start"] = {"strategy": "time_coverage_start"}
+            attrs["time_coverage_end"] = {"strategy": "time_coverage_end"}
+
+        return cls(dims, vars, attrs)
 
 
 class ConfigDict(OrderedDict):
     def __init__(self, a_list):
+        # type: (list) -> None
         # Expecting a list because that's the only way to preserve ordering serializing to/from json.
         self.schema = self.get_item_schema()
         # transform [{"name": "a", "b": "something"}, {"name": "b", "b": "else"}] into
@@ -49,21 +155,23 @@ class ConfigDict(OrderedDict):
         super(ConfigDict, self).__init__([(e.pop("name"), e) for e in a_list])
 
     def get_item_schema(self):
+        # type: () -> dict
         """
         Each config item must have at least a name. Add more in subclass.
         :return: common schema, containing name field.
         """
-        # type: () -> dict
         return {"name": {"type": "string", "required": True}}
 
     def __setitem__(self, key, value):
+        # type: (str, dict) -> None
         value.update({"name": key})
         value = validate(self.schema, value)
         super(ConfigDict, self).__setitem__(value.pop("name"), value)
 
     def to_list(self):
+        # type: () -> list
         """
-        Convert the ConfigDict to a list represntation.
+        Convert the ConfigDict to a list representation... json serializable.
         :return:
         """
         res = []
@@ -73,6 +181,65 @@ class ConfigDict(OrderedDict):
         return res
 
 
+# DimensionConfig, VariableConfig, AttributeConfig, ...
+class DimensionConfig(ConfigDict):
+    def get_item_schema(self):
+        default = super(DimensionConfig, self).get_item_schema()
+        default.update({
+            "size": {"type": "integer", "nullable": True},
+            "flatten": {"type": "boolean", "default": False},
+            "index_by": {"type": "string", "default": None, "nullable": True},
+            "min": {"type": "number", "default": None, "nullable": True},  # lower bound via index_by
+            "max": {"type": "number", "default": None, "nullable": True},  # upper bound via index_by
+            "other_dim_inds": {"type": "dict", "valueschema": {"type": "integer"}, "default": {}},
+            "expected_cadence": {"type": "dict", "valueschema": {"type": "number"}, "default": {}}
+        })
+        return default
+
+    def __setitem__(self, key, value):
+        if value.get("size", None) is not None and value.get("index_by", None) is not None:
+            raise ValueError("%s: %s: can only index_by for unlimited dimensions" % (self.__class__.__name__, key))
+        if value.get("index_by", None) is None:
+            # if index_by is not set, can't have any of these.
+            value.update({
+                "min": None,
+                "max": None,
+                "other_dim_inds": {},
+                "expected_cadence": {}
+            })
+        super(DimensionConfig, self).__setitem__(key, value)
+
+
+class VariableConfig(ConfigDict):
+    def get_item_schema(self):
+        default = super(VariableConfig, self).get_item_schema()
+        default.update({
+            "dimensions": {"type": "list", "schema": {"type": "string"}},
+            "datatype": {"type": "string", "allowed": ["int8", "int16", "int32", "int64",
+                                                       "uint8", "uint16", "uint32", "uint64",
+                                                       "float16", "float32", "float64",
+                                                       "string"]},
+            "attributes": {"type": "dict", "valueschema": {"oneof_type": ["string", "number"]}, "default": {}},
+            "chunksizes": {"type": "list", "schema": {"type": "integer"}, "default": []}
+        })
+        return default
+
+    def __setitem__(self, key, value):
+        len_chunks = len(value.get("chunksizes", []))
+        if len_chunks > 0 and len(value.get("dimensions", [])) != len_chunks:
+            # if chunksizes are given, chunksizes and dimensions must be lists of the same size
+            raise ValueError("%s: %s: required: len(dims) == len(chunksizes)" % (self.__class__.__name__, key) )
+        super(VariableConfig, self).__setitem__(key, value)
+
+
+class GlobalAttributeConfig(ConfigDict):
+    def get_item_schema(self):
+        default = super(GlobalAttributeConfig, self).get_item_schema()
+        default.update({
+            "strategy": {"type": "string", "allowed": AttributeHandler.strategy_handlers.keys()},
+            "value": {"oneof_type": ["string", "float", "int"], "nullable": True, "default": None}
+        })
+        return default
 
 
 def validate_unlimited_dim_indexed_by_time_var_map(mapping, input_file):
