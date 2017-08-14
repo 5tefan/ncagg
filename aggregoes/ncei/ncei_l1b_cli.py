@@ -1,8 +1,9 @@
-from aggregoes.cli import ProgressAggregator as Aggregator
 from aggregoes.ncei.BufferedEmailHandler import BufferedEmailHandler
+from aggregoes.aggregator import generate_aggregation_list, evaluate_aggregation_list
 from aggregoes.ncei.ncei_l1b_mapper import get_files_for, get_product_config, get_runtime_config, get_output_filename
 from aggregoes.ncei.ncei_l1b_mapper import mapping
 from aggregoes.aggregator import FillNode
+from aggregoes.validate_configs import Config
 from datetime import datetime, timedelta
 import tempfile
 import click
@@ -53,28 +54,31 @@ def agg_day(yyyymmdd, product, sat="goes16", env="OR", email=list()):
         logger.info("No files to aggregate! Exiting.")
         return
 
-    # Initialize the aggregator.
-    product_config = get_product_config(product)
-    a = Aggregator(config=product_config)
+    config = get_product_config(product)  # type: Config
 
+    # Runtime_config has dimension configurations. Keys are dims, v is indexing info
+    # about that dim.
     runtime_config = get_runtime_config(product)
-    runtime_config.values()[0].update({
-        "min": start_time,
-        "max": end_time
-    })
+    for k, v in runtime_config.iteritems():
+        v.update({
+            "min": start_time,
+            "max": end_time
+        })
+        config.dims[k].update(v)
 
     # Generate the aggregation list.
-    aggregation_list = a.generate_aggregation_list(files, runtime_config)
-    logger.debug("Aggregation list contains %s items" % len(aggregation_list))
+    agg_list = generate_aggregation_list(config, files)
+    logger.debug("Aggregation list contains %s items" % len(agg_list))
 
-    if len(aggregation_list) == 1 and isinstance(aggregation_list[0], FillNode):
+    if len(agg_list) == 1 and isinstance(agg_list[0], FillNode):
         logger.info("Aggregation contains only FillValues! Exiting.")
         return
 
     # Evaluate it to a temporary working file.
     logger.info("Evaluating aggregation list...")
     _, tmp_filename = tempfile.mkstemp(prefix="agg_%s_%s" % (product, yyyymmdd))
-    a.evaluate_aggregation_list(aggregation_list, tmp_filename)
+    with click.progressbar(label="Aggregating...", length=len(agg_list)) as bar:
+        evaluate_aggregation_list(config, agg_list, tmp_filename, lambda: next(bar))
 
     # Rename (atomicish move) it to the final filename.
     final_filename = get_output_filename(sat, product, yyyymmdd, env)

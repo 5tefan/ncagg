@@ -1,8 +1,10 @@
 import os
 import glob
+from aggregoes.validate_configs import Config
 from datetime import datetime
 import json
 import pkg_resources
+
 
 """
 Implements get_files_for, get_runtime_config, and get_output_filename for l2 products at NCEI using
@@ -95,7 +97,7 @@ def get_product_config(product):
     check_product(product)
     config = pkg_resources.resource_filename("aggregoes", "ncei/config/%s.json" % product)
     with open(config) as config_file:
-        return json.load(config_file)
+        return Config.from_dict(json.load(config_file))
 
 
 def get_output_filename(sat, product, datestr, env="xx", version="x_x_x"):

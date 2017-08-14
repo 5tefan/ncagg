@@ -1,7 +1,10 @@
-import os
-
+from validate_configs import Config
 import netCDF4 as nc
 import numpy as np
+import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_fill_for(variable):
@@ -19,7 +22,7 @@ def get_fill_for(variable):
         # ValueError: cannot convert float NaN to integer, so use -9999 instead
         # main reason for this complexity is to handle exis integer datatypes
         nc_default_fill = datatype.type(nc.default_fillvals[datatype.str[1:]])
-        return datatype.type(variable.get("attributes", {}).get("_FillValue", nc_default_fill))
+        return datatype.type(variable["attributes"].get("_FillValue", nc_default_fill))
 
 
 class AbstractNode(object):
@@ -35,6 +38,7 @@ class AbstractNode(object):
     """
 
     def __init__(self, config):
+        # type: (Config) -> None
         """
         :param config: a product config, should be what is kept by Aggregator
         """
@@ -80,7 +84,7 @@ class FillNode(AbstractNode):
     to be filled with fill values at aggregation time.
     """
 
-    def __init__(self, config=None, unlimited_dim_indexed_by_time_var_map=None):
+    def __init__(self, config):
         super(FillNode, self).__init__(config)
         # should be a mapping between unlimited dimensions and how many elements to put in
         self.unlimited_dim_sizes = {}
@@ -90,120 +94,72 @@ class FillNode(AbstractNode):
         # to that.
         self.unlimited_dim_index_start = {}
 
-        # assuming this has already been validated
-        self.unlimited_dim_indexed_by_time_var_map = unlimited_dim_indexed_by_time_var_map or {}
-        self._reverse_index = {v["index_by"]: k
-                               for k, v in self.unlimited_dim_indexed_by_time_var_map.items()
-                               if "index_by" in v.keys()}
+        # reverse index to easily check if a variable indexes a dimension.
+        self._reverse_index = {d["index_by"]: d for d in config.dims.values() if d.get("index_by", None) is not None}
 
     def __str__(self):
         return "FillNode(%s)" % self.unlimited_dim_sizes
 
-    def set_size_along(self, unlimited_dim, size):
+    def set_udim(self, udim, size, start=0):
         """
-        Set the size of the fills along some unlimited dimension.
-
-        :param unlimited_dim:
-        :param size:
-        :return:
+        Set the number of fills along some unlimited dimension, and optionally, if it's indexed by (index_by)
+        some variable, what value the fills should start at.
         """
-        self.unlimited_dim_sizes[unlimited_dim] = size
+        udim_name = udim["name"]
+        self.unlimited_dim_sizes[udim_name] = size
+        self.unlimited_dim_index_start[udim_name] = 0 if start is None else start
 
-    def set_sizes_along(self, sizes):
-        """
-        Set the size of the fills along some unlimited dimension.
-
-        :type sizes: dict
-        :param sizes: dict of unlim dim as keys and sizes as values
-        :return: None
-        """
-        self.unlimited_dim_sizes.update(sizes)
-
-    def set_unlim_dim_index_start(self, unlimited_dim, start):
-        """
-        For an unlimited dimensions that is indexed by some value, if the expected cadence is set, we can
-        fill the index with estimated indicies based on the cadence instead of just fill values, but we have
-        to know where to start. This allows that value to be configured. It is expected to be the last valid
-        value of the index before the gap, ie the first value data_for(index_var) returns will be start + 1./cadence.
-
-        :param unlimited_dim:
-        :param start:
-        :return:
-        """
-        self.unlimited_dim_index_start[unlimited_dim] = start
-
-    def get_size_along(self, unlimited_dim):
+    def get_size_along(self, udim):
         # if we haven't configured a size along some unlimited dimension, it is by
         # default 0, ie... we are not inserting anything.
-        return self.unlimited_dim_sizes.get(unlimited_dim, 0)
+        return self.unlimited_dim_sizes.get(udim["name"], 0)
 
-    def data_for(self, variable):
-        """
-
-        :param variable:
-        :return:
-        """
-
-        # check if this variable indexes an unlimited dimension...
-        var_indexes = self._reverse_index.get(variable["name"], None)
+    def data_for(self, var):
+        # check if this var indexes an unlimited dimension...
+        var_indexes = self._reverse_index.get(var["name"], None)
+        unlimited_dim = var_indexes["name"] if var_indexes is not None else None
+        have_cadences = all((d in var_indexes["expected_cadence"].keys() for d in var["dimensions"])) \
+            if var_indexes is not None else None
 
         linspaces = []  # these will construct the values if we return anything besides fill values.
         result_shape = []
-        unlimited_dim = None  # Set to none until we know the unlimited
 
-        for index, dim in enumerate(variable["dimensions"]):
-            size_from_dimensions = next((d["size"] for d in self.config["dimensions"] if d["name"] == dim), None)
-            dim_is_unlim = size_from_dimensions is None
-            # save the unlimited dim name to lookup initial base value outside of loop
-            if dim_is_unlim:
-                unlimited_dim = dim
-            # if size_from_dimensions is none, ie it's an unlimited dimenions, then we expect
-            # to find it in self.unlimited_dim_sizes, otherwise expect an exception to be raised.
-            size_from_dimensions = size_from_dimensions or self.get_size_along(dim)
-            result_shape.append(size_from_dimensions)
-            # only do this part if this is an index for an unlimited dim
-            if var_indexes is not None:
-                dim_expected_cadence = self.unlimited_dim_indexed_by_time_var_map[var_indexes]["expected_cadence"][dim]
+        for index, dim in enumerate(var["dimensions"]):
+
+            dim_size = self.config.dims[dim]["size"]
+            dim_unlim = dim_size is None  # save dim_unlim because we'll set the size
+
+            if dim_unlim:
+                # do this for any unlimited dim encountered
+                dim_size = self.get_size_along(self.config.dims[dim])
+
+            result_shape.append(dim_size)
+
+            if var_indexes is not None and have_cadences:
+                expected_cadence = var_indexes["expected_cadence"][dim]
                 start = 0
-                stop = float(size_from_dimensions - 1) / dim_expected_cadence if dim_expected_cadence else start
+                stop = float(dim_size -1) / expected_cadence if expected_cadence != 0 else start
                 linspaces.append(
-                    np.linspace(start, stop, size_from_dimensions).reshape(
-                        [1 if index != i else -1 for i in xrange(len(variable["dimensions"]))]
+                    np.linspace(start, stop, dim_size).reshape(
+                        [1 if index != i else -1 for i in xrange(len(var["dimensions"]))]
                     )
                 )
-                # if this is THE unlimited dimension, add one cadence. Since we start at 0, but the value in
-                # self.unlimited_dim_index_start is the actual existing value,
-                if dim_is_unlim:
-                    linspaces[-1] += 1./dim_expected_cadence
+                if dim_unlim:
+                    linspaces[-1] += 1. / expected_cadence
 
-        if var_indexes is not None:
-            # unfortunately, I couldn't get np.sum to work here. Keeps giving
-            # ValueError('could not broadcast input array from shape (xx) into shape (x)',
-            # the reduce works as I want though.
+        if var_indexes is not None and have_cadences:
             initial_value = self.unlimited_dim_index_start.get(unlimited_dim, 0)
             return reduce(lambda x, y: x + y, linspaces) + initial_value
-        return np.full(result_shape, get_fill_for(variable), dtype=np.dtype(variable["datatype"]))
+        else:
+            return np.full(result_shape, get_fill_for(var), dtype=np.dtype(var["datatype"]))
 
     def callback_with_file(self, callback=None):
-        """
-        Fill node not associated with a file, so there is nothing to do here. Ignored basically.
-        :param callback: A function.
-        :return:  None
-        """
+        """ Fill node not associated with a file, so there is nothing to do here. Ignored basically. """
         pass
 
 
 class InputFileNode(AbstractNode):
-    def __init__(self, filename, config=None, unlimited_dim_indexed_by_time_var_map=None):
-        """
-        For sake of optimization, we're going to assume that the unlimited_dim map has been
-        validated before being passed here.
-
-        :type config: object
-        :param config: Product configuration as is in the Aggregator.
-        :param filename:
-        :param unlimited_dim_indexed_by_time_var_map:
-        """
+    def __init__(self, config, filename):
         super(InputFileNode, self).__init__(config)
         self.filename = filename
         # along the unlimited dimensions of the file, we'll need to potentially trim, so keep a lookup dict
@@ -211,153 +167,129 @@ class InputFileNode(AbstractNode):
         # even "dim name": [None, -3] -> slice(*[None, 3]) -> [:-3]
         self.dim_slices = {}  # type: dict
 
-        # if this isn't set, then can't get self.first_time or self.last_time and instead we'll fall
-        # back on the filename start and end, this should be a mapping between an unlimited dimension
-        # and a variable containing corresponding time stamps.
-        # it should handle multi dimensional time stamps,
-        # "record_number": { "index_by": "time_variable", "other_dim_indicies": { "samples_per_record": 0 }}
-        # assuming this has already been validated.
-        self.unlimited_dim_indexed_by_time_var_map = unlimited_dim_indexed_by_time_var_map or {}
         # The exclusions and inclusions are applied to the raw data from the netcdf in the following order
         # 1. sort with self.sort_unlim_dim argsort
-        # -- removed 2. exclude indicides from unlim with a = np.ma.array(v, mask=False), a.mask[self.exclude[dim]] = True
-        # 3. go through file internal aggregation list, start and stop according to self.dim_slices
-        # 4. go through aggregation list
+        # 2. go through file internal aggregation list, start and stop according to self.dim_slices
         self.sort_unlim = {}  # argsort along each unlim dim
         self.file_internal_aggregation_list = {}  # will be one aggregation list per dim
+        self.get_coverage()
 
-        # TODO: break this out into a function
-        if self.unlimited_dim_indexed_by_time_var_map:
-            for unlim_dim in [k for k, v in self.unlimited_dim_indexed_by_time_var_map.items() if not v == "flatten"]:
 
-                # cadence_hz may be None in which case we'll simply look for fill or invalid values in the index_by
-                # variable. At the moment, this is hard coded to seek 0's since our main use case is index_by time
-                # and we don't expect our spacecraft to teleport back to the epoch value :)
-                cadence_hz = self.unlimited_dim_indexed_by_time_var_map[unlim_dim].get("expected_cadence", {}).get(unlim_dim, None)
+    def get_coverage(self):
+        index_by = [d for d in self.config.dims.values() if d["index_by"] is not None and not d["flatten"]]
+        for udim in index_by:
 
-                # big picture, if cadence_hz is None, then we'll go through np.where(times==0) and put slices in
-                # the gaps. If we DO have a cadence, then go through and look at the spacing between each.
-                # if no cadence, np.where(times == 0) for each insert slice between
-                times = self.get_index_of_index_by(slice(None), unlim_dim)
-                self.sort_unlim[unlim_dim] = aggsort = np.argsort(times)
-                cadence_uncert = 0.9
+            # cadence_hz may be None in which case we'll simply look for fill or invalid values in the index_by
+            # variable. At the moment, this is hard coded to seek 0's since our main use case is index_by time
+            # and we don't expect our spacecraft to teleport back to the epoch value :)
+            cadence_hz = udim["expected_cadence"].get(udim["name"], None)  # what to do if None?
 
-                # find the first good value, ie value is not zero
-                slice_start = 0
-                while times[aggsort[slice_start]] <= 0 and slice_start < times.size:
-                    slice_start += 1
+            # big picture, if cadence_hz is None, then we'll go through np.where(times==0) and put slices in
+            # the gaps. If we DO have a cadence, then go through and look at the spacing between each.
+            times = self.get_index_of_index_by(slice(None), udim)  # ok if time is multidim -> see fn for usage of
+            self.sort_unlim[udim["name"]] = aggsort = np.argsort(times)
+            cadence_uncert = 0.9
 
-                dim_agg_list = []
-                in_slice = True
+            # find the first good value, ie value is not zero
+            slice_start = 0
+            while times[aggsort[slice_start]] <= 0 and slice_start < times.size:
+                slice_start += 1
 
-                to_iter = xrange(slice_start + 1, times.size) if cadence_hz else np.where(times <= 0)[0]
+            dim_agg_list = []
+            in_slice = True
 
-                for i in to_iter:
-                    # cut off conditions first,
-                    if times[aggsort[i]] <= 0 or np.isnan(times[aggsort[i]]):
-                        if in_slice:
-                            # only if we are actually in a slice... cut off slice and insert a fill
-                            dim_agg_list.append(slice(slice_start, i))
-                        if cadence_hz is None:
-                            # when cadence_hz is none, that means we're going though np.where(times==0)
-                            # instead of every value, so in that case, we jump right back into the slice
-                            # because next time around though this loop will again be a time == 0, and we'll
-                            # slice again. No intermediate loop to hit the if not in_slice below to reset back
-                            # in, so keep in_slice == True
-                            slice_start = i + 1
-                        else:
-                            in_slice = False
+            to_iter = xrange(slice_start + 1, times.size) if cadence_hz else np.where(times <= 0)[0]
 
-                        continue  # skip the rest of the loop
-
-                    stepdiff = times[aggsort[i]] - times[aggsort[i - 1]]
-                    # fall through to slice continuation
-                    if not in_slice:
-                        slice_start = i
-                        in_slice = True
-                    elif stepdiff < (0.5 / ((2 - cadence_uncert) * cadence_hz)):
-                        # if significantly less than tolerance of cadence, remove value, ie cutoff and restart
+            for i in to_iter:
+                # cut off conditions first,
+                if times[aggsort[i]] <= 0 or np.isnan(times[aggsort[i]]):
+                    if in_slice:
+                        # only if we are actually in a slice... cut off slice and insert a fill
                         dim_agg_list.append(slice(slice_start, i))
+                    if cadence_hz is None:
+                        # when cadence_hz is none, that means we're going though np.where(times==0)
+                        # instead of every value, so in that case, we jump right back into the slice
+                        # because next time around though this loop will again be a time == 0, and we'll
+                        # slice again. No intermediate loop to hit the if not in_slice below to reset back
+                        # in, so keep in_slice == True
+                        slice_start = i + 1
+                    else:
                         in_slice = False
-                    elif stepdiff > (2 / ((2 - cadence_uncert) * cadence_hz)):
-                        # too big a time step, cutoff slice and insert fill
-                        dim_agg_list.append(slice(slice_start, i))
 
-                        num_missing = int(np.abs(np.floor(stepdiff * cadence_hz)))-1
-                        f = FillNode(self.config, self.unlimited_dim_indexed_by_time_var_map)
-                        f.set_size_along(unlim_dim, num_missing)
-                        f.set_unlim_dim_index_start(unlim_dim, times[aggsort[i-1]])
-                        dim_agg_list.append(f)
+                    continue  # skip the rest of the loop
 
-                        # jump right back into a slice.
-                        slice_start = i
-                        in_slice = True
-                    # else:
-                    #    # otherwise if distance from last is within tolerance, continue
-                    #    pass
+                stepdiff = times[aggsort[i]] - times[aggsort[i - 1]]
+                # fall through to slice continuation
+                if not in_slice:
+                    slice_start = i
+                    in_slice = True
+                elif stepdiff < (0.5 / ((2 - cadence_uncert) * cadence_hz)):
+                    # if significantly less than tolerance of cadence, remove value, ie cutoff and restart
+                    dim_agg_list.append(slice(slice_start, i))
+                    in_slice = False
+                elif stepdiff > (2 / ((2 - cadence_uncert) * cadence_hz)):
+                    # too big a time step, cutoff slice and insert fill
+                    dim_agg_list.append(slice(slice_start, i))
 
-                # when loop terminates, if still in_slice, add that final slice.
-                # EXCEPT, check for the edge case where cadence_hz is none and the time is a 0
-                # in which case slice_start would == times.size
-                if in_slice and slice_start < times.size:
-                    dim_agg_list.append(slice(slice_start, times.size))
+                    num_missing = int(np.abs(np.floor(stepdiff * cadence_hz)))-1
+                    f = FillNode(self.config)
+                    f.set_udim(udim, num_missing, times[aggsort[i-1]])
+                    dim_agg_list.append(f)
 
-                self.file_internal_aggregation_list[unlim_dim] = dim_agg_list
+                    # jump right back into a slice.
+                    slice_start = i
+                    in_slice = True
+                # else:  # implicit fall through, OK to be commented out, not sure there's really any perf diff
+                #    pass  # otherwise if distance from last is within tolerance, continue
 
-    def get_first_of_index_by(self, unlim_dim):
-        assert unlim_dim in self.unlimited_dim_indexed_by_time_var_map.keys(), "Node init w/o unlim_config?"
-        # if any of the lines below raises a KeyError, it's likely that self was initialized without an
-        # unlimited index_by mapping.
-        first_slice = self.file_internal_aggregation_list[unlim_dim][0]
+            # when loop terminates, if still in_slice, add that final slice.
+            if in_slice and slice_start < times.size:
+                dim_agg_list.append(slice(slice_start, times.size))
+
+            self.file_internal_aggregation_list[udim["name"]] = dim_agg_list
+
+    def get_first_of_index_by(self, udim):
+        first_slice = self.file_internal_aggregation_list[udim["name"]][0]
         assert isinstance(first_slice, slice), "Must be a slice!"
         assert isinstance(first_slice.start, int), "Must be an int!"
-        return self.get_index_of_index_by(first_slice.start, unlim_dim)
+        return self.get_index_of_index_by(first_slice.start, udim)
 
-    def get_last_of_index_by(self, unlim_dim):
-        assert unlim_dim in self.unlimited_dim_indexed_by_time_var_map.keys(), "Node init w/o unlim_config?"
-        # if any of the lines below raises a KeyError, it's likely that self was initialized without an
-        # unlimited index_by mapping.
-        last_slice = self.file_internal_aggregation_list[unlim_dim][-1]
+    def get_last_of_index_by(self, udim):
+        last_slice = self.file_internal_aggregation_list[udim["name"]][-1]
         assert isinstance(last_slice, slice), "Must be a slice!"
         assert isinstance(last_slice.start, int), "Must be an int!"
-        return self.get_index_of_index_by(last_slice.stop-1, unlim_dim)
+        return self.get_index_of_index_by(last_slice.stop - 1, udim)
 
-    def get_index_of_index_by(self, index, unlim_dim):
-        unlim_mapping = self.unlimited_dim_indexed_by_time_var_map[unlim_dim]
+    def get_index_of_index_by(self, index, udim):
+        """
+        Get index (being element or slice) from the variable udim is indexed by (index_by).
+        :type index: int | np.array | Slice
+        :param index: element or slice
+        :type udim: dict
+        :param udim: unlimited dim dict config
+        :rtype: np.array
+        :return: values requested from variable that indexes udim
+        """
         with nc.Dataset(self.filename) as nc_in:  # type: nc.Dataset
-            index_by = nc_in.variables[unlim_mapping["index_by"]]  # type: nc.Variable
-            # get the slices we need to fetch the index according to the config, note that the
-            # .get may fail to find a mapping for the unlimited dim and so will default to
-            # 0, which should be the first record, and thus what we're after
-            index = self.sort_unlim[unlim_dim][index] if unlim_dim in self.sort_unlim.keys() else index
-            slices = tuple([
-                               index if d == unlim_dim
-                               else unlim_mapping.get("other_dim_indicies", {}).get(d, 0)
-                               for d in index_by.dimensions
-                               ])
+            index_by = nc_in.variables[udim["index_by"]]  # type: nc.Variable
+            # The index argument is the desired index from the _external_ view. Internally, since the records have
+            #  been sorted, it may actually be a different index internally. To find out, try to retrieve the
+            # _internal_ index from sorted.
+            internal_index = self.sort_unlim[udim["name"]][index] if udim["name"] in self.sort_unlim.keys() else index
+
+            # If the index_by variable has multiple dimensions and an index isn't specified in other_dim_inds,
+            # then default to 0
+            slices = tuple([internal_index if d == udim["name"] else udim["other_dim_inds"].get(d, 0)
+                            for d in index_by.dimensions ])
 
             try:
-                # safer to do np.nan, but this block could be simplified to always make the fill
-                # value 0.
+                # Safer to do np.nan, but this block could be simplified to always make the fill value 0.
                 return np.ma.filled(index_by[slices], fill_value=np.nan)
             except ValueError:
-                # can't convert nan to int, then fill with 0, will be taken out by slices.
-                # this would need to change if you're ever going to have an unlimited dimension
-                # that regularly is indexed by 0
+                # Trying to fill with np.nan for an interger type will raise ValueError, so fill with 0 instead.
+                # Filling with 0 is fine since 0's will be taken out by the slices. IMPORTANT: some major changes
+                # needed throughout if this is ever used for data that's regularly indexed at 0
                 return np.ma.filled(index_by[slices], fill_value=0)
-
-    def get_units_of_index_by(self, unlim_dim):
-        """
-        Get the units of of the variable by which unlim_dim is indexed. (implemented for convenience so
-        that unlim_dim/expected_cadence/(min|max) can be given as datetime
-        :param unlim_dim:
-        :return:
-        """
-        unlim_mapping = self.unlimited_dim_indexed_by_time_var_map[unlim_dim]
-
-        with nc.Dataset(self.filename) as nc_in:  # type: nc.Dataset
-            time_var = nc_in.variables[unlim_mapping["index_by"]]  # type: nc.Variable
-            return time_var.units
 
     def __str__(self):
         dim_strs = []
@@ -366,42 +298,6 @@ class InputFileNode(AbstractNode):
             slice_last = val.stop if val.stop is not None else ''
             dim_strs.append("%s[%s:%s]" % (dim, slice_first, slice_last))
         return "%s[%s]" % (os.path.basename(self.filename), ",".join(dim_strs))
-
-    def set_dim_slice(self, dim, dim_slice=slice(None)):
-        """
-        Explicitly set the slice that's taken from the input file for a certain dimension.
-        This slice is an *external interface*, ie this slice is applied to the output view
-        of the data, taking into account fill values to be inserted.
-
-        For a simple illustration:
-        If the internal slice of netcdf data is slice(10, None=100) and a self.set_dim_slice(dim, slice(10, None))
-        is applied, that translates to a netcdf slice of slice(20, None=100).
-
-        :type dim_slice: slice | int
-        :param dim: dimension to set slice for
-        :param dim_slice: the slice by which to slice dimension
-        :rtype: None
-        :return: None
-        """
-        if isinstance(dim_slice, (int, slice)):
-            self.dim_slices[dim] = dim_slice
-        else:
-            raise ValueError("Invalid slice or index")
-
-    # REMOVED: excluded inidicies are implicitly included in the slicing via file_internal_aggregation_list
-    # if there is a strong use case to add this, it should likely be added as another transform layer on top
-    # using masked arrays: a = np.ma.array(v, mask=False), a.mask[self.exclude[dim]] = True, and so will be
-    # somewhat independent of the other transforms. Would need to consider impacts to calculation of size
-    # something like (prev layers - len(self.exclude[dim])
-    # def add_unlim_dim_exclude_index(self, unlim_dim, index):
-    #     """
-    #     Specify to exclude a certain index from an unlimited dimensions during aggregation.
-    #     This should be useful in removing, eg 0 timestamps within a file.
-    #     :param unlim_dim:
-    #     :param index:
-    #     :return:
-    #     """
-    #     self.exclude_index_from_unlim[unlim_dim] = self.exclude_index_from_unlim.get(unlim_dim, []).append(index)
 
     def set_dim_slice_start(self, dim, start):
         """
@@ -413,11 +309,8 @@ class InputFileNode(AbstractNode):
         :rtype: None
         :return: None
         """
-        if isinstance(start, int):  # possibly need to use int or long here
-            old_slice = self.dim_slices.get(dim, slice(None))
-            self.dim_slices[dim] = slice(start, old_slice.stop)
-        else:
-            raise ValueError("Expected integer index, got %s" % type(start))
+        old_slice = self.dim_slices.get(dim["name"], slice(None))
+        self.dim_slices[dim["name"]] = slice(int(start), old_slice.stop)
 
     def set_dim_slice_stop(self, dim, stop):
         """
@@ -429,16 +322,13 @@ class InputFileNode(AbstractNode):
         :rtype: None
         :return: None
         """
-        if isinstance(stop, int):
-            old_slice = self.dim_slices.get(dim, slice(None))
-            self.dim_slices[dim] = slice(old_slice.start, stop)
-        else:
-            raise ValueError("Expected integer index, got %s" % type(stop))
+        old_slice = self.dim_slices.get(dim["name"], slice(None))
+        self.dim_slices[dim["name"]] = slice(old_slice.start, int(stop))
 
     def get_dim_slice(self, dim):
         """
         Get the slice for some dimension dim. First taken from self.dim_slices if it's been
-        explicitly set or overridden, falling back on getting the actual value out of the
+        explicitly set or overridden, falling back on getting the actual size out of the
         file if it hasn't been overridden.
 
         :type dim: str
@@ -446,149 +336,138 @@ class InputFileNode(AbstractNode):
         :rtype: slice | int
         :return: slice for dimension dim
         """
-        if dim in self.dim_slices.keys():
-            return self.dim_slices[dim]
-        else:
-            with nc.Dataset(self.filename) as nc_in:
-                if dim in self.config.get("take_dim_indicies", {}).keys():
-                    return self.config["take_dim_indicies"][dim]
-                elif dim in nc_in.dimensions.keys() and nc_in.dimensions[dim].isunlimited():
-                    # must return none if unlimited so that get_size_along uses length from
-                    # get_file_internal_aggregation_size - which takes into account the internal agg list
-                    # and then falls back on nc_in.dimesionse[dim].size if there is no agg list
-                    return slice(None)
-                elif dim in nc_in.dimensions.keys():
-                    # it's ok if dim is unlimited here, will still have a size.
-                    return slice(nc_in.dimensions[dim].size)
-                else:
-                    raise ValueError("Dimension does not exist: %s" % dim)
+        if dim["name"] in self.dim_slices.keys():  # case: dimension has been sliced!
+            return self.dim_slices[dim["name"]]
+        else:  # case: no slice set, is default slice(None), ok to return slice(None) for a udim here.
+            return slice(dim["size"])
 
-    def get_file_internal_aggregation_size(self, unlim_dim):
+    def get_file_internal_aggregation_size(self, dim):
         """
-        This size is the size of the file_internal_aggregation_list (ie. including fill)
-        or falling back on
-        :param unlim_dim:
-        :return:
+        This size is the size of the file_internal_aggregation_list (including fill) or falling back on true size.
         """
-        internal_aggregation_list = self.file_internal_aggregation_list.get(unlim_dim, None)
+        internal_aggregation_list = self.file_internal_aggregation_list.get(dim["name"], None)
         if internal_aggregation_list is None:
-            with nc.Dataset(self.filename) as nc_in:
-                return nc_in.dimensions[unlim_dim].size
+            if dim["size"] is None:
+                with nc.Dataset(self.filename) as nc_in:
+                    return nc_in.dimensions[dim["name"]].size
+            else:
+                return dim["size"]
 
         # Otherwise we'll need to go through and sum:
         dim_length = 0
         for each in internal_aggregation_list:
             if isinstance(each, FillNode):
-                dim_length += each.get_size_along(unlim_dim)
+                dim_length += each.get_size_along(dim)
             else:
-                assert isinstance(each, slice)
+                assert isinstance(each, slice) and each.start is not None and each.stop is not None
                 dim_length += (each.stop - each.start)
 
         return dim_length
 
-    def get_size_along(self, unlim_dim):
+    def get_size_along(self, dim):
         """
-        For an InputFileNode instance, the unlimited_dim arguemnt doesn't actually
-        have to be an unlimited dimension, the correct value will be returned for any
-        valid dimension in the input file.
+        For an InputFileNode instance, the unlimited_dim arguemnt doesn't actually have to be an unlimited dimension,
+        the correct value will be returned for any valid dimension in the input file.
 
-        :param unlim_dim: A variable in the input netcdf
-        :return: The size of the variable unlimited_dim
+        :return: The size of the dim
         """
-        # check if it's overridden in self.dim_slices
-        dim_slice = self.get_dim_slice(unlim_dim)
+        dim_slice = self.get_dim_slice(dim)  # check if it's overridden in self.dim_slices
         if isinstance(dim_slice, int):
-            # if the dim_slice is just an integer index, then it's length will just be 1
-            return 1
+            return 1  # if the dim_slice is just an integer index, then it's length will just be 1
 
         # otherwise, if it's a slice, this gets a little more complicated. Remember, we have to handle
         # the following kinds of slices: slice(None), slice(None, -3), etc...
 
         # so first, lets figure out the size of the dimension from the file and try to convert everything
         # to real indicies so we can just return (start - end)
-        dim_length = self.get_file_internal_aggregation_size(unlim_dim)
+        dim_length = self.get_file_internal_aggregation_size(dim)
 
-        dim_start_i = (
-            (dim_length + dim_slice.start if dim_slice.start is not None and dim_slice.start < 0 else dim_slice.start)
-            or 0
-        )
-
-        if dim_slice.stop is None:
-            dim_end_i = dim_length
+        # find numeric start index
+        if dim_slice.start is not None and dim_slice.start < 0:
+            dim_start_i = dim_length + dim_slice.start  # start negative indicates indexing from end
         else:
-            assert dim_slice.stop is not None
-            if dim_slice.stop < 0:
-                dim_end_i = dim_length + dim_slice.stop
-            else:
-                dim_end_i = dim_slice.stop
+            dim_start_i = 0 if dim_slice.start is None else dim_slice.start
 
-        assert dim_start_i <= dim_end_i, "dim size can't be negative, got [%s,%s] for %s" % (dim_start_i, dim_end_i, self)
+        # find numeric end index
+        if dim_slice.stop is not None and dim_slice.stop < 0:
+            dim_end_i = dim_length + dim_slice.stop
+        else:
+            dim_end_i = dim_length if dim_slice.stop is None else dim_slice.stop
+
+        assert dim_start_i <= dim_end_i, "dim size can't be neg, got [%s:%s] for %s" % (dim_start_i, dim_end_i, self)
         return dim_end_i - dim_start_i
 
-    def data_for(self, variable):
+    def data_for(self, var):
         """
         Get the data configured by this Node for the variable given.
-        :type variable: dict
+        :type var: dict
         :param variable: a dict specification of the variable to get
         :return: array of data for variable
         """
-        dimensions = self.config["dimensions"]
         with nc.Dataset(self.filename) as nc_in:
-            fill = get_fill_for(variable)  # get the fill value, needed in both branches below
+            fill_value = get_fill_for(var)
+            dims = [self.config.dims[d] for d in var["dimensions"]]
 
-            # Sorry, there's a limitation here, can only handle 1 unlimited dimension with internal aggregation
-            # figure out if we have an internal aggregation list for the unlimited dim of this variable
-            internal_agg_dim = next(
-                (dim for dim in variable["dimensions"] if dim in self.file_internal_aggregation_list.keys()),
-                None
-            )
-            if internal_agg_dim is not None:
-                growing = None  # will become an np.array
-                for internal_agg_segment in self.file_internal_aggregation_list[internal_agg_dim]:
+            # step 1: get the sorted data
+            dim_slices = [self.sort_unlim.get(d["name"], slice(None)) for d in dims] or slice(None)
+            prelim_data = np.ma.filled(nc_in.variables[var["name"]][dim_slices], fill_value=fill_value)
 
-                    if isinstance(internal_agg_segment, slice):
-                        # if the agg segment is a slice, get it directly out of the nc and add to growing
-                        var_slices = []
-                        for dim in nc_in.variables[variable["name"]].dimensions:
-                            if dim == internal_agg_dim:
-                                aggsort = self.sort_unlim[dim]
-                                var_slices.append(aggsort[internal_agg_segment])
-                            else:
-                                var_slices.append(self.get_dim_slice(dim))
-                        var_slices = tuple(var_slices)
-                        from_file = np.ma.filled(nc_in.variables[variable["name"]][var_slices], fill_value=fill)
-                        if growing is None:
-                            # initialize growing, this is done here since further concatenations must
-                            # have the same shape
-                            # assumption: the first internal_agg_segment is NOT a FillNode
-                            growing = from_file
-                        else:
-                            growing = np.concatenate((growing, from_file))
+            if len(dims) == 0:
+                # if this is just a scalar value, return
+                return prelim_data
 
+            # step 2: if there's an aggregation list for it, transform prelim_data according to it
+            internal_agg_dims = [d for d in var["dimensions"] if d in self.file_internal_aggregation_list.keys()]
+            if len(internal_agg_dims) > 0:
+                out_shape = tuple([self.get_file_internal_aggregation_size(d) for d in dims])
+                transformed_data = np.full(out_shape, fill_value, dtype=prelim_data.dtype)
+                dim_along = internal_agg_dims[0]
+                loc_along_dim = 0
+                dim_i = next((i for i in xrange(len(dims)) if dims[i]["name"] == dim_along))
+                for agg_seg in self.file_internal_aggregation_list[dim_along]:
+                    if isinstance(agg_seg, FillNode):
+                        data_in_transit = agg_seg.data_for(var)
                     else:
-                        # if not a slice, it must be a FillNode, assert so and handle accordingly
-                        assert isinstance(internal_agg_segment, FillNode)
-                        growing = np.concatenate((growing, internal_agg_segment.data_for(variable)))
+                        assert isinstance(agg_seg, slice), "Found %s" % agg_seg
+                        data_in_transit = prelim_data[[agg_seg if d["name"] == dim_along else slice(None)
+                                                       for d in dims]]
 
-                return growing[[self.get_dim_slice(dim) for dim in variable["dimensions"]]]
 
-            # if there's no internal_aggregation_list set up, it's just a regular pull the data from the file
-            # get the ordering and slicing of dimenisons
-            var_slices = []
-            for dim in nc_in.variables[variable["name"]].dimensions:
-                aggsort = self.sort_unlim.get(dim, None)
-                if aggsort is not None:
-                    var_slices.append(aggsort[self.get_dim_slice(dim)])
-                else:
-                    var_slices.append(self.get_dim_slice(dim))
+                    size_along_dim = np.shape(data_in_transit)[dim_i]
+                    transformed_data[[slice(loc_along_dim, loc_along_dim + size_along_dim) if i == dim_i else slice(None)
+                                      for i in xrange(len(dims))]] = data_in_transit
 
-            # there are some variables that have no config, ie. they are just a
-            # scalar value (seems odd to me, but these are values like "number_samples_per_report" in mag
-            # L1b.
-            try:
-                return np.ma.filled(nc_in.variables[variable["name"]][var_slices or slice(None)], fill_value=fill)
-            except ValueError:
-                return nc_in.variables[variable["name"]][var_slices or slice(None)]
+                    loc_along_dim += size_along_dim
+
+                # this doesn't work, but was a first attempt at how to solve internal agg lists for a variable
+                # that depended on multiple unliited dimensions
+                # for i, d in enumerate(dims):
+                #     # loop over dimensions, outter to inner, gradually replacing them according to the internal
+                #     # agg list if one exists for the dimension.
+                #     dst_slices = [slice(None) for _ in xrange(i)] or [slice(None)]
+                #     src_slices = [slice(None) for _ in xrange(i)] or [slice(None)]
+                #     if d["name"] in internal_agg_dims:
+                #         loc_along_dim = 0
+                #         for agg_seg in self.file_internal_aggregation_list[d["name"]]:
+                #             if isinstance(agg_seg, FillNode):
+                #                 data_in_transit = agg_seg.data_for(var)
+                #             else:
+                #                 assert isinstance(agg_seg, slice), "Found %s" % agg_seg
+                #                 src_slices[-1] = agg_seg  # here's the slice we'll get
+                #                 data_in_transit = prelim_data[src_slices]  # pull it from prelim, get the shape
+                #
+                #             size_along_dim = np.shape(data_in_transit)[i]
+                #             dst_slices[-1] = slice(loc_along_dim, loc_along_dim + size_along_dim)
+                #             src_slices[-1] = slice(size_along_dim)
+                #             transformed_data[dst_slices] = data_in_transit[src_slices]
+                #             loc_along_dim += size_along_dim
+                #
+                #     else:  # just copy across
+                #         transformed_data[dst_slices] = prelim_data[src_slices]
+                prelim_data = transformed_data
+
+            # step 3: slice to external view
+            return prelim_data[[self.get_dim_slice(d) for d in dims]]
 
     def callback_with_file(self, callback=None):
         """

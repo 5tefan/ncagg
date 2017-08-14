@@ -1,8 +1,9 @@
-from aggregoes.cli import ProgressAggregator as Aggregator
 from aggregoes.ncei.BufferedEmailHandler import BufferedEmailHandler
+from aggregoes.aggregator import generate_aggregation_list, evaluate_aggregation_list
 from aggregoes.ncei.ncei_l2_mapper import get_files_for, get_product_config, get_runtime_config, get_output_filename
 from aggregoes.ncei.ncei_l2_mapper import mapping
 from aggregoes.aggregator import FillNode, InputFileNode
+from aggregoes.validate_configs import Config
 from datetime import datetime, timedelta
 import tempfile
 import click
@@ -28,7 +29,7 @@ def reduce_version(versions):
     :param versions: A list of versions a_b_c where a, b, c are decimal major, minor and patch
     :return: version for concatenated file
     """
-    def cmp(a_str, b_str):
+    def ver_cmp(a_str, b_str):
         a = map(lambda s: s.split("-"), a_str.split("_"))  # eg 1-2_0_0 => [[1,2], [0], [0]]
         b = map(lambda s: s.split("-"), b_str.split("_"))
         assert len(a) == len(b) == 3, "Expected 3 element versions, found %s and %s" % (a_str, b_str)
@@ -46,7 +47,7 @@ def reduce_version(versions):
                 return "-".join(sorted(set(x+y)))
         return "_".join(map(cmp_comp, a, b, change_detected))
 
-    return reduce(cmp, set(versions))
+    return reduce(ver_cmp, set(versions))
 
 
 cli = click.group()(lambda: None)
@@ -85,22 +86,26 @@ def agg_day(yyyymmdd, product, sat="goes16", env="dr", email=list()):
         logger.info("No files to aggregate! Exiting.")
         return
 
-    product_config = get_product_config(product)
-    a = Aggregator(config=product_config)
+    config = get_product_config(product)  # type: Config
 
+    # Runtime_config has dimension configurations. Keys are dims, v is indexing info
+    # about that dim.
     runtime_config = get_runtime_config(product)
-    runtime_config.values()[0].update({
-        "min": start_time,
-        "max": end_time
-    })
+    for k, v in runtime_config.iteritems():
+        v.update({
+            "min": start_time,
+            "max": end_time
+        })
+        config.dims[k].update(v)
 
     # Generate the aggregation list.
-    aggregation_list = a.generate_aggregation_list(files, runtime_config)
-    logger.debug("Aggregation list contains %s items" % len(aggregation_list))
+    agg_list = generate_aggregation_list(config, files)
+    logger.debug("Aggregation list contains %s items" % len(agg_list))
 
     # derive version from the file names - first get list of filename from nodes that are InputFileNodes
-    file_names = map(lambda x: x.filename, filter(lambda n: isinstance(n, InputFileNode), aggregation_list))
+    file_names = map(lambda x: x.filename, filter(lambda n: isinstance(n, InputFileNode), agg_list))
     version_match = re.compile("_v(?P<ver>[0-9][-0-9]*_[0-9x][-0-9]*_[0-9x][-0-9]*)")
+
     def get_version(from_filename):
         """Return version string or None if not found in from_filename."""
         match = version_match.search(from_filename)
@@ -110,14 +115,15 @@ def agg_day(yyyymmdd, product, sat="goes16", env="dr", email=list()):
 
     # Initialize the aggregator.
 
-    if len(aggregation_list) == 1 and isinstance(aggregation_list[0], FillNode):
+    if len(agg_list) == 1 and isinstance(agg_list[0], FillNode):
         logger.info("Aggregation contains only FillValues! Exiting.")
         return
 
     # Evaluate it to a temporary working file.
     logger.info("Evaluating aggregation list...")
     _, tmp_filename = tempfile.mkstemp(prefix="agg_%s_%s" % (product, yyyymmdd))
-    a.evaluate_aggregation_list(aggregation_list, tmp_filename)
+    with click.progressbar(label="Aggregating...", length=len(agg_list)) as bar:
+        evaluate_aggregation_list(config, agg_list, tmp_filename, lambda: next(bar))
 
     # Rename (atomicish move) it to the final filename.
     final_filename = get_output_filename(sat, product, yyyymmdd, env, version)
@@ -134,4 +140,3 @@ if __name__ == "__main__":
     logging.getLogger().addHandler(console)
 
     cli()
-

@@ -1,3 +1,4 @@
+from aggregoes.validate_configs import Config
 import os
 import glob
 from datetime import datetime
@@ -83,7 +84,7 @@ def get_product_config(product):
     check_product(product)
     config = pkg_resources.resource_filename("aggregoes", "ncei/config/%s.json" % product)
     with open(config) as config_file:
-        return json.load(config_file)
+        return Config.from_dict(json.load(config_file))
 
 
 def get_output_filename(sat, product, datestr, env="xx"):

@@ -2,323 +2,340 @@ import logging
 import traceback
 import warnings
 from datetime import datetime
+from collections import OrderedDict
 
 import netCDF4 as nc
 import numpy as np
 
 from aggregoes.aggrelist import FillNode, InputFileNode, AggreList
 from aggregoes.attributes import AttributeHandler
-from aggregoes.init_config_template import generate_default_variables_config, \
-    generate_default_global_attributes_config, generate_default_dimensions_config
-from aggregoes.validate_configs import validate_a_dimension_block, validate_a_global_attribute_block, \
-    validate_a_variable_block, validate_take_dim_indicies_block
-from aggregoes.validate_configs import validate_unlimited_dim_indexed_by_time_var_map as validate_unlim_config
+from aggregoes.validate_configs import Config
 
 logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-DIMS = "dimensions"
-VARS = "variables"
+# Nominally, this is a three step process.
+#     # STEP 1. Initialize with an optional config.
+#     aggregator = Aggregator()
+#     # STEP 2. generate aggregation list from a list of files
+#     aggregation_list = aggregator.generate_aggregation_list(files)
+#     # STEP 3. finally, evaluate the aggregation list
+#     aggregator.evaluate_aggregation_list(aggregation_list, filename)
+
+timing_certainty = 0.9
 
 
-class Aggregator(object):
+def generate_aggregation_list(config, files_to_aggregate):
+    # type: (Config, list) -> AggreList
     """
-    Nominally, this is a three step process.
-        # STEP 1. Initialize with an optional config.
-        aggregator = Aggregator()
-        # STEP 2. generate aggregation list from a list of files
-        aggregation_list = aggregator.generate_aggregation_list(files)
-        # STEP 3. finally, evaluate the aggregation list
-        aggregator.evaluate_aggregation_list(aggregation_list, filename)
+    Generate an aggregation list from a list of input files.
+
+    :type files_to_aggregate: list[str]
+    :param files_to_aggregate: a list of filenames to aggregate.
+    :type config: dict
+    :param config: dict configuring variables to index unlimited dimensions by.
+    :rtype: AggreList
+    :return: an aggregation list
     """
+    aggregation_list = AggreList()
 
-    def __init__(self, config=None):
-        """
-        Initialize an aggregator, taking an optional config dict which can contain the keys [VARS,
-        DIMS, "global attributes"].
-        
-        If the config is missing any of the expected keys, they will be automatically configured 
-        when generate_aggregation_list is called based on the first file in the list to aggregate
-        as a template.
-        
-        :type config: dict
-        :param config: Optional config
-        """
-        super(Aggregator, self).__init__()
-        self.config = config or {}
-
-        # Validate each component of the config. Failing validation, an exception will be raised.
-        # TODO: user cerberus to validate these instead.
-        [validate_a_variable_block(b) for b in self.config.get(VARS, [])]
-        [validate_a_dimension_block(b) for b in self.config.get(DIMS, [])]
-        validate_take_dim_indicies_block(self.config.get("take_dim_indicies", None), self.config.get(DIMS, []))
-        [validate_a_global_attribute_block(b) for b in self.config.get("global attributes", [])]
-
-        self.timing_certainty = 0.9
-
-    def generate_aggregation_list(self, files_to_aggregate, index_config=None):
-        """
-        Generate an aggregation list from a list of input files.
-
-        :type files_to_aggregate: list[str]
-        :param files_to_aggregate: a list of filenames to aggregate.
-        :type index_config: dict
-        :param index_config: dict configuring variables to index unlimited dimensions by.
-        :rtype: AggreList
-        :return: an aggregation list
-        """
-        aggregation_list = AggreList()
-
-        if len(files_to_aggregate) == 0:
-            # no files to aggregate, exit immediately, do nothing
-            logger.error("No files to aggregate!")
-            return aggregation_list
-
-        # if global attributes and data variables are not configured, set them to defaults based on the first
-        # file in files_to_aggregate
-        logger.info("Validating configurations...")
-        if "global attributes" not in self.config.keys():
-            logger.debug("\tglobal attributes configuration not found, creating default.")
-            self.config["global attributes"] = generate_default_global_attributes_config(files_to_aggregate[0])
-        if DIMS not in self.config.keys():
-            logger.debug("\tdimensions configuration not found, creating default")
-            self.config[DIMS] = generate_default_dimensions_config(files_to_aggregate[0])
-        if VARS not in self.config.keys():
-            logger.debug("\tvariables configuration not found, creating default")
-            self.config[VARS] = generate_default_variables_config(files_to_aggregate[0])
-
-        self.config["config"] = unlim_config = validate_unlim_config(index_config, files_to_aggregate[0])
-
-        logger.info("Initializing input file nodes...")
-        input_files = []
-        n_errors = 0.0
-        for fn in sorted(files_to_aggregate):
-            try:
-                input_files.append(InputFileNode(fn, self.config, unlim_config))
-            except Exception as e:
-                n_errors += 1
-                raise e
-                logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
-                if n_errors / len(files_to_aggregate) >= 0.5:
-                    logger.error("Exceeding half bad granules. Something likely wrong, but continuing."
-                                 "Resulting file will probably have lots of fill values. Latest error was:\n"
-                                 "Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
-                    # once logger.error triggered once for input problem, make sure it won't trigger again.
-                    n_errors = -1.0
-
-        # calculate file coverage if any unlimited dimensions are configured.
-        # must have an index_by dimension configured, flatten ones don't count
-        if isinstance(unlim_config, dict) and len([1 for v in unlim_config.values() if not v == "flatten"]) > 0:
-            logger.info("\tFound config for unlimited dim indexing, sorting and calculating coverage.")
-            # sort input_files by the start time of the first unlimited dim.
-            input_files = sorted(input_files, key=lambda i: i.get_first_of_index_by(unlim_config.keys()[0]))
-            unlim_fills_needed = {
-                unlim_dim: self.get_coverage_for(input_files, unlim_dim) for unlim_dim in unlim_config.keys()
-            }
-
-            for index in xrange(len(input_files) + 1):
-                # + 1 since by taking into account the diff between last_value_before and first_value_after while
-                # calculating calculate, the length of num_missing and missing_start == len(input_files) + 1
-
-                if len(unlim_fills_needed) > 0:
-                    fill_node = FillNode(self.config, unlim_config)  # init, may not be used though
-                    for unlim_dim in unlim_config.keys():
-                        # this element is tuple, first is np.ndarray of number missing between each
-                        # file, and second np.ndarray of last present value before missing if there is a gap
-                        num_missing, missing_start = unlim_fills_needed[unlim_dim]
-                        if num_missing[index] > 0:
-                            fill_node.set_size_along(unlim_dim, num_missing[index])
-                            fill_node.set_unlim_dim_index_start(unlim_dim, missing_start[index])
-                    # if anything was filled out in the fill_node, add it to the aggregation list
-                    if len(fill_node.unlimited_dim_sizes) > 0:
-                        aggregation_list.append(fill_node)
-
-                if index < len(input_files):
-                    aggregation_list.append(input_files[index])
-        else:
-            aggregation_list.extend(input_files)
-
+    if len(files_to_aggregate) == 0:
+        # no files to aggregate, exit immediately, do nothing
+        logger.error("No files to aggregate!")
         return aggregation_list
 
-    def get_coverage_for(self, input_files, unlim_dim):
-        """
-        Mutate the actual input_files to fix overlap problems, return where the are gaps between files.
+    logger.info("Initializing input file nodes...")
+    input_files = []
+    n_errors = 0.0
+    for fn in sorted(files_to_aggregate):
+        try:
+            input_files.append(InputFileNode(config, fn))
+        except Exception as e:
+            n_errors += 1
+            logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+            if n_errors / len(files_to_aggregate) >= 0.5:
+                logger.error("Exceeding half bad granules. Something likely wrong, but continuing."
+                             "Resulting file will probably have lots of fill values. Latest error was:\n"
+                             "Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+                # once logger.error triggered once for input problem, make sure it won't trigger again.
+                n_errors = -1.0
 
-        :type input_files: list[InputFileNode]
-        :param input_files:
-        :type unlim_dim: str
-        :param unlim_dim:
-        :rtype: np.ndarray
-        :return: boolean array indicating where the gap sizes are too big between files
-        """
-        # expects cadence_hz, do not call if cadence_hz is not available!
-        cadence_hz = self.config["config"][unlim_dim]["expected_cadence"][unlim_dim]
+    if len(input_files) == 0:
+        # hmmm, no files survived initialization is InputFileNode
+        logger.error("No valid files found.")
+        return aggregation_list
 
-        def cast_bound(bound):
-            """
-            Cast a bound to a numerical type for use. Will not be working directly with datetime objects.
+    # calculate file coverage if any unlimited dimensions are configured.
+    # must have an index_by dimension configured, flatten ones don't count
+    index_by = [d for d in config.dims.values() if d["index_by"] is not None and not d["flatten"]]
+    if len(index_by) > 0:  # case: doing sorting
+        # implication: files will be sorted according to the first indexed unlimited dimension.
+        input_files = sorted(input_files, key=lambda i: i.get_first_of_index_by(index_by[0]))
 
-            :param bound: a min or max value read from a config
-            :return: the bound value converted to it's numerical representation
-            """
-            if isinstance(bound, datetime):
-                return nc.date2num([bound], input_files[0].get_units_of_index_by(unlim_dim))[0]
-            return bound
+        # calculate where fill value are needed between files
+        fills_needed = {d["name"]: get_coverage_for(config, input_files, d) for d in index_by}
 
-        # turn min and max into numerical object if they come in as datetime
-        last_value_before = cast_bound(self.config["config"][unlim_dim].get("min"))
-        first_value_after = cast_bound(self.config["config"][unlim_dim].get("max"))
+        for i in xrange(len(input_files)+1):
+            fills_needed_dim_start_size = []
+            for d in index_by:
+                num_missing, missing_start = fills_needed[d["name"]]  # fills needed and start of missing for a dim d
+                if num_missing[i] > 0:  # Any missing point along this dimension between these files?
+                    fills_needed_dim_start_size.append((d, missing_start[i], num_missing[i]))
+            if len(fills_needed_dim_start_size) > 0:
+                # If there's anything to put in the fill node, init, fill and add to agg list.
+                fill_node = FillNode(config)
+                for d, start, size in fills_needed_dim_start_size:
+                    fill_node.set_udim(d, size, start)
+                aggregation_list.append(fill_node)
+            if i < len(input_files):
+                aggregation_list.append(input_files[i])
+    else:  # case: no sorting, just glue files together
+        aggregation_list.extend(input_files)
 
-        # remove files that aren't between last_value_before and first_value_after
-        starts = []
-        ends = []
-        # iterate over a copy of the list since we might be removing things while iterating over it
-        for each in input_files[:]:
-            try:
-                start = each.get_first_of_index_by(unlim_dim)
-                end = each.get_last_of_index_by(unlim_dim)
-            except Exception as e:
-                logger.error("Error getting start or end of %s, removing from processing: %s" % (each, repr(e)))
-                input_files.remove(each)
-                continue
+    return aggregation_list
 
-            if (last_value_before and end < last_value_before) or (first_value_after and start > first_value_after):
-                logger.info("File not in bounds: %s" % each)
-                input_files.remove(each)
-            else:
-                starts.append(start)
-                ends.append(end)
 
-        # turn starts and ends into np.ndarray with last_value_before and first_value_after in approriate spots
-        starts = np.hstack((starts, [first_value_after or ends[-1] + (1.0 / cadence_hz)]))
-        ends = np.hstack(([last_value_before or starts[0] - (1.0 / cadence_hz)], ends))
+def get_coverage_for(config, input_files, udim):
+    # type: (Config, list, dict) -> (np.array, np.array)
+    """
+    Mutate the actual input_files to fix overlap problems, return where the are gaps between files.
 
-        # stagger and dake diff so that eg. coverage_diff[1] is gap between first and second file...
-        coverage = np.empty((starts.size + ends.size), dtype=starts.dtype)
-        coverage[0::2] = ends
-        coverage[1::2] = starts
-        coverage_diff = np.diff(coverage)[::2]
+    :type config: Config
+    :type input_files: list[InputFileNode]
+    :param input_files:
+    :type unlim_dim: str
+    :param unlim_dim:
+    :rtype: (np.array, np.array)
+    :return: boolean array indicating where the gap sizes are too big between files
+    """
 
-        # if the gap is less than 0, we'll need to trim something, ie two files overlap and
-        # we'll need to pick one of the overlapping
-        gap_too_small_upper_bound_seconds = 1.0 / ((2.0 - self.timing_certainty) * cadence_hz) if cadence_hz else 0
-        where_gap_too_small = np.where(coverage_diff <= gap_too_small_upper_bound_seconds)[0]
-        for problem_index in where_gap_too_small:
-            num_overlap = np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))
-            if int(np.ceil(num_overlap)) == 0:
-                continue  # skip if num overlap == 0, nothing to do!
-            # Take the gap off from front of following file, ie. bias towards first values that arrived.
-            # On the end, when there is no following file, instead chop the end from the last file.
-            if problem_index < len(input_files) - 1:
-                # this np.floor is consistent with np.ceil (pretty sure, bias towards keeping data
-                # with the previous agg interval if a record falls over?
-                input_files[problem_index].set_dim_slice_start(unlim_dim, int(np.ceil(num_overlap)))
-            else:
-                input_files[problem_index - 1].set_dim_slice_stop(unlim_dim, -int(np.ceil(num_overlap)))
+    # to complete the operation of this function, the udim must be configured with an expected_cadence, min, and max
+    required_keys = ["expected_cadence", "min", "max"]
+    keys_to_none = [k for k in required_keys if udim.get(k, None) is None]
+    if len(keys_to_none) > 0:
+        raise ValueError("Cannot get coverage for unlimited dim %s, missing %s" % (udim["name"], keys_to_none))
 
-        # if the gap is larger than 2 nominal steps, we'll need to fill (if the expected cadence is known)
-        # number of filles needed is insert coverage_diff[gap_too_big] * cadence_hz fill values
-        gap_too_big = coverage_diff > 2.0 / ((2.0 - self.timing_certainty) * cadence_hz)  # type: np.ndarray
-        insert_fills = np.zeros_like(gap_too_big, dtype=int)
-        for index in gap_too_big.nonzero()[0]:
-            insert_fills[index] = np.floor((coverage_diff[index] - (1.0 / cadence_hz)) * cadence_hz)
+    cadence_hz = float(udim["expected_cadence"].get(udim["name"], np.nan))  # TODO: what to do if None?
 
-        return insert_fills, np.where(insert_fills, ends, np.zeros_like(insert_fills))
+    def cast_bound(bound):
+        """ Cast a bound to a numerical type for use. Will not be working directly with datetime objects. """
+        if isinstance(bound, datetime):
+            units = config.vars[udim["index_by"]]["attributes"]["units"]
+            return nc.date2num(bound, units)
+        return bound
 
-    def evaluate_aggregation_list(self, aggregation_list, to_fullpath, callback=None):
-        """
-        Evaluate an aggregation list to a file.... ie. actually do the aggregation.
+    # turn min and max into numerical object if they come in as datetime
+    last_value_before = cast_bound(udim["min"])
+    first_value_after = cast_bound(udim["max"])
 
-        :param aggregation_list:
-        :param to_fullpath:
-        :type callback: None | function
-        :param callback: called every time an aggregation_list element is processed.
-        :return:
-        """
-        if len(aggregation_list) == 0:
-            logger.warn("No files in aggregation list, nothing to do.")
-            return  # bail early
-        self.initialize_aggregation_file(to_fullpath)
-        runtime_config = self.config["config"]
-        attribute_handler = AttributeHandler(
-            global_attr_config=self.config["global attributes"],
-            runtime_config=runtime_config,
-            filename=to_fullpath
-        )
+    # remove files that aren't between last_value_before and first_value_after
+    starts = []
+    ends = []
+    # iterate over a copy of the list since we might be removing things while iterating over it
+    for each in input_files[:]:
+        try:
+            start = each.get_first_of_index_by(udim)
+            end = each.get_last_of_index_by(udim)
+        except Exception as e:
+            logger.error("Error getting start or end of %s, removing from processing: %s" % (each, repr(e)))
+            input_files.remove(each)
+            continue
 
-        vars_with_unlim = [
-            v
-            for d in [di["name"] for di in self.config[DIMS] if di["size"] is None]
-            for v in self.config[VARS]
-            if d in v[DIMS]
-        ]
-        with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
-            # get a list of variables that depend on an unlimited dimension, after the first file is
-            # processed, we'll only need to go through these.
-            for index, component in enumerate(aggregation_list):
-                # make a mapping between unlim dimensions and their initial length because even after we append
-                # only one variable that depends on the unlimited dimension, getting the size of it will return
-                # the new appended size, which doesn't help us index the rest of the variables to fill in
-                unlim_dim_start_lens = {d.name: 0 if runtime_config.get(d.name, None) == "flatten" else d.size
-                                        for d in nc_out.dimensions.values() if d.isunlimited()}
+        if (last_value_before and end < last_value_before) or (first_value_after and start > first_value_after):
+            logger.info("File not in bounds: %s" % each)
+            input_files.remove(each)
+        else:  # case: file good to include.
+            starts.append(start)
+            ends.append(end)
 
-                # only do all variables once, otherwise we can just do the ones along an unlim
-                for var in (self.config[VARS] if index == 0 else vars_with_unlim):
-                    var_out_name = var.get("map_to", var["name"])
-                    write_slices = []
-                    for dim in nc_out.variables[var_out_name].dimensions:
-                        if nc_out.dimensions[dim].isunlimited():
-                            d_start = unlim_dim_start_lens[dim]
-                            write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
-                        else:
-                            write_slices.append(slice(None))
+    dt_min = (1.0 / ((2.0 - timing_certainty) * cadence_hz))
+    dt_max = (1.0 / (timing_certainty * cadence_hz))
+    assert dt_min <= dt_max
+    # turn starts and ends into np.ndarray with last_value_before and first_value_after in approriate spots
+    starts = np.hstack((starts, [(first_value_after or ends[-1])]))
+    ends = np.hstack(([(last_value_before or starts[0])], ends))
 
-                    # if there were no dimensions... write_slices will still be [] so convert to slice(None)
-                    write_slices = write_slices or slice(None)
-                    try:
-                        nc_out.variables[var_out_name][write_slices] = component.data_for(var)
-                    except Exception as e:
-                        logger.info(traceback.format_exc())
-                        logger.error("Problem writing var %s to file %s.\n "
-                                     "Skipping and continuing. Error was %s" % (var_out_name, to_fullpath, repr(e)))
+    # stagger and take diff so that eg. coverage_diff[1] is gap between first and second file...
+    coverage = np.empty((starts.size + ends.size), dtype=starts.dtype)
+    coverage[0::2] = ends
+    coverage[1::2] = starts
+    coverage_diff = np.diff(coverage)[::2]
 
-                # do once per component
-                component.callback_with_file(attribute_handler.process_file)
+    # if the gap is larger than 2 nominal steps, we'll need to fill (if the expected cadence is known)
+    # number of filles needed is insert coverage_diff[gap_too_big] * cadence_hz fill values
+    gap_too_big = coverage_diff > (2.0 * dt_min)  # type: np.ndarray
+    num_missing = np.zeros_like(gap_too_big, dtype=int)
+    for index in gap_too_big.nonzero()[0]:
+        num_missing[index] = np.floor((coverage_diff[index] - (1.0 / cadence_hz)) * cadence_hz)
 
-                if callback is not None:
-                    callback()
+    # if the gap is less than 0, we'll need to trim something, ie two files overlap and
+    # we'll need to pick one of the overlapping
+    gap_too_small_upper_bound_seconds = dt_min if cadence_hz > 0 else 0
+    where_gap_too_small = np.where(coverage_diff <= gap_too_small_upper_bound_seconds)[0]
+    for problem_index in where_gap_too_small:
+        # TODO: do we need both ceil and floor in there?
+        num_overlap = int(np.ceil(np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))))
+        if num_overlap == 0:
+            continue  # skip if num overlap == 0, nothing to do!
+        # Take the gap off from front of following file, ie. bias towards first values that arrived.
+        # On the end, when there is no following file, instead chop the end from the last file. Check
+        # also num_missing just in case there's a FillNode after in which case don't take it off of
+        # the end even if it's the last file.
+        if problem_index < len(input_files) - 1 or num_missing[problem_index-1] > 0:
+            # this np.floor is consistent with np.ceil (pretty sure, bias towards keeping data
+            # with the previous agg interval if a record falls over? Shouldn't really matter as long
+            # as we're consistent.
+            input_files[problem_index].set_dim_slice_start(udim, num_overlap)
+        else:
+            # if it's the last file, have to take it off the end of the previous instead of beginning of next.
+            input_files[problem_index - 1].set_dim_slice_stop(udim, -num_overlap)
 
-            # write buffered data to disk
-            nc_out.sync()
+    return num_missing, np.where(num_missing, ends, np.zeros_like(num_missing))
+    return num_missing, np.where(num_missing, ends + (1.0 / cadence_hz), np.zeros_like(num_missing))
 
-            # after aggregation finished, finalize the global attributes
-            attribute_handler.finalize_file(nc_out)
+def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=None):
+    """
+    Evaluate an aggregation list to a file.... ie. actually do the aggregation.
 
-    def initialize_aggregation_file(self, fullpath):
-        """
-        Based on the configuration in self.config, initialize a file in which to write the aggregated output.
+    :param aggregation_list:
+    :param to_fullpath:
+    :type callback: None | function
+    :param callback: called every time an aggregation_list element is processed.
+    :return:
+    """
+    if len(aggregation_list) == 0:
+        logger.warn("No files in aggregation list, nothing to do.")
+        return  # bail early
 
-        :param fullpath: filename of output to initialize.
-        :return: None
-        """
-        with nc.Dataset(fullpath, 'w') as nc_out:
-            for dim in self.config[DIMS]:
-                nc_out.createDimension(dim["name"], dim["size"])
-            for var in self.config[VARS]:
-                var_name = var.get("map_to", var["name"])
-                var_type = np.dtype(var["datatype"])
-                var_out = nc_out.createVariable(var_name, var_type, var[DIMS],
-                                                chunksizes=var.get("chunksizes", None), zlib=True,
-                                                complevel=7)
-                for k, v in var["attributes"].items():
-                    if k in ["_FillValue", "valid_min", "valid_max"]:
-                        var["attributes"][k] = var_type.type(v)
-                    if k in ["valid_range", "flag_masks", "flag_values"]:
-                        if isinstance(v, basestring):
-                            var["attributes"][k] = np.array(map(var_type.type, v.split(", ")), dtype=var_type)
-                        else:
-                            var["attributes"][k] = np.array(v, dtype=var_type)
+    initialize_aggregation_file(config, to_fullpath)
 
-                var_out.setncatts(var["attributes"])
+    attribute_handler = AttributeHandler(config, filename=to_fullpath)
+
+    vars_unlim_append = []
+    vars_once = []
+    vars_simple_flatten = []
+    vars_index_flatten = []
+
+    # Each of lists above is treated differently, figure out treatment for each variable ahead of time, once.
+    for v in config.vars.values():
+        var_dims = [config.dims[d] for d in v["dimensions"]]
+
+        depends_on_unlimited = any((d["size"] is None for d in var_dims))
+        if not depends_on_unlimited:
+            # variables that don't depend on an unlimited dimension, we'll only need to copy once.
+            vars_once.append(v)
+            continue
+
+        is_flatten = any((d.get("flatten", False) for d in var_dims))
+        if not is_flatten:  # case: simple unlim, just append (raw or index, doesn't matter)
+            vars_unlim_append.append(v)
+            continue
+
+        is_indexed = any((d.get("index_by", None) is not None for d in var_dims))
+        if is_flatten and is_indexed:
+            vars_index_flatten.append(v)
+        else:  # case: just simple flattening, don't care about indexing
+            vars_simple_flatten.append(v)
+
+    with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
+
+        # the vars once don't depend on an unlimited dim so only need to be copied once. Find the first
+        # InputFileNode to copy from so we don't get fill values. Otherwise, if none exists, which shouldn't
+        # happen, but oh well, use a fill node.
+        vars_once_src = next((i for i in aggregation_list if isinstance(i, InputFileNode)), aggregation_list[0])
+        for var in vars_once:   # case: do once, only for first input file node
+            nc_out.variables[var["name"]][:] = vars_once_src.data_for(var)
+
+        for component in aggregation_list:
+
+            unlim_starts = {k: nc_out.dimensions[k].size for k, v in config.dims.items() if v["size"] is None}
+
+            # case: regular concat var along unlim dim
+            logger.debug("vars_unlim_append: %s" % [v["name"] for v in vars_unlim_append])
+            for var in vars_unlim_append:
+                write_slices = []
+                for dim in [config.dims[d] for d in var["dimensions"]]:
+                    if dim["size"] is None:  # it's unlimited
+                        d_start = unlim_starts[dim["name"]]
+                        write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
+                    else:
+                        write_slices.append(slice(None))
+                nc_out.variables[var["name"]][write_slices] = component.data_for(var)
+
+            # case: simple flatten unlim
+            logger.debug("vars_simple_flatten: %s" % [v["name"] for v in vars_simple_flatten])
+            for var in vars_simple_flatten:
+                write_slices = []
+                for dim in [config.dims[d] for d in var["dimensions"]]:
+                    if dim["size"] is None and not dim["flatten"]:  # it's unlimited
+                        d_start = unlim_starts[dim["name"]]
+                        write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
+                    elif dim["size"] is None and dim["flatten"]:
+                        write_slices.append(slice(0, component.get_size_along(dim)))
+                    else:
+                        write_slices.append(slice(None))
+                nc_out.variables[var["name"]][write_slices] = component.data_for(var)
+
+
+            # case: flattening according to an index
+            logger.debug("vars_index_flatten: %s" % [v["name"] for v in vars_index_flatten])
+            for var in vars_index_flatten:
+                write_slices = []
+                for dim in [config.dims[d] for d in var["dimensions"]]:
+                    if dim["size"] is None and not dim["flatten"]:  # it's unlimited
+                        d_start = unlim_starts[dim["name"]]
+                        write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
+                    elif dim["size"] is None and dim["flatten"] and dim["index_by"] is None:
+                        write_slices.append(slice(0, component.get_size_along(dim)))
+                    elif dim["size"] is None and dim["flatten"] and dim["index_by"] is not None:
+                        index_by = dim["index_by"]
+                        index_by_incoming_values = component.data_for(config.vars[index_by])
+                        index_by_existing_values = nc_out.variables[index_by][:]
+                        # TODO: finish this
+                        write_slices.append(slice(0, component.get_size_along(dim)))
+                    else:
+                        write_slices.append(slice(None))
+                nc_out.variables[var["name"]][write_slices] = component.data_for(var)
+
+
+            # do once per component
+            component.callback_with_file(attribute_handler.process_file)
+
+            if callback is not None:
+                callback()
+
+        # write buffered data to disk
+        nc_out.sync()
+
+        # after aggregation finished, finalize the global attributes
+        attribute_handler.finalize_file(nc_out)
+
+
+def initialize_aggregation_file(config, fullpath):
+    """
+    Based on the configuration in self.config, initialize a file in which to write the aggregated output.
+
+    :param fullpath: filename of output to initialize.
+    :return: None
+    """
+    with nc.Dataset(fullpath, 'w') as nc_out:
+        for dim in config.dims.values():
+            nc_out.createDimension(dim["name"], dim["size"])
+        for var in config.vars.values():
+            var_name = var.get("map_to", var["name"])
+            var_type = np.dtype(var["datatype"])
+            var_out = nc_out.createVariable(var_name, var_type, var["dimensions"],
+                                            chunksizes=var["chunksizes"], zlib=True,
+                                            complevel=7)
+            for k, v in var["attributes"].items():
+                if k in ["_FillValue", "valid_min", "valid_max"]:
+                    var["attributes"][k] = var_type.type(v)
+                if k in ["valid_range", "flag_masks", "flag_values"]:
+                    if isinstance(v, basestring):
+                        var["attributes"][k] = np.array(map(var_type.type, v.split(", ")), dtype=var_type)
+                    else:
+                        var["attributes"][k] = np.array(v, dtype=var_type)
+
+            var_out.setncatts(var["attributes"])
 

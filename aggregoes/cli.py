@@ -1,17 +1,8 @@
-from aggregoes.aggregator import Aggregator
+from aggregoes.validate_configs import Config
+from aggregoes.aggregator import generate_aggregation_list, evaluate_aggregation_list
 import click
 from datetime import datetime, timedelta
 import logging
-
-
-class ProgressAggregator(Aggregator):
-    def evaluate_aggregation_list(self, aggregation_list, to_fullpath, callback=None):
-        with click.progressbar(label="Aggregating...", length=len(aggregation_list)) as bar:
-            super(ProgressAggregator, self).evaluate_aggregation_list(
-                aggregation_list,
-                to_fullpath,
-                lambda: next(bar)
-            )
 
 
 def parse_time(dt_str):
@@ -86,29 +77,33 @@ def parse_bound_arg(b):
                          "start and stop are of the form YYYY[MM[DD[HH[MM]]]] and of stop is omitted,"
                          "it will be inferred to be the least significantly specified date + 1.")
 def cli(dst, src, u=None, b=None):
-    runtime_config = {}
+    config = Config.from_nc(src[0])  # config from first input.
+
     if u is not None:
-        # we have an Unlimited Dim Configuration, fill out runtime_config
+        # we have an Unlimited Dim Configuration, fill out.
         u_split = u.split(":")
-        runtime_config[u_split[0]] = {
-            "index_by": u_split[1]
-        }
-        if len(u_split) > 2:
-            # TODO: handle multidim indexby, might have to look in one of the src files.
-            runtime_config[u_split[0]]["expected_cadence"] = {u_split[0]: float(u_split[2])}
+        dim_indexed, index_by = u_split[:2]
+        config.dims[dim_indexed].update({"index_by": index_by})
+        for i, cadence in enumerate(u_split[2:]):
+            dim = config.vars[index_by]["dimensions"][i]
+            config.dims[dim_indexed]["expected_cadence"].update({
+                dim: float(cadence)
+            })
 
         if b is not None:
             start, stop = parse_bound_arg(b)
-            runtime_config[u_split[0]]["min"] = start
-            runtime_config[u_split[0]]["max"] = stop
+            config.dims[dim_indexed].update({
+                "min": start,
+                "max": stop
+            })
 
     # Step 2: generate the aggregation list
-    a = ProgressAggregator()
-    aggregation_list = a.generate_aggregation_list(src, runtime_config)
+    aggregation_list = generate_aggregation_list(config, src)
 
     # Step 3: evaluate the aggregation list
     click.echo("Evaluating aggregation list...")
-    a.evaluate_aggregation_list(aggregation_list, dst)
+    with click.progressbar(label="Aggregating...", length=len(aggregation_list)) as bar:
+        evaluate_aggregation_list(config, aggregation_list, dst, lambda: next(bar))
     click.echo("Finished: %s" % dst)
 
 
