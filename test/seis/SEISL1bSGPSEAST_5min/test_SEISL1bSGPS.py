@@ -2,7 +2,8 @@ import unittest
 import netCDF4 as nc
 import numpy as np
 import tempfile
-from aggregoes.aggregator import Aggregator
+from aggregoes.validate_configs import Config
+from aggregoes.aggregator import generate_aggregation_list, evaluate_aggregation_list
 from datetime import datetime
 import glob
 import os
@@ -12,29 +13,26 @@ import json
 class TestGenerateAggregationList(unittest.TestCase):
     def setUp(self):
         _, self.file = tempfile.mkstemp()
+        pwd = os.path.dirname(__file__)
+        self.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
+        with open(os.path.join(pwd, "seis-l1b-sgps-east.json")) as product_config_file:
+            self.config = Config.from_dict(json.load(product_config_file))
 
     def tearDown(self):
         os.remove(self.file)
 
     def test_with_config(self):
-        pwd = os.path.dirname(__file__)
         start_time = datetime(2017, 06, 8, 16, 45)
         end_time = datetime(2017, 06, 8, 16, 50)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
 
-        with open(os.path.join(pwd, "seis-l1b-sgps-east.json")) as product_config_file:
-            product_config = json.load(product_config_file)
-
-        a = Aggregator(product_config)
-        aggregation_list = a.generate_aggregation_list(files, {
-            "report_number": {
-                "index_by": "L1a_SciData_TimeStamp",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "expected_cadence": {"report_number": 1, "sensor_unit": 0},
-            }
+        self.config.dims["report_number"].update({
+            "index_by": "L1a_SciData_TimeStamp",
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
+            "expected_cadence": {"report_number": 1, "sensor_unit": 0},
         })
-        self.assertEqual(len(aggregation_list), 6)
+        agg_list = generate_aggregation_list(self.config, self.files)
+        self.assertEqual(len(agg_list), 6)
 
 
 class TestEvaluateAggregationList(unittest.TestCase):
@@ -46,19 +44,16 @@ class TestEvaluateAggregationList(unittest.TestCase):
         cls.end_time = datetime(2017, 06, 8, 16, 50)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         with open(os.path.join(pwd, "seis-l1b-sgps-east.json")) as product_config_file:
-            product_config = json.load(product_config_file)
-
-        a = Aggregator(product_config)
-        aggregation_list = a.generate_aggregation_list(cls.files, {
-            "report_number": {
-                "index_by": "L1a_SciData_TimeStamp",
-                "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": cls.end_time,
-                "expected_cadence": {"report_number": 1, "sensor_unit": 0},
-            }
+            cls.config = Config.from_dict(json.load(product_config_file))
+        cls.config.dims["report_number"].update({
+            "index_by": "L1a_SciData_TimeStamp",
+            "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": cls.end_time,
+            "expected_cadence": {"report_number": 1, "sensor_unit": 0},
         })
         _, cls.filename = tempfile.mkstemp()
-        a.evaluate_aggregation_list(aggregation_list, cls.filename)
+        agg_list = generate_aggregation_list(cls.config, cls.files)
+        evaluate_aggregation_list(cls.config, agg_list, cls.filename)
         cls.output = nc.Dataset(cls.filename, "r")
 
     @classmethod

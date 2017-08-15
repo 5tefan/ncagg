@@ -29,7 +29,7 @@ class TestConfigDict(unittest.TestCase):
         """ Ensure that the sample config rejects the bad string value
         since something is expected to be a float value. """
         with self.assertRaises(ValueError):
-            a = SampleConfig([
+            SampleConfig([
                 {"name": "a", "something": 1},
                 {"name": "b", "something": "noooo"},
                 {"name": "z", "something": 1}
@@ -101,3 +101,13 @@ class TestOverallConfig(unittest.TestCase):
         attrs = GlobalAttributeConfig([])
         with self.assertRaises(ValueError):
             Config(dims, vars, attrs)
+
+    def test_to_json(self):
+        dims = DimensionConfig([{"name": "a", "size": 2}, {"name": "b", "size": None}])
+        vars = VariableConfig([
+            {"name": "t", "dimensions": ["b"], "datatype": "float32"},
+            {"name": "x", "dimensions": ["b", "a"], "datatype": "float32"},
+        ])
+        attrs = GlobalAttributeConfig([])
+        json = Config(dims, vars, attrs).to_dict()
+

@@ -1,7 +1,8 @@
 import unittest
 import numpy as np
 import netCDF4 as nc
-from aggregoes.aggregator import Aggregator
+from aggregoes.validate_configs import Config
+from aggregoes.aggregator import generate_aggregation_list, evaluate_aggregation_list
 import os
 import tempfile
 
@@ -36,9 +37,9 @@ class TestMultiUnlimDims(unittest.TestCase):
         [os.remove(f) for f in self.inputs]
 
     def test_default_multi_dim(self):
-        a = Aggregator()
-        l = a.generate_aggregation_list(self.inputs, )
-        a.evaluate_aggregation_list(l, self.filename)
+        config = Config.from_nc(self.inputs[0])
+        l = generate_aggregation_list(config, self.inputs)
+        evaluate_aggregation_list(config, l, self.filename)
         with nc.Dataset(self.filename) as nc_out:  # type: nc.Dataset
             # this is the default way of aggregating
             # [[0 -- -- -- -- --]
@@ -56,11 +57,10 @@ class TestMultiUnlimDims(unittest.TestCase):
             self.assertEqual(np.ma.count_masked(c), 36)
 
     def test_collapse_second_dim(self):
-        a = Aggregator()
-        l = a.generate_aggregation_list(self.inputs, {
-            "b": "flatten"
-        })
-        a.evaluate_aggregation_list(l, self.filename)
+        config = Config.from_nc(self.inputs[0])
+        config.dims["b"].update({"flatten": True})
+        l = generate_aggregation_list(config, self.inputs)
+        evaluate_aggregation_list(config, l, self.filename)
         with nc.Dataset(self.filename) as nc_out:  # type: nc.Dataset
             # flatten b dimension, should turn out like:
             # [[0 -- --]
