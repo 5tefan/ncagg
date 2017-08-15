@@ -5,7 +5,6 @@ import netCDF4 as nc
 import logging, traceback
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def datetime_format(dt):

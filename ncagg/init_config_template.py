@@ -1,6 +1,7 @@
 import click
 import json
-from validate_configs import Config
+
+from config import Config
 
 @click.command()
 @click.argument("sample_netcdf", type=click.Path(exists=True))

@@ -1,5 +1,5 @@
 import unittest
-from aggregoes.cli import parse_bound_arg
+from ncagg.cli import parse_bound_arg
 from datetime import datetime, timedelta
 from itertools import permutations
 

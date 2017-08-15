@@ -1,15 +1,12 @@
 import logging
-import traceback
 import warnings
 from datetime import datetime
-from collections import OrderedDict
-
 import netCDF4 as nc
 import numpy as np
 
-from aggregoes.aggrelist import FillNode, InputFileNode, AggreList
-from aggregoes.attributes import AttributeHandler
-from aggregoes.validate_configs import Config
+from ncagg.aggrelist import FillNode, InputFileNode, AggreList
+from ncagg.attributes import AttributeHandler
+from ncagg.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +22,25 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 timing_certainty = 0.9
 
+def aggregate(files_to_aggregate, output_filename, config=None):
+    """
+    Aggregate files_to_aggregate into output_filename, with optional conifg.
+    Convenience function intended to be primary external interface to aggregation.
+
+    :type files_to_aggregate: list[str]
+    :param files_to_aggregate: List of NetCDF filenames to aggregate.
+    :type output_filename: basestring
+    :param output_filename: Filename to create and write output to.
+    :type config: Config
+    :param config: Optional configuration, default generated from first file if not given.
+    :return:
+    """
+    if config is None:
+        config = Config.from_nc(files_to_aggregate[0])
+
+    agg_list = generate_aggregation_list(config, files_to_aggregate)
+    evaluate_aggregation_list(config, agg_list, output_filename)
+
 
 def generate_aggregation_list(config, files_to_aggregate):
     # type: (Config, list) -> AggreList
@@ -33,8 +49,8 @@ def generate_aggregation_list(config, files_to_aggregate):
 
     :type files_to_aggregate: list[str]
     :param files_to_aggregate: a list of filenames to aggregate.
-    :type config: dict
-    :param config: dict configuring variables to index unlimited dimensions by.
+    :type config: Config
+    :param config: An aggregation configuration.
     :rtype: AggreList
     :return: an aggregation list
     """
@@ -99,15 +115,17 @@ def generate_aggregation_list(config, files_to_aggregate):
 def get_coverage_for(config, input_files, udim):
     # type: (Config, list, dict) -> (np.array, np.array)
     """
-    Mutate the actual input_files to fix overlap problems, return where the are gaps between files.
+    Mutate the actual input_files to fix overlap problems, by setting slicing on appropriate dims.
+    Return how big the gaps between files are in terms of missing expected_cadence steps and
+    what the last value before the gap is.
 
     :type config: Config
     :type input_files: list[InputFileNode]
     :param input_files:
-    :type unlim_dim: str
-    :param unlim_dim:
+    :type unlim_dim: dict
+    :param unlim_dim: Configuration for an unlimited dim. Element of Config.dims
     :rtype: (np.array, np.array)
-    :return: boolean array indicating where the gap sizes are too big between files
+    :return: (size of gaps, if gap: last value: else 0)
     """
 
     # to complete the operation of this function, the udim must be configured with an expected_cadence, min, and max
@@ -182,7 +200,7 @@ def get_coverage_for(config, input_files, udim):
         # On the end, when there is no following file, instead chop the end from the last file. Check
         # also num_missing just in case there's a FillNode after in which case don't take it off of
         # the end even if it's the last file.
-        if problem_index < len(input_files) - 1 or num_missing[problem_index-1] > 0:
+        if problem_index < len(input_files) - 1 or problem_index == 0:
             # this np.floor is consistent with np.ceil (pretty sure, bias towards keeping data
             # with the previous agg interval if a record falls over? Shouldn't really matter as long
             # as we're consistent.
@@ -192,17 +210,16 @@ def get_coverage_for(config, input_files, udim):
             input_files[problem_index - 1].set_dim_slice_stop(udim, -num_overlap)
 
     return num_missing, np.where(num_missing, ends, np.zeros_like(num_missing))
-    return num_missing, np.where(num_missing, ends + (1.0 / cadence_hz), np.zeros_like(num_missing))
 
 def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=None):
     """
     Evaluate an aggregation list to a file.... ie. actually do the aggregation.
 
-    :param aggregation_list:
-    :param to_fullpath:
+    :param aggregation_list: AggList specifying how to create aggregation.
+    :param to_fullpath: Filename for output.
     :type callback: None | function
     :param callback: called every time an aggregation_list element is processed.
-    :return:
+    :return: None
     """
     if len(aggregation_list) == 0:
         logger.warn("No files in aggregation list, nothing to do.")
@@ -212,10 +229,8 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
 
     attribute_handler = AttributeHandler(config, filename=to_fullpath)
 
-    vars_unlim_append = []
     vars_once = []
-    vars_simple_flatten = []
-    vars_index_flatten = []
+    vars_unlim = []
 
     # Each of lists above is treated differently, figure out treatment for each variable ahead of time, once.
     for v in config.vars.values():
@@ -225,18 +240,8 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
         if not depends_on_unlimited:
             # variables that don't depend on an unlimited dimension, we'll only need to copy once.
             vars_once.append(v)
-            continue
-
-        is_flatten = any((d.get("flatten", False) for d in var_dims))
-        if not is_flatten:  # case: simple unlim, just append (raw or index, doesn't matter)
-            vars_unlim_append.append(v)
-            continue
-
-        is_indexed = any((d.get("index_by", None) is not None for d in var_dims))
-        if is_flatten and is_indexed:
-            vars_index_flatten.append(v)
-        else:  # case: just simple flattening, don't care about indexing
-            vars_simple_flatten.append(v)
+        else:
+            vars_unlim.append(v)
 
     with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
 
@@ -251,44 +256,18 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
 
             unlim_starts = {k: nc_out.dimensions[k].size for k, v in config.dims.items() if v["size"] is None}
 
-            # case: regular concat var along unlim dim
-            logger.debug("vars_unlim_append: %s" % [v["name"] for v in vars_unlim_append])
-            for var in vars_unlim_append:
+            for var in vars_unlim:
                 write_slices = []
                 for dim in [config.dims[d] for d in var["dimensions"]]:
-                    if dim["size"] is None:  # it's unlimited
-                        d_start = unlim_starts[dim["name"]]
-                        write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
-                    else:
-                        write_slices.append(slice(None))
-                nc_out.variables[var["name"]][write_slices] = component.data_for(var)
-
-            # case: simple flatten unlim
-            logger.debug("vars_simple_flatten: %s" % [v["name"] for v in vars_simple_flatten])
-            for var in vars_simple_flatten:
-                write_slices = []
-                for dim in [config.dims[d] for d in var["dimensions"]]:
-                    if dim["size"] is None and not dim["flatten"]:  # it's unlimited
-                        d_start = unlim_starts[dim["name"]]
-                        write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
-                    elif dim["size"] is None and dim["flatten"]:
-                        write_slices.append(slice(0, component.get_size_along(dim)))
-                    else:
-                        write_slices.append(slice(None))
-                nc_out.variables[var["name"]][write_slices] = component.data_for(var)
-
-
-            # case: flattening according to an index
-            logger.debug("vars_index_flatten: %s" % [v["name"] for v in vars_index_flatten])
-            for var in vars_index_flatten:
-                write_slices = []
-                for dim in [config.dims[d] for d in var["dimensions"]]:
-                    if dim["size"] is None and not dim["flatten"]:  # it's unlimited
+                    if dim["size"] is None and not dim["flatten"]:
+                        # case: regular concat var along unlim dim
                         d_start = unlim_starts[dim["name"]]
                         write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
                     elif dim["size"] is None and dim["flatten"] and dim["index_by"] is None:
+                        # case: simple flatten unlim
                         write_slices.append(slice(0, component.get_size_along(dim)))
                     elif dim["size"] is None and dim["flatten"] and dim["index_by"] is not None:
+                        # case: flattening according to an index
                         index_by = dim["index_by"]
                         index_by_incoming_values = component.data_for(config.vars[index_by])
                         index_by_existing_values = nc_out.variables[index_by][:]
@@ -297,7 +276,6 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                     else:
                         write_slices.append(slice(None))
                 nc_out.variables[var["name"]][write_slices] = component.data_for(var)
-
 
             # do once per component
             component.callback_with_file(attribute_handler.process_file)
@@ -314,7 +292,7 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
 
 def initialize_aggregation_file(config, fullpath):
     """
-    Based on the configuration in self.config, initialize a file in which to write the aggregated output.
+    Based on the configuration, initialize a file in which to write the aggregated output.
 
     :param fullpath: filename of output to initialize.
     :return: None

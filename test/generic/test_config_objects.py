@@ -1,7 +1,7 @@
 import unittest
-from aggregoes.validate_configs import ConfigDict
-from aggregoes.validate_configs import DimensionConfig, VariableConfig, GlobalAttributeConfig
-from aggregoes.validate_configs import Config
+from ncagg.config import ConfigDict
+from ncagg.config import DimensionConfig, VariableConfig, GlobalAttributeConfig
+from ncagg.config import Config
 
 class SampleConfig(ConfigDict):
     """ A very basic config that expect fields with a something float value,

@@ -1,6 +1,6 @@
 import unittest
-from aggregoes.aggrelist import FillNode, AggreList
-from aggregoes.validate_configs import Config
+from ncagg.aggrelist import FillNode, AggreList
+from ncagg.config import Config
 
 
 

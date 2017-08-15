@@ -1,5 +1,5 @@
-from aggregoes.aggrelist import InputFileNode
-from aggregoes.validate_configs import Config
+from ncagg.aggrelist import InputFileNode
+from ncagg.config import Config
 from netCDF4 import num2date
 from datetime import datetime
 import unittest

@@ -1,10 +1,10 @@
 import unittest
 import numpy as np
 import netCDF4 as nc
-from aggregoes.aggregator import initialize_aggregation_file
+from ncagg.aggregator import initialize_aggregation_file
 import os
 import tempfile
-from aggregoes.validate_configs import Config
+from ncagg.config import Config
 
 
 class TestFileInitialization(unittest.TestCase):

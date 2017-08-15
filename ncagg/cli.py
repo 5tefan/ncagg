@@ -1,5 +1,5 @@
-from aggregoes.validate_configs import Config
-from aggregoes.aggregator import generate_aggregation_list, evaluate_aggregation_list
+from ncagg.config import Config
+from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
 import click
 from datetime import datetime, timedelta
 import logging

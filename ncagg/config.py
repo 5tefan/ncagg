@@ -1,10 +1,9 @@
 import numpy as np
 import cerberus
 import netCDF4 as nc
-from aggregoes.attributes import AttributeHandler
 from collections import OrderedDict
-from attributes import AttributeHandler
-import json
+
+from ncagg.attributes import AttributeHandler
 
 """
 This file contains functions that take some configuration, generally as the first parameter, and any other necessary
@@ -45,15 +44,24 @@ class Config(object):
         interlinking requirements between the individual (mainly) Dimensions and Variables: eg
         All dimensions referenced by a variable exist in the Dimension config.
         """
-        self.dims = dims
-        self.vars = vars
-        self.attrs = attrs
+        self.dims = dims  # type: DimensionConfig
+        self.vars = vars  # type: VariableConfig
+        self.attrs = attrs  # type: GlobalConfig
 
         # At the moment, anything else, we'll let fall through and error out at evaluation time.
         self.inter_validate()
 
 
     def inter_validate(self):
+        """
+        While self.dims, self.vars, and self.attrs are responsible for their own basic validation,
+        intervalidation between them is better done at a higher level as there is no gaurantee eg,
+        dims is initialized before vars.
+
+        Raises ValueError if an invalid configuration is detected.
+
+        :return: None
+        """
         # Make sure that configured dimensions and dimensions used by variables are consistent.
         var_dims = set([d for v in self.vars.values() for d in v["dimensions"]])
         dims_set = set(self.dims.keys())
@@ -95,6 +103,7 @@ class Config(object):
 
     @classmethod
     def from_nc(cls, nc_filename):
+        # type: (str) -> Config
         dims = DimensionConfig.from_nc(nc_filename)  # Configure Dimensions
         vars = VariableConfig.from_nc(nc_filename)  # Configure Variables
         attrs = GlobalAttributeConfig.from_nc(nc_filename)  # Configure Global Attributes
@@ -217,14 +226,14 @@ class VariableConfig(ConfigDict):
                 # must convert datatype attribute to a string representation
                 if isinstance(v["datatype"], nc._netCDF4.VLType):
                     # if it's a vlen type, grab the .dtype attribute and get the numpy name for it
-                    v["datatype"] = np.dtype(v["datatype"].dtype).name
+                    v["datatype"] = np.dtype(v["datatype"].dtype).kind
                 else:
                     # otherwise it's just a regular np.dtype object already
                     # eg:  str(np.dtype(np.float32)) ==> 'float32'
                     name = v["datatype"].name
                     # this is a pain, kind for string is 'S' or 'U', but kind for eg. np.uint32 is 'u' which
                     # is not valid. So far, this fallback on name from kind seems to work.
-                    v["datatype"] = name if "string" not in name else v["datatype"].kind
+                    v["datatype"] = name if "str" not in name else v["datatype"].kind
 
                 if "_FillValue" not in v["attributes"].keys() and not v["datatype"] in ["U", "S"]:  # not string type
                     # avoid AttributeError: cannot set _FillValue attribute for VLEN or compound variable

@@ -1,17 +1,18 @@
-from validate_configs import Config
 import netCDF4 as nc
 import numpy as np
 import os
 import logging
+
+from config import Config
 
 logger = logging.getLogger(__name__)
 
 
 def get_fill_for(variable):
     """
-    Get an appropriate fill value for a netcdf variable.
+    Get an appropriate fill value for a NetCDF variable.
     
-    :param variable: A netcdf variable object.
+    :param variable: A variable config dict.
     :return: A fill value for variable.
     """
     datatype = np.dtype(variable["datatype"])
@@ -176,6 +177,13 @@ class InputFileNode(AbstractNode):
 
 
     def get_coverage(self):
+        """
+        Similar to calculating coverage between files in aggregator, here, we calculate
+        coverage within the file, filling in the self.file_internal_aggregation_list with
+        slice and FillNode objects as needed.
+
+        :return: None
+        """
         index_by = [d for d in self.config.dims.values() if d["index_by"] is not None and not d["flatten"]]
         for udim in index_by:
 
@@ -249,12 +257,14 @@ class InputFileNode(AbstractNode):
             self.file_internal_aggregation_list[udim["name"]] = dim_agg_list
 
     def get_first_of_index_by(self, udim):
+        """ Get the first value along udim. """
         first_slice = self.file_internal_aggregation_list[udim["name"]][0]
         assert isinstance(first_slice, slice), "Must be a slice!"
         assert isinstance(first_slice.start, int), "Must be an int!"
         return self.get_index_of_index_by(first_slice.start, udim)
 
     def get_last_of_index_by(self, udim):
+        """ Get the last value along udim. """
         last_slice = self.file_internal_aggregation_list[udim["name"]][-1]
         assert isinstance(last_slice, slice), "Must be a slice!"
         assert isinstance(last_slice.start, int), "Must be an int!"
@@ -471,9 +481,11 @@ class InputFileNode(AbstractNode):
 
     def callback_with_file(self, callback=None):
         """
-        Callback for anything that needs access to the file object stored in the node.
-        :param callback: 
-        :return: 
+        Callback for anything that needs access to the file object stored in the node. Intended
+        mainly for attribute handling.
+
+        :param callback: function to call with represented NetCDF Dataset handle as argument.
+        :return: None
         """
         if callback is not None:
             with nc.Dataset(self.filename) as nc_in:

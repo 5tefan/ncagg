@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 import netCDF4 as nc
-from aggregoes.validate_configs import Config
-from aggregoes.aggregator import generate_aggregation_list, evaluate_aggregation_list
+from ncagg.config import Config
+from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
 import os
 import tempfile
 
