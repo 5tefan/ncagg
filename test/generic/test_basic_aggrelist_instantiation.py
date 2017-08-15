@@ -1,6 +1,7 @@
 import unittest
-from aggregoes.aggregator import AggreList
-from aggregoes.aggrelist import FillNode, AggreList
+from ncagg.aggrelist import FillNode, AggreList
+from ncagg.config import Config
+
 
 
 class TestAggreList(unittest.TestCase):
@@ -11,15 +12,15 @@ class TestAggreList(unittest.TestCase):
     def test_append_one_element(self):
         """Make sure the AggreList can append an item."""
         a = AggreList()
-        a.append(FillNode())
+        a.append(FillNode(Config.from_dict({})))
         self.assertEqual(len(a), 1)
 
     def test_append_several_elements(self):
         """Make sure the AggreList can append several items."""
         a = AggreList()
-        a.append(FillNode())
-        a.append(FillNode())
-        a.append(FillNode())
+        a.append(FillNode(Config.from_dict({})))
+        a.append(FillNode(Config.from_dict({})))
+        a.append(FillNode(Config.from_dict({})))
         self.assertEqual(len(a), 3)
 
     def test_append_non_aggrenode_type(self):
@@ -32,7 +33,7 @@ class TestAggreList(unittest.TestCase):
         """Can we remove items from the AggreList?"""
         a = AggreList()
         self.assertEqual(len(a), 0)
-        b = FillNode()
+        b = FillNode(Config.from_dict({}))
         a.append(b)
         self.assertEqual(len(a), 1)
         a.remove(b)

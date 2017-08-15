@@ -1,91 +1,76 @@
 import unittest
 import tempfile
-import numpy as np
 import netCDF4 as nc
-from aggregoes.aggregator import Aggregator
-from datetime import datetime
+import numpy as np
+from ncagg.config import Config
+from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
+from datetime import datetime, timedelta
 import glob
 import os
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
 
 
 class TestGenerateAggregationList(unittest.TestCase):
     def setUp(self):
         _, self.file = tempfile.mkstemp()
+        pwd = os.path.dirname(__file__)
+        self.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
+        self.config = Config.from_nc(self.files[0])
+        self.config.dims["report_number"].update({
+            "index_by": "OB_time",
+            "other_dim_indicies": {"samples_per_record": 0},
+            "expected_cadence": {"report_number": 1, "number_samples_per_report": 10},
+        })
 
     def tearDown(self):
         os.remove(self.file)
 
     def test_5min(self):
-        pwd = os.path.dirname(__file__)
         start_time = datetime(2017, 03, 16, 15, 25)
         end_time = datetime(2017, 03, 16, 15, 30)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(files, {
-            "report_number": {
-                "index_by": "OB_time",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "other_dim_indicies": {"samples_per_record": 0},
-                "expected_cadence": {"report_number": 1, "number_samples_per_report": 10},
-            }
+        self.config.dims["report_number"].update({
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
         })
-        # self.assertEqual(len(aggregation_list), 6)
+        agg_list = generate_aggregation_list(self.config, self.files)
+        self.assertEqual(len(agg_list), 6)
 
     def test_superset_front(self):
-        """Test if it correctly inserts fill node to cover a gap at the start."""
-        pwd = os.path.dirname(__file__)
-        start_time = datetime(2017, 03, 16, 15, 25)
+        start_time = datetime(2017, 03, 16, 15, 15)
         end_time = datetime(2017, 03, 16, 15, 30)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(files, {
-            "report_number": {
-                "index_by": "OB_time",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "other_dim_indicies": {"samples_per_record": 0},
-                "expected_cadence": {"report_number": 1, "number_samples_per_report": 10},
-            }
+        self.config.dims["report_number"].update({
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
         })
+        agg_list = generate_aggregation_list(self.config, self.files)
         # with the fill Node in front... this becomes 8 elements
-        # self.assertEqual(len(aggregation_list), 8)
+        self.assertEqual(len(agg_list), 8)
 
     def test_superset_back(self):
         """Test if it correctly inserts fill node to cover a gap at the start."""
-        pwd = os.path.dirname(__file__)
         start_time = datetime(2017, 03, 16, 15, 25)
-        end_time = datetime(2017, 03, 16, 15, 30)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(files, {
-            "report_number": {
-                "index_by": "OB_time",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "other_dim_indicies": {"samples_per_record": 0},
-                "expected_cadence": {"report_number": 1, "number_samples_per_report": 10},
-            }
+        end_time = datetime(2017, 03, 16, 15, 35)
+        self.config.dims["report_number"].update({
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
         })
-        # self.assertEqual(len(aggregation_list), 7)
+        agg_list = generate_aggregation_list(self.config, self.files)
+        self.assertEqual(len(agg_list), 7)
 
     def test_subset(self):
         """Test if it correctly chops out enough outside the time bounds."""
-        pwd = os.path.dirname(__file__)
         start_time = datetime(2017, 03, 16, 15, 25)
-        end_time = datetime(2017, 03, 16, 15, 30)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(files, {
-            "report_number": {
-                "index_by": "OB_time",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "other_dim_indicies": {"samples_per_record": 0},
-                "expected_cadence": {"report_number": 1, "number_samples_per_report": 10},
-            }
+        end_time = datetime(2017, 03, 16, 15, 27)
+        self.config.dims["report_number"].update({
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
         })
-        # self.assertEqual(len(aggregation_list), 2)
+        agg_list = generate_aggregation_list(self.config, self.files)
+        self.assertEqual(len(agg_list), 3)
 
 
 class TestEvaluateAggregationList(unittest.TestCase):
@@ -96,18 +81,19 @@ class TestEvaluateAggregationList(unittest.TestCase):
         cls.start_time = datetime(2017, 03, 16, 15, 27)
         cls.end_time = datetime(2017, 03, 16, 15, 28)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(cls.files, {
-            "report_number": {
-                "index_by": "OB_time",
-                "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": cls.end_time,
-                "other_dim_indicies": {"samples_per_record": 0},
-                "expected_cadence": {"report_number": 1, "number_samples_per_report": 10},
-            }
+
+        cls.config = Config.from_nc(cls.files[0])
+        cls.config.dims["report_number"].update({
+            "index_by": "OB_time",
+            "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": cls.end_time,
+            "other_dim_indicies": {"samples_per_record": 0},
+            "expected_cadence": {"report_number": 1, "number_samples_per_report": 10},
         })
         _, cls.filename = tempfile.mkstemp()
-        a.evaluate_aggregation_list(aggregation_list, cls.filename)
+        agg_list = generate_aggregation_list(cls.config, cls.files)
+        logger.info(agg_list)
+        evaluate_aggregation_list(cls.config, agg_list, cls.filename)
         cls.output = nc.Dataset(cls.filename, "r")
 
     @classmethod
@@ -130,9 +116,12 @@ class TestEvaluateAggregationList(unittest.TestCase):
     def test_strict_time(self):
         """Make sure the time array looks ok. Evenly spaced, bounds are correct."""
         numeric_times = self.output.variables["OB_time"][:].flatten()
-        self.assertAlmostEqual(np.mean(np.diff(numeric_times)), 0.1, delta=0.02)
-        self.assertAlmostEqual(np.min(np.diff(numeric_times)), 0.1, delta=0.02)
-        self.assertAlmostEqual(np.max(np.diff(numeric_times)), 0.1, delta=0.02)
+        np.set_printoptions(threshold=np.inf)
+        # logger.debug(numeric_times)
+        # logger.debug(np.diff(numeric_times)[9:].reshape(-1, 10))
+        self.assertAlmostEqual(np.mean(np.diff(numeric_times)), 0.1, delta=0.002)
+        self.assertAlmostEqual(np.min(np.diff(numeric_times)), 0.1, delta=0.002)
+        self.assertAlmostEqual(np.max(np.diff(numeric_times)), 0.1, delta=0.002)
 
         datetimes = nc.num2date(numeric_times, self.output.variables["OB_time"].units)
         # since we have records of size 10 and we don't want any coming in before start time
@@ -141,4 +130,4 @@ class TestEvaluateAggregationList(unittest.TestCase):
 
         # similarly for the aggregation end, we aren't chopping off in the middle of a records,
         # so even if the first one is before the end, up to 0.91 may be after.
-        self.assertLess(abs((datetimes[-1]-self.end_time).total_seconds()), 0.91)
+        self.assertLess(abs((datetimes[-10]-self.end_time).total_seconds()), 0.91)

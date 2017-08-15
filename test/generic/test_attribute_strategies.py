@@ -4,10 +4,10 @@ import tempfile
 import netCDF4 as nc
 import os
 
-from aggregoes.attributes import StratFirst, StratLast,StratUniqueList, StratIntSum, StratFloatSum, StratAssertConst
-from aggregoes.attributes import StratDateCreated, StratStatic, StratTimeCoverageStart, StratTimeCoverageEnd
+from ncagg.attributes import StratFirst, StratLast,StratUniqueList, StratIntSum, StratFloatSum, StratAssertConst
+from ncagg.attributes import StratDateCreated, StratStatic, StratTimeCoverageStart, StratTimeCoverageEnd
 
-from aggregoes.attributes import datetime_format
+from ncagg.attributes import datetime_format
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
 test_input_file = os.path.join(test_dir, "data/OR_MAG-L1b-GEOF_G16_s20170431500000_e20170431500599_c20170431501005.nc")

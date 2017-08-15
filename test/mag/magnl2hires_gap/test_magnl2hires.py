@@ -2,7 +2,8 @@ import unittest
 import tempfile
 import numpy as np
 import netCDF4 as nc
-from aggregoes.aggregator import Aggregator
+from ncagg.config import Config
+from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
 from datetime import datetime
 import glob
 import os
@@ -11,78 +12,59 @@ import os
 class TestGenerateAggregationList(unittest.TestCase):
     def setUp(self):
         _, self.file = tempfile.mkstemp()
+        pwd = os.path.dirname(__file__)
+        self.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
+        self.config = Config.from_nc(self.files[0])
+        self.config.dims["time"].update({
+            "index_by": "time",
+            "expected_cadence": {"time": 10},
+        })
 
     def tearDown(self):
         os.remove(self.file)
 
     def test_main(self):
-        pwd = os.path.dirname(__file__)
         start_time = datetime(2017, 04, 14, 19, 23)
         end_time = datetime(2017, 04, 14, 20, 30)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(files, {
-            "time": {
-                "index_by": "time",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "expected_cadence": {"time": 10},
-            }
+        self.config.dims["time"].update({
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
         })
-        print aggregation_list
-        self.assertEqual(len(aggregation_list), 8)
+        agg_list = generate_aggregation_list(self.config, self.files)
+        self.assertEqual(len(agg_list), 8)
 
     def test_superset_front(self):
         """Test if it correctly inserts fill node to cover a gap at the start."""
-        pwd = os.path.dirname(__file__)
         start_time = datetime(2017, 04, 14, 19, 20)
         end_time = datetime(2017, 04, 14, 20, 30)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(files, {
-            "time": {
-                "index_by": "time",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "expected_cadence": {"time": 10},
-            }
+        self.config.dims["time"].update({
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
         })
-        # with the fill Node in front... this becomes 8 elements
-        self.assertEqual(len(aggregation_list), 9)
+        agg_list = generate_aggregation_list(self.config, self.files)
+        self.assertEqual(len(agg_list), 9)
 
     def test_superset_back(self):
         """Test if it correctly inserts fill node to cover a gap at the start."""
-        pwd = os.path.dirname(__file__)
         start_time = datetime(2017, 04, 14, 19, 23)
         end_time = datetime(2017, 04, 14, 20, 35)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(files, {
-            "time": {
-                "index_by": "time",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "expected_cadence": {"time": 10},
-            }
+        self.config.dims["time"].update({
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
         })
-        self.assertEqual(len(aggregation_list), 9)
+        agg_list = generate_aggregation_list(self.config, self.files)
+        self.assertEqual(len(agg_list), 9)
 
     def test_subset(self):
         """Test if it correctly chops out enough outside the time bounds."""
-        pwd = os.path.dirname(__file__)
         start_time = datetime(2017, 04, 14, 19, 26)
         end_time = datetime(2017, 04, 14, 20, 28)
-        files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(files, {
-            "time": {
-                "index_by": "time",
-                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": end_time,
-                "expected_cadence": {"time": 10},
-            }
+        self.config.dims["time"].update({
+            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": end_time,
         })
-        self.assertEqual(len(aggregation_list), 3)
+        agg_list = generate_aggregation_list(self.config, self.files)
+        self.assertEqual(len(agg_list), 3)
 
 
 class TestEvaluateAggregationList(unittest.TestCase):
@@ -93,17 +75,17 @@ class TestEvaluateAggregationList(unittest.TestCase):
         cls.start_time = datetime(2017, 04, 14, 19, 23)
         cls.end_time = datetime(2017, 04, 14, 20, 30)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        a = Aggregator()
-        aggregation_list = a.generate_aggregation_list(cls.files, {
-            "time": {
-                "index_by": "time",
-                "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
-                "max": cls.end_time,
-                "expected_cadence": {"time": 10},
-            }
+        cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
+        cls.config = Config.from_nc(cls.files[0])
+        cls.config.dims["time"].update({
+            "index_by": "time",
+            "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
+            "max": cls.end_time,
+            "expected_cadence": {"time": 10},
         })
         _, cls.filename = tempfile.mkstemp()
-        a.evaluate_aggregation_list(aggregation_list, cls.filename)
+        agg_list = generate_aggregation_list(cls.config, cls.files)
+        evaluate_aggregation_list(cls.config, agg_list, cls.filename)
         cls.output = nc.Dataset(cls.filename, "r")
 
     @classmethod

@@ -5,7 +5,6 @@ import netCDF4 as nc
 import logging, traceback
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def datetime_format(dt):
@@ -171,10 +170,9 @@ class StratWithConfig(Strat):
     """
     The previous strategies were blind to world politics.
     """
-    def __init__(self, attr_config, runtime_config, *args, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         super(StratWithConfig, self).__init__()
-        self.attr_config = attr_config or {}
-        self.runtime_config = runtime_config or {}
+        self.config = config
 
     def process(self, attr):
         pass
@@ -183,7 +181,9 @@ class StratWithConfig(Strat):
 class StratStatic(StratWithConfig):
     def __init__(self, *args, **kwargs):
         super(StratStatic, self).__init__(*args, **kwargs)
-        self.attr = self.attr_config.get("value", "")
+
+    def process(self, attr):
+        return self.config.attrs.get(attr, {}).get("value", "")
 
 
 class StratTimeCoverageStart(StratWithConfig):
@@ -191,19 +191,18 @@ class StratTimeCoverageStart(StratWithConfig):
         super(StratTimeCoverageStart, self).__init__(*args, **kwargs)
 
     def finalize(self, nc_out):
-        # do raise exceptions
-        udim = next((udim for udim in self.runtime_config.keys()
-                     if self.runtime_config[udim].get("min", None) is not None), None)
+        # Yes, there are so many ways this can raise an exception. That's intentional.
+        # find the first unlimited dimension minimum value
+        udim = next((d for d in self.config.dims.values() if d["min"] is not None), None)
         if udim is None:
             # bail early if udim is None, ie. no unlimited dim configured
             return ""
-
-        min = self.runtime_config[udim]["min"]
+        min = udim["min"]
         if isinstance(min, datetime):
             return datetime_format(min)
         else:
-            udim_indexed_by = self.runtime_config[udim]["index_by"]
-            dt = nc.num2date([min], nc_out.variables[udim_indexed_by].units)[0]
+            udim_indexed_by = udim["index_by"]
+            dt = nc.num2date(min, self.config.vars[udim_indexed_by]["attributes"]["units"])
             return datetime_format(dt)
 
 
@@ -214,18 +213,16 @@ class StratTimeCoverageEnd(StratWithConfig):
     def finalize(self, nc_out):
         # TODO: when primary is implemented, make sure to use primary min and max
         # actually, do raise exceptions here, handle higher up
-        udim = next((udim for udim in self.runtime_config.keys()
-                     if self.runtime_config[udim].get("max", None) is not None), None)
+        udim = next((d for d in self.config.dims.values() if d["max"] is not None), None)
         if udim is None:
             # bail early if udim is None, ie. no unlimited dim configured
             return ""
-
-        max = self.runtime_config[udim]["max"]
+        max = udim["max"]
         if isinstance(max, datetime):
             return datetime_format(max)
         else:
-            udim_indexed_by = self.runtime_config[udim]["index_by"]
-            dt = nc.num2date([max], nc_out.variables[udim_indexed_by].units)[0]
+            udim_indexed_by = udim["index_by"]
+            dt = nc.num2date(max, self.config.vars[udim_indexed_by]["attributes"]["units"])
             return datetime_format(dt)
 
 
@@ -260,17 +257,17 @@ class AttributeHandler(object):
         "remove": StratRemove
     }
 
-    def __init__(self, global_attr_config=None, *args, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         super(AttributeHandler, self).__init__()
-        self.config = global_attr_config or []
+        self.config = config
 
         self.attr_handlers = {
             attr["name"]: self.strategy_handlers.get(attr.get("strategy", "first"), StratFirst).setup_handler(
                 # expecting in kwargs at least runtime_config and filename
-                attr_config=attr, **kwargs
+                config=config, *args, **kwargs
             )
-            for attr in self.config
-            }
+            for attr in self.config.attrs.values()
+        }
 
     def process_file(self, nc_in):
         """
@@ -280,7 +277,7 @@ class AttributeHandler(object):
         :param nc_in: the netcdf object to process attributes from
         :return: None
         """
-        for attr in self.config:
+        for attr in self.config.attrs.values():
             # handler will be a tuple of functions the first being the process one.
             handler = self.attr_handlers.get(attr["name"], None)
             if handler is not None and handler[0] is not None:
@@ -301,7 +298,7 @@ class AttributeHandler(object):
         :param nc_out: The aggregated output file on which to set the processed attributes.
         :return: None
         """
-        for attr in self.config:
+        for attr in self.config.attrs.values():
             # handler will be a tuple of functions the first being the process one.
             handler = self.attr_handlers.get(attr["name"], None)
             if handler is not None and handler[1] is not None:
