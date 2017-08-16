@@ -226,20 +226,17 @@ class VariableConfig(ConfigDict):
                 # must convert datatype attribute to a string representation
                 if isinstance(v["datatype"], nc._netCDF4.VLType):
                     # if it's a vlen type, grab the .dtype attribute and get the numpy name for it
-                    v["datatype"] = np.dtype(v["datatype"].dtype).kind
+                    dt = np.dtype(v["datatype"].dtype)
                 else:
                     # otherwise it's just a regular np.dtype object already
                     # eg:  str(np.dtype(np.float32)) ==> 'float32'
-                    name = v["datatype"].name
-                    # this is a pain, kind for string is 'S' or 'U', but kind for eg. np.uint32 is 'u' which
-                    # is not valid. So far, this fallback on name from kind seems to work.
-                    v["datatype"] = name if "str" not in name else v["datatype"].kind
+                    dt = v["datatype"]
 
-                if "_FillValue" not in v["attributes"].keys() and not v["datatype"] in ["U", "S"]:  # not string type
+                v["datatype"] = str(dt)
+
+                if "_FillValue" not in v["attributes"].keys() and not dt.kind in ["U", "S"]:  # not string type
                     # avoid AttributeError: cannot set _FillValue attribute for VLEN or compound variable
-                    v["attributes"]["_FillValue"] = np.dtype(v["datatype"]).type(
-                        nc.default_fillvals[np.dtype(v["datatype"]).str[1:]]
-                    )
+                    v["attributes"]["_FillValue"] = dt.type(nc.default_fillvals[dt.str[1:]])
 
                 # make sure we only have builtin types here...
                 for k, a in v["attributes"].items():
