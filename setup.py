@@ -1,11 +1,20 @@
 from setuptools import setup
+try:
+    from pypandoc import convert
+    read_md = lambda f: convert(f, 'rst')
+except ImportError:
+    print("warning: pypandoc module not found, could not convert Markdown to RST")
+    read_md = lambda f: open(f, 'r').read()
 
 setup(
     name='ncagg',
     version='0.2',
+    description="Utility for aggregation of NetCDF data.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
+    url="https://ctor.space/gitlab/work/ncagg",
     packages=["ncagg"],
+    long_description=read_md('README.md'),
     install_requires=[
         'cerberus',
         'Click',
