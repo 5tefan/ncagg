@@ -27,13 +27,13 @@ class TestExis(unittest.TestCase):
         self.assertEqual(len(aggregation_list), 2)
         evaluate_aggregation_list(self.config, aggregation_list, self.nc_out_filename)
         with nc.Dataset(self.nc_out_filename) as nc_out:  # type: nc.Dataset
-            self.assertGreater(nc_out.variables.values()[0].size, 0)
+            self.assertGreater(list(nc_out.variables.values())[0].size, 0)
 
     def test_tiny_exis_with_config(self):
         """Test an EXIS-L1b-SFXR aggregation with dimensions specified."""
         # March 5th 00:30 through 00:35
-        start_time = datetime(2017, 03, 05, 00, 30)
-        end_time = datetime(2017, 03, 05, 00, 31)
+        start_time = datetime(2017, 3, 5, 0, 30)
+        end_time = datetime(2017, 3, 5, 0, 31)
 
         self.config.dims["report_number"].update({
             "index_by": "time",
@@ -44,7 +44,6 @@ class TestExis(unittest.TestCase):
         self.config.inter_validate()
         aggregation_list = generate_aggregation_list(self.config, self.files[:2])
         self.assertEqual(len(aggregation_list), 2)
-        print aggregation_list
         evaluate_aggregation_list(self.config, aggregation_list, self.nc_out_filename)
         with nc.Dataset(self.nc_out_filename) as nc_out:  # type: nc.Dataset
             time = nc_out.variables["time"][:]
@@ -56,8 +55,8 @@ class TestExis(unittest.TestCase):
     def test_exis_with_config(self):
         """Test an EXIS-L1b-SFXR aggregation with dimensions specified."""
         # March 5th 00:30 through 00:35
-        start_time = datetime(2017, 03, 05, 00, 30)
-        end_time = datetime(2017, 03, 05, 00, 35)
+        start_time = datetime(2017, 3, 5, 0, 30)
+        end_time = datetime(2017, 3, 5, 0, 35)
 
         self.config.dims["report_number"].update({
             "index_by": "time",

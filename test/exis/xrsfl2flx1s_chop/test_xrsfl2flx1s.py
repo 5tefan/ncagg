@@ -22,7 +22,7 @@ class TestGenerateAggregationList(unittest.TestCase):
         os.remove(self.file)
 
     def test_main(self):
-        start_time = datetime(2017, 07, 14, 00, 00)
+        start_time = datetime(2017, 7, 14, 0, 0)
         end_time = start_time + timedelta(days=1) - timedelta(milliseconds=1)
         self.config.dims["time"].update({
             "index_by": "time",

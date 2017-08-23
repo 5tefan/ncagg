@@ -78,6 +78,16 @@ class TestOverallConfig(unittest.TestCase):
         attrs = GlobalAttributeConfig([])
         Config(dims, vars, attrs)
 
+    def test_basic_with_var_attrs(self):
+        """ Make sure the configuration accepts a valid configuration. """
+        dims = DimensionConfig([{"name": "a", "size": 2}, {"name": "b", "size": None}])
+        vars = VariableConfig([
+            {"name": "t", "dimensions": ["b"], "datatype": "float32", "attributes": {"_FillValue": 0}},
+            {"name": "x", "dimensions": ["b", "a"], "datatype": "float32"},
+        ])
+        attrs = GlobalAttributeConfig([])
+        Config(dims, vars, attrs)
+
     def test_missing_dim(self):
         """ The variable t depends on a dimension c that has not been configured.
         Make sure a ValueError is raised because of this."""

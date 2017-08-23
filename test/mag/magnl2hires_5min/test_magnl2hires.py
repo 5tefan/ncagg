@@ -16,8 +16,8 @@ class TestGenerateAggregationList(unittest.TestCase):
         self.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         self.config = Config.from_nc(self.files[0])
         self.config.dims["time"].update({
-                "index_by": "time",
-                "expected_cadence": {"time": 10},
+            "index_by": "time",
+            "expected_cadence": {"time": 10},
         })
 
     def tearDown(self):
@@ -25,8 +25,8 @@ class TestGenerateAggregationList(unittest.TestCase):
 
     def test_5min(self):
         # March 5, 2017. 02:10:00 through 02:15:00
-        start_time = datetime(2017, 03, 05, 02, 10)
-        end_time = datetime(2017, 03, 05, 02, 15)
+        start_time = datetime(2017, 3, 5, 2, 10)
+        end_time = datetime(2017, 3, 5, 2, 15)
         self.config.dims["time"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -37,8 +37,8 @@ class TestGenerateAggregationList(unittest.TestCase):
     def test_superset_front(self):
         """Test if it correctly inserts fill node to cover a gap at the start."""
         # March 5, 2017. 02:10:00 through 02:15:00
-        start_time = datetime(2017, 03, 05, 02, 05)
-        end_time = datetime(2017, 03, 05, 02, 15)
+        start_time = datetime(2017, 3, 5, 2, 5)
+        end_time = datetime(2017, 3, 5, 2, 15)
         self.config.dims["time"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -50,8 +50,8 @@ class TestGenerateAggregationList(unittest.TestCase):
     def test_superset_back(self):
         """Test if it correctly inserts fill node to cover a gap at the start."""
         # March 5, 2017. 02:10:00 through 02:15:00
-        start_time = datetime(2017, 03, 05, 02, 10)
-        end_time = datetime(2017, 03, 05, 02, 20)
+        start_time = datetime(2017, 3, 5, 2, 10)
+        end_time = datetime(2017, 3, 5, 2, 20)
         self.config.dims["time"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -63,8 +63,8 @@ class TestGenerateAggregationList(unittest.TestCase):
     def test_subset(self):
         """Test if it correctly chops out enough outside the time bounds."""
         # March 5, 2017. 02:10:00 through 02:15:00
-        start_time = datetime(2017, 03, 05, 02, 12, 30)
-        end_time = datetime(2017, 03, 05, 02, 13, 22)
+        start_time = datetime(2017, 3, 5, 2, 12, 30)
+        end_time = datetime(2017, 3, 5, 2, 13, 22)
         self.config.dims["time"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -79,8 +79,8 @@ class TestEvaluateAggregationList(unittest.TestCase):
         super(TestEvaluateAggregationList, cls).setUpClass()
         pwd = os.path.dirname(__file__)
         # March 5, 2017. 02:10:00 through 02:15:00
-        cls.start_time = datetime(2017, 03, 05, 02, 10)
-        cls.end_time = datetime(2017, 03, 05, 02, 15)
+        cls.start_time = datetime(2017, 3, 5, 2, 10)
+        cls.end_time = datetime(2017, 3, 5, 2, 15)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         cls.config = Config.from_nc(cls.files[0])
         cls.config.dims["time"].update({
@@ -107,15 +107,13 @@ class TestEvaluateAggregationList(unittest.TestCase):
         self.assertAlmostEqual(np.max(np.diff(numeric_times)), 0.1, delta=0.002)
 
         datetimes = nc.num2date(numeric_times, self.output.variables["time"].units)
-        self.assertLess(abs((datetimes[0]-self.start_time).total_seconds()), 0.1)
+        self.assertLess(abs((datetimes[0] - self.start_time).total_seconds()), 0.1)
         self.assertGreaterEqual(datetimes[0], self.start_time)
-        self.assertLess(abs((datetimes[-1]-self.end_time).total_seconds()), 0.1)
+        self.assertLess(abs((datetimes[-1] - self.end_time).total_seconds()), 0.1)
         self.assertLessEqual(datetimes[-1], self.end_time)
 
     def test_data(self):
         """Make sure there is some data in the file."""
         self.assertEqual(self.output.variables["b_gse"].shape, (3000, 3))
         b_gse = self.output.variables["b_gse"][:]
-        self.assertEqual(np.ma.count(b_gse), 3000*3)
-
-
+        self.assertEqual(np.ma.count(b_gse), 3000 * 3)

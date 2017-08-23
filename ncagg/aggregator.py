@@ -29,7 +29,7 @@ def aggregate(files_to_aggregate, output_filename, config=None):
 
     :type files_to_aggregate: list[str]
     :param files_to_aggregate: List of NetCDF filenames to aggregate.
-    :type output_filename: basestring
+    :type output_filename: str
     :param output_filename: Filename to create and write output to.
     :type config: Config
     :param config: Optional configuration, default generated from first file if not given.
@@ -92,7 +92,7 @@ def generate_aggregation_list(config, files_to_aggregate):
         # calculate where fill value are needed between files
         fills_needed = {d["name"]: get_coverage_for(config, input_files, d) for d in index_by}
 
-        for i in xrange(len(input_files)+1):
+        for i in range(len(input_files)+1):
             fills_needed_dim_start_size = []
             for d in index_by:
                 num_missing, missing_start = fills_needed[d["name"]]  # fills needed and start of missing for a dim d
@@ -310,7 +310,7 @@ def initialize_aggregation_file(config, fullpath):
                 if k in ["_FillValue", "valid_min", "valid_max"]:
                     var["attributes"][k] = var_type.type(v)
                 if k in ["valid_range", "flag_masks", "flag_values"]:
-                    if isinstance(v, basestring):
+                    if isinstance(v, str):
                         var["attributes"][k] = np.array(map(var_type.type, v.split(", ")), dtype=var_type)
                     else:
                         var["attributes"][k] = np.array(v, dtype=var_type)

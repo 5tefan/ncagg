@@ -96,7 +96,7 @@ class TestAnotherInputFileNode(unittest.TestCase):
         a = InputFileNode(self.config, another_input_file)
         start_found = num2date(a.get_first_of_index_by(self.config.dims["time"]),
                                "seconds since 2000-01-01 12:00:00")
-        self.assertEqual(start_found, datetime(2017, 04, 14, 20, 27, 59, 900871))
+        self.assertEqual(start_found, datetime(2017, 4, 14, 20, 27, 59, 900871))
 
     def test_get_end_time(self):
         """Test that a valid dim_configs is accepted."""

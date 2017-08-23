@@ -14,7 +14,7 @@ class TestFlattenIndexBy(unittest.TestCase):
 
         new = np.where(~np.in1d(b, a))
         new_i = np.linspace(len(a), len(a)+len(new), 1, dtype=np.int)
-        print new_i
+        print(new_i)
 
         target = np.array(["g16", "g17", "g18", "g19"])
 

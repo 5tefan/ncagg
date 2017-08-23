@@ -21,8 +21,8 @@ class TestMag(unittest.TestCase):
         os.remove(self.file)
 
     def test_mag_instantiation(self):
-        start_time = datetime(2017, 02, 12, 15)
-        end_time = datetime(2017, 02, 12, 15, 02)
+        start_time = datetime(2017, 2, 12, 15)
+        end_time = datetime(2017, 2, 12, 15, 2)
         self.config.dims["report_number"].update({
             "index_by": "OB_time",
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime

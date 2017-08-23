@@ -1,7 +1,7 @@
 import click
 import json
 
-from config import Config
+from ncagg.config import Config
 
 @click.command()
 @click.argument("sample_netcdf", type=click.Path(exists=True))

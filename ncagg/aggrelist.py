@@ -2,8 +2,9 @@ import netCDF4 as nc
 import numpy as np
 import os
 import logging
+from functools import reduce
 
-from config import Config
+from ncagg.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +143,7 @@ class FillNode(AbstractNode):
                 stop = float(dim_size -1) / expected_cadence if expected_cadence != 0 else start
                 linspaces.append(
                     np.linspace(start, stop, dim_size).reshape(
-                        [1 if index != i else -1 for i in xrange(len(var["dimensions"]))]
+                        [1 if index != i else -1 for i in range(len(var["dimensions"]))]
                     )
                 )
                 if dim_unlim:
@@ -206,7 +207,7 @@ class InputFileNode(AbstractNode):
             dim_agg_list = []
             in_slice = True
 
-            to_iter = xrange(slice_start + 1, times.size) if cadence_hz else np.where(times <= 0)[0]
+            to_iter = range(slice_start + 1, times.size) if cadence_hz else np.where(times <= 0)[0]
 
             for i in to_iter:
                 # cut off conditions first,
@@ -433,7 +434,7 @@ class InputFileNode(AbstractNode):
                 transformed_data = np.full(out_shape, fill_value, dtype=prelim_data.dtype)
                 dim_along = internal_agg_dims[0]
                 loc_along_dim = 0
-                dim_i = next((i for i in xrange(len(dims)) if dims[i]["name"] == dim_along))
+                dim_i = next((i for i in range(len(dims)) if dims[i]["name"] == dim_along))
                 for agg_seg in self.file_internal_aggregation_list[dim_along]:
                     if isinstance(agg_seg, FillNode):
                         data_in_transit = agg_seg.data_for(var)
@@ -445,7 +446,7 @@ class InputFileNode(AbstractNode):
 
                     size_along_dim = np.shape(data_in_transit)[dim_i]
                     transformed_data[[slice(loc_along_dim, loc_along_dim + size_along_dim) if i == dim_i else slice(None)
-                                      for i in xrange(len(dims))]] = data_in_transit
+                                      for i in range(len(dims))]] = data_in_transit
 
                     loc_along_dim += size_along_dim
 
@@ -454,8 +455,8 @@ class InputFileNode(AbstractNode):
                 # for i, d in enumerate(dims):
                 #     # loop over dimensions, outter to inner, gradually replacing them according to the internal
                 #     # agg list if one exists for the dimension.
-                #     dst_slices = [slice(None) for _ in xrange(i)] or [slice(None)]
-                #     src_slices = [slice(None) for _ in xrange(i)] or [slice(None)]
+                #     dst_slices = [slice(None) for _ in range(i)] or [slice(None)]
+                #     src_slices = [slice(None) for _ in range(i)] or [slice(None)]
                 #     if d["name"] in internal_agg_dims:
                 #         loc_along_dim = 0
                 #         for agg_seg in self.file_internal_aggregation_list[d["name"]]:

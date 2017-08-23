@@ -20,8 +20,8 @@ class TestGenerateAggregationList(unittest.TestCase):
         os.remove(self.file)
 
     def test_with_config(self):
-        start_time = datetime(2017, 06, 8, 16, 45)
-        end_time = datetime(2017, 06, 8, 16, 50)
+        start_time = datetime(2017, 6, 8, 16, 45)
+        end_time = datetime(2017, 6, 8, 16, 50)
         self.config.dims["report_number"].update({
             "index_by": "L1a_SciData_TimeStamp",
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
@@ -37,8 +37,8 @@ class TestEvaluateAggregationList(unittest.TestCase):
     def setUpClass(cls):
         super(TestEvaluateAggregationList, cls).setUpClass()
         pwd = os.path.dirname(__file__)
-        cls.start_time = datetime(2017, 06, 8, 16, 45)
-        cls.end_time = datetime(2017, 06, 8, 16, 50)
+        cls.start_time = datetime(2017, 6, 8, 16, 45)
+        cls.end_time = datetime(2017, 6, 8, 16, 50)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         cls.config = Config.from_nc(cls.files[0])
         cls.config.dims["report_number"].update({

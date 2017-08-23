@@ -22,8 +22,8 @@ class TestGenerateAggregationList(unittest.TestCase):
         os.remove(self.file)
 
     def test_with_config(self):
-        start_time = datetime(2017, 06, 8, 16, 45)
-        end_time = datetime(2017, 06, 8, 16, 50)
+        start_time = datetime(2017, 6, 8, 16, 45)
+        end_time = datetime(2017, 6, 8, 16, 50)
 
         self.config.dims["report_number"].update({
             "index_by": "L1a_SciData_TimeStamp",
@@ -40,8 +40,8 @@ class TestEvaluateAggregationList(unittest.TestCase):
     def setUpClass(cls):
         super(TestEvaluateAggregationList, cls).setUpClass()
         pwd = os.path.dirname(__file__)
-        cls.start_time = datetime(2017, 06, 8, 16, 45)
-        cls.end_time = datetime(2017, 06, 8, 16, 50)
+        cls.start_time = datetime(2017, 6, 8, 16, 45)
+        cls.end_time = datetime(2017, 6, 8, 16, 50)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         with open(os.path.join(pwd, "seis-l1b-sgps-east.json")) as product_config_file:
             cls.config = Config.from_dict(json.load(product_config_file))

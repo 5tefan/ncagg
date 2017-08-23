@@ -14,7 +14,7 @@ class TestMultiUnlimDims(unittest.TestCase):
         _, self.filename = tempfile.mkstemp()
         # since files sorted by name with no UDC, prefix tmp file so ordering
         # will be deterministic
-        self.inputs = [tempfile.mkstemp(prefix=str(_))[1] for _ in xrange(3)]
+        self.inputs = [tempfile.mkstemp(prefix=str(_))[1] for _ in range(3)]
         for i, inp in enumerate(self.inputs):
             with nc.Dataset(inp, "w") as nc_in:  # type: nc.Dataset
                 nc_in.createDimension("a", None)

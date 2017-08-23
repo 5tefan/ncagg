@@ -30,8 +30,8 @@ class TestGenerateAggregationList(unittest.TestCase):
         os.remove(self.file)
 
     def test_5min(self):
-        start_time = datetime(2017, 03, 16, 15, 25)
-        end_time = datetime(2017, 03, 16, 15, 30)
+        start_time = datetime(2017, 3, 16, 15, 25)
+        end_time = datetime(2017, 3, 16, 15, 30)
         self.config.dims["report_number"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -40,8 +40,8 @@ class TestGenerateAggregationList(unittest.TestCase):
         self.assertEqual(len(agg_list), 6)
 
     def test_superset_front(self):
-        start_time = datetime(2017, 03, 16, 15, 15)
-        end_time = datetime(2017, 03, 16, 15, 30)
+        start_time = datetime(2017, 3, 16, 15, 15)
+        end_time = datetime(2017, 3, 16, 15, 30)
         self.config.dims["report_number"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -52,8 +52,8 @@ class TestGenerateAggregationList(unittest.TestCase):
 
     def test_superset_back(self):
         """Test if it correctly inserts fill node to cover a gap at the start."""
-        start_time = datetime(2017, 03, 16, 15, 25)
-        end_time = datetime(2017, 03, 16, 15, 35)
+        start_time = datetime(2017, 3, 16, 15, 25)
+        end_time = datetime(2017, 3, 16, 15, 35)
         self.config.dims["report_number"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -63,8 +63,8 @@ class TestGenerateAggregationList(unittest.TestCase):
 
     def test_subset(self):
         """Test if it correctly chops out enough outside the time bounds."""
-        start_time = datetime(2017, 03, 16, 15, 25)
-        end_time = datetime(2017, 03, 16, 15, 27)
+        start_time = datetime(2017, 3, 16, 15, 25)
+        end_time = datetime(2017, 3, 16, 15, 27)
         self.config.dims["report_number"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -78,8 +78,8 @@ class TestEvaluateAggregationList(unittest.TestCase):
     def setUpClass(cls):
         super(TestEvaluateAggregationList, cls).setUpClass()
         pwd = os.path.dirname(__file__)
-        cls.start_time = datetime(2017, 03, 16, 15, 27)
-        cls.end_time = datetime(2017, 03, 16, 15, 28)
+        cls.start_time = datetime(2017, 3, 16, 15, 27)
+        cls.end_time = datetime(2017, 3, 16, 15, 28)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
 
         cls.config = Config.from_nc(cls.files[0])

@@ -78,8 +78,8 @@ class Config(object):
             raise ValueError("index_by variable not found: %s" % indexed_by_vars.difference(self.vars.keys()))
 
         # Make sure other_dim_inds specified are valid in range of the dimension.
-        for d, v in self.dims.iteritems():
-            for od, ov in v["other_dim_inds"].iteritems():
+        for d, v in self.dims.items():
+            for od, ov in v["other_dim_inds"].items():
                 if self.dims[od]["size"] is not None and np.abs(self.dims[od]["size"]) >= ov:
                     raise ValueError("dim %s's other_dim_inds %s for %s too big for size %s"
                                      % (d, ov, od, self.dims[od]["size"]))
@@ -137,7 +137,7 @@ class ConfigDict(OrderedDict):
         super(ConfigDict, self).__setitem__(value["name"], value)
 
     def update(self, *args, **kwargs):
-        for k, v in dict(*args, **kwargs).iteritems():
+        for k, v in dict(*args, **kwargs).items():
             self[k] = v
 
     def to_list(self):
@@ -147,7 +147,7 @@ class ConfigDict(OrderedDict):
         :return:
         """
         res = []
-        for k, v in self.iteritems():
+        for k, v in self.items():
             out = {}.update(v)
             res.append(out)
         return res
@@ -163,8 +163,8 @@ class DimensionConfig(ConfigDict):
             "index_by": {"type": "string", "default": None, "nullable": True},
             "min": {"oneof_type": ["number", "datetime"], "default": None, "nullable": True},  # lower bound via index_by
             "max": {"oneof_type": ["number", "datetime"], "default": None, "nullable": True},  # upper bound via index_by
-            "other_dim_inds": {"type": "dict", "valueschema": {"type": "integer"}, "default": {}},
-            "expected_cadence": {"type": "dict", "valueschema": {"type": "float"}, "default": {}}
+            "other_dim_inds": {"type": "dict", "valueschema": {"type": "integer"}, "default": dict()},
+            "expected_cadence": {"type": "dict", "valueschema": {"type": "float"}, "default": dict()}
         })
         return default
 
@@ -251,7 +251,7 @@ class GlobalAttributeConfig(ConfigDict):
     def get_item_schema(self):
         default = super(GlobalAttributeConfig, self).get_item_schema()
         default.update({
-            "strategy": {"type": "string", "allowed": AttributeHandler.strategy_handlers.keys()},
+            "strategy": {"type": "string", "allowed": list(AttributeHandler.strategy_handlers.keys())},
             "value": {"oneof_type": ["string", "float", "integer"], "nullable": True, "default": None}
         })
         return default
@@ -263,9 +263,9 @@ class GlobalAttributeConfig(ConfigDict):
                 "name": att,
                 "strategy": "first"
             } for att in nc_in.ncattrs()])
-            attrs["date_created"] = {"strategy": "date_created"}
-            attrs["time_coverage_start"] = {"strategy": "time_coverage_start"}
-            attrs["time_coverage_end"] = {"strategy": "time_coverage_end"}
+            attrs.get("date_created", {}).update({"strategy": "date_created"})
+            attrs.get("time_coverage_start", {}).update({"strategy": "time_coverage_start"})
+            attrs.get("time_coverage_end", {}).update({"strategy": "time_coverage_end"})
         return attrs
 
 

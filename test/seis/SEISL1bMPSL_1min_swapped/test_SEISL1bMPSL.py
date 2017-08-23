@@ -15,8 +15,8 @@ class TestEvaluateAggregationList(unittest.TestCase):
         super(TestEvaluateAggregationList, cls).setUpClass()
         pwd = os.path.dirname(__file__)
         # March 5, 2017. 02:10:00 through 02:15:00
-        cls.start_time = datetime(2017, 01, 18, 00, 37)
-        cls.end_time = datetime(2017, 01, 18, 00, 38)
+        cls.start_time = datetime(2017, 1, 18, 0, 37)
+        cls.end_time = datetime(2017, 1, 18, 0, 38)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         cls.config = Config.from_nc(cls.files[0])
         cls.config.dims["report_number"].update({

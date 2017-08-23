@@ -25,8 +25,8 @@ class TestMag(unittest.TestCase):
         os.remove(self.file)
 
     def test_mag_instantiation(self):
-        start_time = datetime(2017, 02, 12, 15)
-        end_time = datetime(2017, 02, 12, 16)
+        start_time = datetime(2017, 2, 12, 15)
+        end_time = datetime(2017, 2, 12, 16)
         self.config.dims["report_number"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
@@ -45,8 +45,8 @@ class TestMag(unittest.TestCase):
             self.assertAlmostEqual(int((end_time - start_time).total_seconds()), time.size, delta=1)
 
     def test_giving_extra_files(self):
-        start_time = datetime(2017, 02, 12, 15, 30)
-        end_time = datetime(2017, 02, 12, 16)
+        start_time = datetime(2017, 2, 12, 15, 30)
+        end_time = datetime(2017, 2, 12, 16)
         self.config.dims["report_number"].update({
             "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
             "max": end_time,
