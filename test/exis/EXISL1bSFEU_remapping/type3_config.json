@@ -1,0 +1,1788 @@
+{
+    "attributes": [
+        {
+            "name": "production_site", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "dataset_name", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "naming_authority", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "institution", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "project", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "iso_series_metadata_id", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "Metadata_Conventions", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "keywords_vocabulary", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "title", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "summary", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "license", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "keywords", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "cdm_data_type", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "orbital_slot", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "platform_ID", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "instrument_ID", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "instrument_type", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "processing_level", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "production_data_source", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "production_environment", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "date_created", 
+            "strategy": "date_created", 
+            "value": null
+        }, 
+        {
+            "name": "time_coverage_start", 
+            "strategy": "time_coverage_start", 
+            "value": null
+        }, 
+        {
+            "name": "time_coverage_end", 
+            "strategy": "time_coverage_end", 
+            "value": null
+        }, 
+        {
+            "name": "L1b_processing_parm_version", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "algorithm_version", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "product_version", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "id", 
+            "strategy": "first", 
+            "value": null
+        }
+    ], 
+    "dimensions": [
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "wavelength_bin", 
+            "other_dim_inds": {}, 
+            "size": 23
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "report_number", 
+            "other_dim_inds": {}, 
+            "size": null
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "max_num_XRS_obs_spectrum_interval", 
+            "other_dim_inds": {}, 
+            "size": 30
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "max_num_EUVS_A_obs_spectrum_interval", 
+            "other_dim_inds": {}, 
+            "size": 30
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "max_num_EUVS_B_obs_spectrum_interval", 
+            "other_dim_inds": {}, 
+            "size": 30
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": true,
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "max_num_EUVS_C_obs_spectrum_interval", 
+            "other_dim_inds": {}, 
+            "size": null
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "solar_array_current_channel_index", 
+            "other_dim_inds": {}, 
+            "size": 4
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "number_of_time_bounds", 
+            "other_dim_inds": {}, 
+            "size": 2
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "wavelength_bin_str_len", 
+            "other_dim_inds": {}, 
+            "size": 20
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "solar_array_mnemonic_str_len", 
+            "other_dim_inds": {}, 
+            "size": 25
+        }
+    ], 
+    "variables": [
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "irradiance spectrum for wavelengths between 5 and 127 nm calculated using a proxy model based on inputs from XRS A and B channels, and EUVS A, B. and C channels", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1, 
+                23
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "wavelength_bin"
+            ], 
+            "name": "irradianceSpectrum"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUV spectrum observation end time", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "lower limit of each of wavelength bin, all 5nm in width except for the last 10 nm bin, used in EUV spectrum proxy model", 
+                "units": "nm", 
+                "valid_range": [
+                    5.0, 
+                    117.0
+                ]
+            }, 
+            "chunksizes": [
+                1, 
+                23
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "wavelength_bin"
+            ], 
+            "name": "lowWavelength"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "upper limit of each of wavelength bin, all 5nm in width except for the last 10 nm bin, used in EUV spectrum proxy model", 
+                "units": "nm", 
+                "valid_range": [
+                    10.0, 
+                    127.0
+                ]
+            }, 
+            "chunksizes": [
+                1, 
+                23
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "wavelength_bin"
+            ], 
+            "name": "highWavelength"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "normal_operations XRS_LO_and_EUVS-A_LO_and_EUVS-B_LO_and_EUVS-C_LO_and_no_geocorona XRS_LO_and_EUVS-A_LO_and_EUVS-B_LO_and_EUVS-C_LO_and_geocorona XRS_LO_and_no_EUVS-A_LO_and_no_EUVS-B_LO_and_EUVS-C_LO_and_no_geocorona XRS_LO_and_EUVS-A_LO_and_EUVS-B_LO_and_no_EUVS-C_LO_and_no_geocorona XRS_LO_and_no_EUVS-A_LO_and_EUVS-B_LO_and_EUVS-C_LO_and_no_geocorona XRS_LO_and_EUVS-A_LO_and_no_EUVS-B_LO_and_EUVS-C_LO_and_no_geocorona no_XRS_LO_and_EUVS-A_LO_and_EUVS-B_LO_and_EUVS-C_LO_and_no_geocorona XRS_LO_and_no_EUVS-A_LO_and_no_EUVS-B_LO_and_no_EUVS-C_LO no_XRS_LO_and_no_EUVS-A_LO_and_no_EUVS-B_LO_and_no_EUVS-C_LO", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    3, 
+                    4, 
+                    5, 
+                    6, 
+                    7, 
+                    8, 
+                    9
+                ], 
+                "long_name": "EUV spectrum product quality case number", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    9
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "EUV_CaseNumber"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 18446744073709551615, 
+                "flag_masks": [
+                    17592186044415.0, 
+                    1.0, 
+                    2.0, 
+                    4.0, 
+                    8.0, 
+                    16.0, 
+                    32.0, 
+                    64.0, 
+                    128.0, 
+                    256.0, 
+                    512.0, 
+                    1024.0, 
+                    2048.0, 
+                    4096.0, 
+                    8192.0, 
+                    16384.0, 
+                    32768.0, 
+                    65536.0, 
+                    131072.0, 
+                    262144.0, 
+                    524288.0, 
+                    1048576.0, 
+                    2097152.0, 
+                    4194304.0, 
+                    8388608.0, 
+                    16777216.0, 
+                    33554432.0, 
+                    67108864.0, 
+                    134217728.0, 
+                    268435456.0, 
+                    536870912.0, 
+                    1073741824.0, 
+                    2147483648.0, 
+                    4294967295.0, 
+                    8589934592.0, 
+                    17179869184.0, 
+                    34359738368.0, 
+                    68719476736.0, 
+                    137438953472.0, 
+                    274877906944.0, 
+                    549755813888.0, 
+                    1099511627776.0, 
+                    2199023255552.0, 
+                    4398046511104.0, 
+                    8796093022208.0
+                ], 
+                "flag_meanings": "good_quality_qf degraded_due_to_all_bad_sensor_pointing_qf degraded_due_to_all_invalid_sensor_filter_position_qf degraded_due_to_all_low_sensor_temperature_qf degraded_due_to_all_high_sensor_temperature_qf degraded_due_to_XRS-A_average_irradiance_near_zero_qf degraded_due_to_XRS-B_average_irradiance_near_zero_qf degraded_due_to_EUVS-A_25.6nm_average_irradiance_near_zero_qf degraded_due_to_EUVS-A_28.4nm_average_irradiance_near_zero_qf degraded_due_to_EUVS-A_30.4nm_average_irradiance_near_zero_qf degraded_due_to_EUVS-B_117.5nm_average_irradiance_near_zero_qf degraded_due_to_EUVS-B_121.6nm_average_irradiance_near_zero_qf degraded_due_to_EUVS-B_135.5nm_average_irradiance_near_zero_qf degraded_due_to_EUVS-B_140.5nm_average_irradiance_near_zero_qf degraded_due_to_XRS-A_average_irradiance_at_saturation_qf degraded_due_to_XRS-B_average_irradiance_at_saturation_qf degraded_due_to_EUVS-A_25.6nm_average_irradiance_at_saturation_qf degraded_due_to_EUVS-A_28.4nm_average_irradiance_at_saturation_qf degraded_due_to_EUVS-A_30.4nm_average_irradiance_at_saturation_qf degraded_due_to_EUVS-B_117.5nm_average_irradiance_at_saturation_qf degraded_due_to_EUVS-B_121.6nm_average_irradiance_at_saturation_qf degraded_due_to_EUVS-B_135.5nm_average_irradiance_at_saturation_qf degraded_due_to_EUVS-B_140.5nm_average_irradiance_at_saturation_qf degraded_due_to_truncation_of_all_XRS_integration_qf degraded_due_to_truncation_of_all_EUVS-A_integration_qf degraded_due_to_truncation_of_all_EUVS-B_integration_qf degraded_due_to_truncation_of_all_EUVS-C_integration_qf degraded_due_to_flatfield_LED_flash_during_sensor_integrations_qf degraded_due_to_off_point_calibration_maneuver_received_from_ground_qf degraded_due_to_planetary_transit_state_received_from_ground_qf degraded_due_to_lunar_transit_state_received_from_ground_qf degraded_due_to_eclipse_state_received_from_ground_qf degraded_due_to_fov_state_not_received_from_ground_qf degraded_due_to_all_invalid_XRS-A_L1b_report_qf degraded_due_to_all_invalid_XRS-B_L1b_report_qf degraded_due_to_all_invalid_EUVS-A_25.6nm_observation_qf degraded_due_to_all_invalid_EUVS-A_28.4nm_observation_qf degraded_due_to_all_invalid_EUVS-A_30.4nm_observation_qf degraded_due_to_all_invalid_EUVS-B_117.5nm_observation_qf degraded_due_to_all_invalid_EUVS-B_121.6nm_observation_qf degraded_due_to_all_invalid_EUVS-B_135.5nm_observation_qf degraded_due_to_all_invalid_EUVS-B_140.5nm_observation_qf EUVS-C_channel_1_primary_inactive_qf EUVS-C_channel_2_secondary_active_qf degraded_due_to_all_invalid_Mg_II_h-line_or_k-line_or_blue_wing_or_red_wing_spectral_region_observation_qf", 
+                "flag_values": [
+                    0.0, 
+                    1.0, 
+                    2.0, 
+                    4.0, 
+                    8.0, 
+                    16.0, 
+                    32.0, 
+                    64.0, 
+                    128.0, 
+                    256.0, 
+                    512.0, 
+                    1024.0, 
+                    2048.0, 
+                    4096.0, 
+                    8192.0, 
+                    16384.0, 
+                    32768.0, 
+                    65536.0, 
+                    131072.0, 
+                    262144.0, 
+                    524288.0, 
+                    1048576.0, 
+                    2097152.0, 
+                    4194304.0, 
+                    8388608.0, 
+                    16777216.0, 
+                    33554432.0, 
+                    67108864.0, 
+                    134217728.0, 
+                    268435456.0, 
+                    536870912.0, 
+                    1073741824.0, 
+                    2147483648.0, 
+                    4294967295.0, 
+                    8589934592.0, 
+                    17179869184.0, 
+                    34359738368.0, 
+                    68719476736.0, 
+                    137438953472.0, 
+                    274877906944.0, 
+                    549755813888.0, 
+                    1099511627776.0, 
+                    2199023255552.0, 
+                    4398046511104.0, 
+                    8796093022208.0
+                ], 
+                "long_name": "EUVS L1b processing and data quality flags", 
+                "units": "1", 
+                "valid_range": [
+                    0.0, 
+                    17592186044415.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "uint64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "qualityFlags"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q0", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q0"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q1", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q2", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q3", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q3"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF X coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -42171520.0, 
+                    42171520.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_X"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF Y coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -42171520.0, 
+                    42171520.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_Y"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF Z coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -7360.0, 
+                    7360.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ECEF_Z"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 0.0, 
+                "long_name": "earth to sun distance multiplicative correction factor to normalize to 1-AU at time of observation. applied in EUVS L1b processing", 
+                "units": "1", 
+                "valid_range": [
+                    0.9759497046470642, 
+                    1.0167256593704224
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "au_factor"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "upright neither inverted", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2
+                ], 
+                "long_name": "flags indicating whether spacecraft is operating in yaw flip configuration", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    2
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "SC_yaw_flip_flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of XRS L1b reports generated during time interval associated with EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nXRS"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality XRS-A 0.05 to 0.4 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGoodXRSA"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality XRS-B 0.1 to 0.8 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGoodXRSB"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of EUVS-A observations (L0) processed during time interval associated with EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nEUVSA"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality EUVS-A 25.6 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGood256"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality EUVS-A 28.4 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGood284"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality EUVS-A 30.4 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGood304"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of EUVS-B observations (L0) processed during time interval associated with EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nEUVSB"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality EUVS-B 117.5 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGood1175"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality EUVS-B 121.6 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGood1216"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality EUVS-B 133.5 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGood1335"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality EUVS-B 140.5 nm irradiance values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    30
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGood1405"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of EUVS-C observations (L0) processed during time interval associated with EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    15
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nEUVSC"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of calculated good quality Mg II core-to-wing ratio values used in generation of EUV proxy spectrum model", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    15
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "nGoodMg"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    524287, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_out_of_range_XRS_pointing_qf degraded_due_to_uncalibrated_range_XRS_pointing_qf degraded_due_to_calibrated_but_exceeds_requirements_XRS_pointing_qf invalid_due_to_XRS_L0_data_checksum_error_qf degraded_due_to_low_XRS_A_and_B_temperature_qf degraded_due_to_high_XRS_A_and_B_temperature_qf degraded_due_to_XRS-A_solar_miniumum_channel_signal_near_zero_qf degraded_due_to_XRS-A_solar_maximum_channel_signal_near_zero_qf degraded_due_to_XRS-B_solar_miniumum_channel_signal_near_zero_qf degraded_due_to_XRS-B_solar_maximum_channel_signal_near_zero_qf degraded_due_to_XRS-A_solar_miniumum_channel_signal_at_saturation_qf degraded_due_to_XRS-A_solar_maxiumum_channel_signal_at_saturation_qf degraded_due_to_XRS-B_solar_miniumum_channel_signal_at_saturation_qf degraded_due_to_XRS-B_solar_maxiumum_channel_signal_at_saturation_qf degraded_due_to_flatfield_LED_flash_during_XRS_integration_qf degraded_due_to_insufficient_number_of_integrations_after_XRS_reset_qf degraded_due_to_non-nominal_XRS-A_irradiance_qf degraded_due_to_non-nominal_XRS-B_irradiance_qf degraded_due_to_out_of_valid_range_primary_XRS-B_to_XRS-A_irradiance_ratio_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144
+                ], 
+                "long_name": "XRS L1b processing and data quality flags", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    524287
+                ]
+            }, 
+            "chunksizes": [
+                1, 
+                30
+            ], 
+            "datatype": "int32", 
+            "dimensions": [
+                "report_number", 
+                "max_num_XRS_obs_spectrum_interval"
+            ], 
+            "name": "xrsQualityFlags"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    262143, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_out_of_range_EUVS-A_pointing_qf degraded_due_to_uncalibrated_range_EUVS-A_pointing_qf degraded_due_to_calibrated_but_exceeds_requirements_EUVS-A_pointing_qf invalid_due_to_EUVS-A_L0_data_checksum_error_qf degraded_due_to_EUVS-A_25.6nm_signal_near_zero_qf degraded_due_to_EUVS-A_25.6nm_signal_at_saturation_qf degraded_due_to_EUVS-A_28.4nm_signal_near_zero_qf degraded_due_to_EUVS-A_28.4nm_signal_at_saturation_qf degraded_due_to_EUVS-A_30.4nm_signal_near_zero_qf degraded_due_to_EUVS-A_30.4nm_signal_at_saturation_qf degraded_due_to_low_EUVS-A_temperature_qf degraded_due_to_high_EUVS-A_temperature_qf degraded_due_to_flatfield_LED_flash_during_EUVS-A_integration_qf invalid_due_to_invalid_EUVS-A_filter_position_qf invalid_due_to_invalid_EUVS-A_door_position_qf degraded_due_to_invalid_EUVS-A_25.6nm_observation_qf degraded_due_to_invalid_EUVS-A_28.4nm_observation_qf degraded_due_to_invalid_EUVS-A_30.4nm_observation_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072
+                ], 
+                "long_name": "EUVS-A L1b processing and data quality flags", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    262143
+                ]
+            }, 
+            "chunksizes": [
+                1, 
+                30
+            ], 
+            "datatype": "int32", 
+            "dimensions": [
+                "report_number", 
+                "max_num_EUVS_A_obs_spectrum_interval"
+            ], 
+            "name": "euvsaQualityFlags"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    4194303, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144, 
+                    524288, 
+                    1048576, 
+                    2097152
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_out_of_range_EUVS-B_pointing_qf degraded_due_to_uncalibrated_range_EUVS-B_pointing_qf degraded_due_to_calibrated_but_exceeds_requirements_EUVS-B_pointing_qf degraded_due_to_EUVS-B_L0_data_checksum_error_qf degraded_due_to_EUVS-B_117.5nm_signal_near_zero_qf degraded_due_to_EUVS-B_117.5nm_signal_at_saturation_qf degraded_due_to_EUVS-B_121.6nm_signal_near_zero_qf degraded_due_to_EUVS-B_121.6nm_signal_at_saturation_qf degraded_due_to_EUVS-B_133.5nm_signal_near_zero_qf degraded_due_to_EUVS-B_133.5nm_signal_at_saturation_qf degraded_due_to_EUVS-B_140.5nm_signal_near_zero_qf degraded_due_to_EUVS-B_140.5nm_signal_at_saturation_qf degraded_due_to_low_EUVS-B_temperature_qf degraded_due_to_high_EUVS-B_temperature_qf degraded_due_to_flatfield_LED_flash_during_EUVS-B_integration_qf invalid_due_to_invalid_EUVS-B_filter_position_qf invalid_due_to_invalid_EUVS-B_door_position_qf degraded_due_to_invalid_EUVS-B_117.5nm_observation_qf degraded_due_to_invalid_EUVS-B_121.6nm_observation_qf degraded_due_to_invalid_EUVS-B_133.5nm_observation_qf degraded_due_to_invalid_EUVS-B_140.5nm_observation_qf degraded_due_to_geocorona_condition_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144, 
+                    524288, 
+                    1048576, 
+                    2097152
+                ], 
+                "long_name": "EUVS-B L1b processing and data quality flags", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    4194303
+                ]
+            }, 
+            "chunksizes": [
+                1, 
+                30
+            ], 
+            "datatype": "int32", 
+            "dimensions": [
+                "report_number", 
+                "max_num_EUVS_B_obs_spectrum_interval"
+            ], 
+            "name": "euvsbQualityFlags"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    2097151, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144, 
+                    524288, 
+                    1048576
+                ], 
+                "flag_meanings": "good_quality_qf degraded_due_to_uncalibrated_range_EUVS-C_pointing_qf degraded_due_to_EUVS-C_L0_data_checksum_error_qf degraded_due_to_EUVS-C_blue_wing_spectral_region_signals_near_zero_qf degraded_due_to_EUVS-C_blue_wing_spectral_region_signals_at_saturation_qf degraded_due_to_EUVS-C_red_wing_spectral_region_signals_near_zero_qf degraded_due_to_EUVS-C_red_wing_spectral_region_signals_at_saturation_qf degraded_due_to_EUVS-C_h-line_spectral_region_signals_near_zero_qf degraded_due_to_EUVS-C_h-line_spectral_region_signals_at_saturation_qf degraded_due_to_EUVS-C_k-line_spectral_region_signals_near_zero_qf degraded_due_to_EUVS-C_k-line_spectral_region_signals_at_saturation_qf degraded_due_to_low_EUVS-C_temperature_qf degraded_due_to_high_EUVS-C_temperature_qf degraded_due_to_flatfield_LED_flash_during_EUVS-C_integration_qf degraded_due_to_insufficient_number_of_integrations_after_EUVS-C_reset_qf invalid_due_to_invalid_EUVS-C_filter_position_qf invalid_due_to_invalid_EUVS-C_door_position_qf degraded_due_to_invalid_EUVS-C_h-line_spectral_region_observation_qf degraded_due_to_invalid_EUVS-C_k-line_spectral_region_observation_qf degraded_due_to_invalid_EUVS-C_blue_wing_spectral_region_observation_qf degraded_due_to_invalid_EUVS-C_red_wing_spectral_region_observation_qf degraded_due_to_at_least_one_invalid_Mg_II_h-line_or_k-line_or_blue_wing_or_red_wing_spectral_region_observation_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144, 
+                    524288, 
+                    1048576
+                ], 
+                "long_name": "EUVS-C L1b processing and data quality flags", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    2097151
+                ]
+            }, 
+            "chunksizes": [
+                1, 
+                15
+            ], 
+            "datatype": "int32", 
+            "dimensions": [
+                "report_number", 
+                "max_num_EUVS_C_obs_spectrum_interval"
+            ], 
+            "name": "euvscQualityFlags"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average temperature of EUVS-A detector during time interval associated with EUV proxy spectrum model", 
+                "units": "degrees_C", 
+                "valid_range": [
+                    -142.51690673828125, 
+                    933.1731567382812
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "euvsaAvgTemp"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average temperature of EUVS-B detector during time interval associated with EUV proxy spectrum model", 
+                "units": "degrees_C", 
+                "valid_range": [
+                    -142.51690673828125, 
+                    933.1731567382812
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "euvsbAvgTemp"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average temperature of EUVS-C detector #1 during time interval associated with EUV proxy spectrum model", 
+                "units": "degrees_C", 
+                "valid_range": [
+                    -142.51690673828125, 
+                    933.1731567382812
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "euvsc1AvgTemp"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average temperature of EUVS-C detector #2 during time interval associated with EUV proxy spectrum model", 
+                "units": "degrees_C", 
+                "valid_range": [
+                    -142.51690673828125, 
+                    933.1731567382812
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "euvsc2AvgTemp"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average primary irradiance at wavelengths between 0.05 and 0.4 nm (XRS-A) during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2", 
+                "valid_range": [
+                    0.0, 
+                    0.03999999910593033
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradianceXRSA"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average primary irradiance at wavelengths between 0.1 and 0.8 nm (XRS-B) during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2", 
+                "valid_range": [
+                    0.0, 
+                    0.029999999329447746
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradianceXRSB"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-A 25.6 nm average irradiance during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    2.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradiance256"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-A 28.4 nm average irradiance during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    2.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradiance284"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-A 30.4 nm average irradiance during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    3.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradiance304"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-B 117.5 nm average irradiance during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradiance1175"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-B 121.6 nm average irradiance during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradiance1216"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-B 133.5 nm average irradiance during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradiance1335"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-B 140.5 nm average irradiance during time interval associated with EUV proxy spectrum model", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgIrradiance1405"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-C average EXIS Mg II core-to-wing ratio during time interval associated with EUV proxy spectrum model", 
+                "units": "1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgRatioMgExis"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-C average NOAA historical Mg II core-to-wing ratio during time interval associated with EUV proxy spectrum model", 
+                "units": "1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "avgRatioMgNoaa"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-A 25.6 nm average irradiance for previous 24 hours", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    2.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dailyIrradiance256"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-A 28.4 nm average irradiance for previous 24 hours", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    2.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dailyIrradiance284"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-A 30.4 nm average irradiance for previous 24 hours", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    3.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dailyIrradiance304"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-B 117.5 nm average irradiance for previous 24 hours", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dailyIrradiance1175"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-B 121.6 nm average irradiance for previous 24 hours", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dailyIrradiance1216"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-B 133.5 nm average irradiance for previous 24 hours", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dailyIrradiance1335"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-B 140.5 nm average irradiance for previous 24 hours", 
+                "units": "W m-2 nm-1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dailyIrradiance1405"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "EUVS-C average NOAA historical Mg II core-to-wing ratio for previous 24 hours", 
+                "units": "1", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dailyRatioMgNoaa"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average dispersion direction pointing angle from SPS during time interval associated with EUV proxy spectrum model", 
+                "units": "degree", 
+                "valid_range": [
+                    -10.0, 
+                    10.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "Average_SPS_dispersion_angle"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average cross-dispersion direction pointing angle from SPS during time interval associated with EUV proxy spectrum model", 
+                "units": "degree", 
+                "valid_range": [
+                    -10.0, 
+                    10.0
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "Average_SPS_cross_dispersion_angle"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "solar array current in DN for 4 channel groups (1-4, 5-8, 9-12, 13-16)", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    -2
+                ]
+            }, 
+            "chunksizes": [
+                1, 
+                4
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number", 
+                "solar_array_current_channel_index"
+            ], 
+            "name": "solar_array_current"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "false true", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether sun is obscured by earth as provided by spacecraft", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                1
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "SC_eclipse_flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "start and end time of observations associated with product", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": null, 
+            "datatype": "float64", 
+            "dimensions": [
+                "number_of_time_bounds"
+            ], 
+            "name": "product_time"
+        }, 
+        {
+            "attributes": {
+                "long_name": "labels for 23 wavelength bins associated with the EUV proxy spectrum model. labels are ordered the same as applicable data variables"
+            }, 
+            "chunksizes": null, 
+            "datatype": "|S1", 
+            "dimensions": [
+                "wavelength_bin", 
+                "wavelength_bin_str_len"
+            ], 
+            "name": "wavelength_bin_label"
+        }, 
+        {
+            "attributes": {
+                "long_name": "labels for four solar array current telemetry mnemonics. labels are ordered the same as applicable data variable"
+            }, 
+            "chunksizes": null, 
+            "datatype": "|S1", 
+            "dimensions": [
+                "solar_array_current_channel_index", 
+                "solar_array_mnemonic_str_len"
+            ], 
+            "name": "solar_array_current_channel_index_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "percent data lost due to uncorrectable L0 errors", 
+                "units": "percent", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": null, 
+            "datatype": "float32", 
+            "dimensions": [], 
+            "name": "percent_uncorrectable_L0_errors"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -2147483647, 
+                "input_EUVS_L0_data": "OR_EXIS-L0_G16_s20170072246586_e20170072247286_c*.nc", 
+                "input_XRS_L1b_data": "null", 
+                "long_name": "container for filenames of dynamic algorithm input data"
+            }, 
+            "chunksizes": null, 
+            "datatype": "int32", 
+            "dimensions": [], 
+            "name": "algorithm_dynamic_input_data_container"
+        }
+    ]
+}

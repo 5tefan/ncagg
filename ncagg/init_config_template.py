@@ -1,13 +1,13 @@
 import click
 import json
 
-from ncagg.config import Config
+from config import Config
 
 @click.command()
 @click.argument("sample_netcdf", type=click.Path(exists=True))
 def cli_init_config_template(sample_netcdf):
-    click.echo(json.dumps(
-        Config.from_nc(click.format_filename(sample_netcdf)),
+    the_config = Config.from_nc(click.format_filename(sample_netcdf)).to_dict(),
+    click.echo(json.dumps(the_config,
         sort_keys=True, indent=4
     ))
 

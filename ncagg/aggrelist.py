@@ -417,10 +417,11 @@ class InputFileNode(AbstractNode):
         """
         with nc.Dataset(self.filename) as nc_in:
             fill_value = get_fill_for(var)
-            dims = [self.config.dims[d] for d in var["dimensions"]]
+            dims = [self.config.dims[d] for d in var["dimensions"]
+                    if d in nc_in.variables[var["name"]].dimensions]
 
             # step 1: get the sorted data
-            dim_slices = [self.sort_unlim.get(d["name"], slice(None)) for d in dims] or slice(None)
+            dim_slices = tuple([self.sort_unlim.get(d["name"], slice(None)) for d in dims]) or slice(None)
             prelim_data = np.ma.filled(nc_in.variables[var["name"]][dim_slices], fill_value=fill_value)
 
             if len(dims) == 0:
@@ -428,7 +429,7 @@ class InputFileNode(AbstractNode):
                 return prelim_data
 
             # step 2: if there's an aggregation list for it, transform prelim_data according to it
-            internal_agg_dims = [d for d in var["dimensions"] if d in self.file_internal_aggregation_list.keys()]
+            internal_agg_dims = [d["name"] for d in dims if d["name"] in self.file_internal_aggregation_list.keys()]
             if len(internal_agg_dims) > 0:
                 out_shape = tuple([self.get_file_internal_aggregation_size(d) for d in dims])
                 transformed_data = np.full(out_shape, fill_value, dtype=prelim_data.dtype)

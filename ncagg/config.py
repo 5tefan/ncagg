@@ -80,7 +80,7 @@ class Config(object):
         # Make sure other_dim_inds specified are valid in range of the dimension.
         for d, v in self.dims.items():
             for od, ov in v["other_dim_inds"].items():
-                if self.dims[od]["size"] is not None and np.abs(self.dims[od]["size"]) >= ov:
+                if self.dims[od]["size"] is not None and np.abs(self.dims[od]["size"]) <= ov:
                     raise ValueError("dim %s's other_dim_inds %s for %s too big for size %s"
                                      % (d, ov, od, self.dims[od]["size"]))
 
@@ -148,7 +148,8 @@ class ConfigDict(OrderedDict):
         """
         res = []
         for k, v in self.items():
-            out = {}.update(v)
+            out = {}
+            out.update(v)
             res.append(out)
         return res
 
