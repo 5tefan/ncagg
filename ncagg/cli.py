@@ -79,8 +79,8 @@ def parse_bound_arg(b):
                          "it will be inferred to be the least significantly specified date + 1.")
 @click.option("-l", help="log level", type=click.Choice(filter(lambda x: type(x) is str, logging._levelNames.keys())))
 def cli(dst, src, u=None, b=None, l="WARNING"):
+    logger.getLogger().setLevel(l)
     config = Config.from_nc(src[0])  # config from first input.
-
     if u is not None:
         # we have an Unlimited Dim Configuration, fill out.
         u_split = u.split(":")
@@ -112,7 +112,6 @@ def cli(dst, src, u=None, b=None, l="WARNING"):
 if __name__ == "__main__":
 
     console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
     logging.getLogger().addHandler(console)
 
     cli()
