@@ -1,4 +1,5 @@
 import logging
+import traceback
 import warnings
 from datetime import datetime
 import netCDF4 as nc
@@ -70,10 +71,12 @@ def generate_aggregation_list(config, files_to_aggregate):
         except Exception as e:
             n_errors += 1
             logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+            logger.debug(traceback.format_exc())
             if n_errors / len(files_to_aggregate) >= 0.5:
                 logger.error("Exceeding half bad granules. Something likely wrong, but continuing."
                              "Resulting file will probably have lots of fill values. Latest error was:\n"
-                             "Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+                             "Error initializing InputFileNode for %s, skipping." % fn)
+                logger.error(traceback.format_exc())
                 # once logger.error triggered once for input problem, make sure it won't trigger again.
                 n_errors = -1.0
 
@@ -275,7 +278,11 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                         write_slices.append(slice(0, component.get_size_along(dim)))
                     else:
                         write_slices.append(slice(None))
-                nc_out.variables[var["name"]][write_slices] = component.data_for(var)
+                try:
+                    nc_out.variables[var["name"]][write_slices] = component.data_for(var)
+                except Exception as e:
+                    logger.error("Unexpected error copying from component into output: %s" % component)
+                    logger.error(traceback.format_exc())
 
             # do once per component
             component.callback_with_file(attribute_handler.process_file)

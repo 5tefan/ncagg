@@ -288,7 +288,7 @@ class AttributeHandler(object):
                 except Exception as e:
                     # ignore if there is no attribute, may happen in cases like date_created
                     # and time_coverage_begin if they don't exist in advance (which is ok)
-                    pass
+                    logger.debug(traceback.format_exc())
 
     def finalize_file(self, nc_out):
         """
@@ -307,6 +307,6 @@ class AttributeHandler(object):
                     if attr_val != "":
                         nc_out.setncattr(attr["name"], attr_val)
                 except Exception as e:
-                    logger.error(traceback.format_exc())
                     logger.error("Error setting global attribute %s: %s" % (attr["name"], repr(e)))
+                    logger.error(traceback.format_exc())
 
