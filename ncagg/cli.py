@@ -3,6 +3,7 @@ from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_lis
 import click
 from datetime import datetime, timedelta
 import logging
+import json
 from fractions import Fraction
 
 
@@ -79,9 +80,14 @@ def parse_bound_arg(b):
                          "it will be inferred to be the least significantly specified date + 1.")
 @click.option("-l", help="log level", type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']),
               default="WARNING")
-def cli(dst, src, u=None, b=None, l="WARNING"):
+@click.option("-t", help="configuration template", type=click.File("r"))
+def cli(dst, src, u=None, b=None, l="WARNING", t=None):
     logging.getLogger().setLevel(l)
-    config = Config.from_nc(src[0])  # config from first input.
+    if t is not None:  # if given a template...
+        config = Config.from_dict(json.load(t))
+    else:  # otherwise, use the first src file to create a default
+        config = Config.from_nc(src[0])  # config from first input.
+
     if u is not None:
         # we have an Unlimited Dim Configuration, fill out.
         u_split = u.split(":")
