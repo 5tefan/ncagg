@@ -77,7 +77,8 @@ def parse_bound_arg(b):
                          "min and max are numerical, otherwise T indicates start and stop are times."
                          "start and stop are of the form YYYY[MM[DD[HH[MM]]]] and of stop is omitted,"
                          "it will be inferred to be the least significantly specified date + 1.")
-@click.option("-l", help="log level", type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']))
+@click.option("-l", help="log level", type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']),
+              default="WARNING")
 def cli(dst, src, u=None, b=None, l="WARNING"):
     logging.getLogger().setLevel(l)
     config = Config.from_nc(src[0])  # config from first input.
