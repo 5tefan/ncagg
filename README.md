@@ -7,7 +7,7 @@ So... you want to aggregate time series NetCDF files?
 
 Install the utility with with pip:
 ```
-pip install git+https://ctor.space/gitlab/work/ncagg.git
+pip install ncagg
 ```
 
 On the command line, use `ncagg`:
@@ -16,11 +16,19 @@ On the command line, use `ncagg`:
 Usage: ncagg [OPTIONS] DST [SRC]...
 
 Options:
-  -u TEXT  Give an Unlimited Dimension Configuration as udim:ivar[:hz[:hz]]
-  -b TEXT  If -u given, specify bounds for ivar as min:max. min and max should
-           be numbers, or start with T to indicate a time and then should be
-           TYYYY[MM[DD[HH[MM]]]] format.
-  --help   Show this message and exit.
+  -u TEXT                         Give an Unlimited Dimension Configuration as
+                                  udim:ivar[:hz[:hz]]
+  -b TEXT                         If -u given, specify bounds for ivar as
+                                  min:max or Tstart[:[T]stop]. min and max are
+                                  numerical, otherwise T indicates start and
+                                  stop are times.start and stop are of the
+                                  form YYYY[MM[DD[HH[MM]]]] and of stop is
+                                  omitted,it will be inferred to be the least
+                                  significantly specified date + 1.
+  -l [DEBUG|INFO|WARNING|ERROR|CRITICAL]
+                                  log level
+  -t FILENAME                     configuration template
+  --help                          Show this message and exit.
 
 ```
 
@@ -30,6 +38,7 @@ Notes:
  - SRC is a list of input NetCDF files to aggregate.
  - -u should specify an Unlimited Dimension Configuration. See below for details.
  - Taking tens of minutes for a day is normal, a progress bar will indicate time remaining.
+ - For fine grained control over the output, use a configuration template (-t). See below for details.
 
 Examples:
 
@@ -226,7 +235,7 @@ The `desired_aggregated_flux` is achieved by setting {"flatten": true} within an
 
 #### Specify Global Attribute Aggregation Strategies
 
-The aggregated result file contains global attributes formed from the constituent granules. A number of
+The aggregated netcdf file contains global attributes formed from the constituent granules. A number of
 strategies exist to aggregate Global Attributes across the granules. Most are quite self explanatory:
 
  - "first": first value seen will be taken as the output value for this global attribute
@@ -280,6 +289,49 @@ variables do not list sensor_unit as a dimension, and also update chunk sizes ac
 of values of the same length as dimensions.
 
 
+### Configuration Template
+
+`ncagg` can be configured to output files into a format specified by a configuration template file. It is expected
+that this is a json format file. A generic template can be created using the `template-ncagg` command. The output
+of the template command is the default template that is used internally if no template is specified.
+
+#### Example usage
+
+Use `template-ncagg example_netcdf.nc > my_template.json` to save the default template for an example_netcdf.nc file
+into my_template.nc. Edit my_template.json to your liking, then run aggregation using `ncagg -t my_template.json [...]`.
+
+#### Template syntax
+
+The template syntax is verbose, but hopefully straightforward and clear. The incoming template will be validated
+upon initiating an aggregation, but some issues may only be found at runtime.
+
+##### Attributes
+
+The attributes section is a list of objects contianing global attributes:
+
+- name: name of global attribute
+- strategy: [aggregation strategy](#Specify-Global-Attribute-Aggregation-Strategies) to use for attribute.
+- value: value used by strategy, if required. Eg. constant, where the value is "test".
+
+##### Dimensions
+
+The dimensions section is a list of objects containing the dimensions of the file. Most configuration options
+are covered in [Unlimited Dimension Configuration](#Unlimited-Dimension-Configuration) section, but to clarify:
+
+- size: integer if dimension has a fixed size. null if it's unlimited.
+
+##### Varaibles
+
+Similarly, variables section is a list of objects configuring output variables. Remove the object
+corresponding to some variable to remove it from the output.
+
+Important notes:
+
+- The dimensions referenced must exist.
+- chunksizes must be the same number of elements as dimensions.
+
+Take care that everything is consistent when doing heavy modifications.
+
 
 ## Technical and Implementation details
 
@@ -311,8 +363,11 @@ been assembled according to it's internal aggregation list and internal sorting.
 
 ## Testing
 
-Portions of this software are unit tested, and more-so end to end tested in a number of scenarios using
-real GOES-16 satellite data. Tests are in the `test` subdirectory. Run all tests with
+This software is written for aggregation of GOES-R series Space Weather data products (L1b and L2+). As
+such, it contains extensive test against real GOES-16 satellite data. Many "features" in this code are
+intended to address incompetence from the contractor who implemented the L1b ground processing algorithms.
+
+Tests are in the `test` subdirectory. Run all tests with
 
 ```bash
 python -m unittest discover
