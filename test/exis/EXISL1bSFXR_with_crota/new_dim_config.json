@@ -1,0 +1,1418 @@
+{
+    "attributes": [
+        {
+            "name": "production_site", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "dataset_name", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "naming_authority", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "institution", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "project", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "iso_series_metadata_id", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "Metadata_Conventions", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "keywords_vocabulary", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "title", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "summary", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "license", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "keywords", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "cdm_data_type", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "orbital_slot", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "platform_ID", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "instrument_id", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "instrument_type", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "production_data_source", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "production_environment", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "processing_level", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "date_created", 
+            "strategy": "date_created", 
+            "value": null
+        }, 
+        {
+            "name": "time_coverage_start", 
+            "strategy": "time_coverage_start", 
+            "value": null
+        }, 
+        {
+            "name": "time_coverage_end", 
+            "strategy": "time_coverage_end", 
+            "value": null
+        }, 
+        {
+            "name": "L1b_processing_parm_version", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "algorithm_version", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "product_version", 
+            "strategy": "first", 
+            "value": null
+        }, 
+        {
+            "name": "id", 
+            "strategy": "first", 
+            "value": null
+        }
+    ], 
+    "dimensions": [
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "report_number", 
+            "other_dim_inds": {}, 
+            "size": null
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "crota_report_number", 
+            "other_dim_inds": {}, 
+            "size": null
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "sps_measurement_count", 
+            "other_dim_inds": {}, 
+            "size": 4
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "solar_array_current_channel_index", 
+            "other_dim_inds": {}, 
+            "size": 4
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "number_of_time_bounds", 
+            "other_dim_inds": {}, 
+            "size": 2
+        }, 
+        {
+            "expected_cadence": {}, 
+            "flatten": false, 
+            "index_by": null, 
+            "max": null, 
+            "min": null, 
+            "name": "solar_array_mnemonic_str_len", 
+            "other_dim_inds": {}, 
+            "size": 25
+        }
+    ], 
+    "variables": [
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "irradiance at wavelengths between 0.05 and 0.4 nm calculated from XRS-A solar minimum channel (photodiode)", 
+                "units": "W m-2", 
+                "valid_range": [
+                    0.0, 
+                    0.0005000000237487257
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "irradiance_xrsa1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "irradiance at wavelengths between 0.05 and 0.4 nm calculated from XRS-A solar maximum channel (quadrant photodiode)", 
+                "units": "W m-2", 
+                "valid_range": [
+                    0.0, 
+                    0.03999999910593033
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "irradiance_xrsa2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "solar_minimum_channel_1_is_primary solar_maximum_channel_2_is_primary", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating which of two XRS-A channels, solar minimum channel 1 or solar maximum channel 2, provides the primary irradiance value", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "primary_xrsa"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "irradiance at wavelengths between 0.1 and 0.8 nm calculated from XRS-B solar minimum channel (photodiode)", 
+                "units": "W m-2", 
+                "valid_range": [
+                    0.0, 
+                    0.00039999998989515007
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "irradiance_xrsb1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "irradiance at wavelengths between 0.1 and 0.8 nm calculated from XRS-B solar maximum channel (quadrant photodiode)", 
+                "units": "W m-2", 
+                "valid_range": [
+                    0.0, 
+                    0.029999999329447746
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "irradiance_xrsb2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "solar_minimum_channel_1_is_primary solar_maximum_channel_2_is_primary", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating which of two XRS-B channels, solar minimum channel 1 or solar maximum channel 2, provides the primary irradiance value", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "primary_xrsb"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "ratio calculated by XRS-A primary irradiance divided by XRS-B primary irradiance", 
+                "units": "1", 
+                "valid_range": [
+                    0.0, 
+                    9999999.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "xrs_ratio"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "corrected current for 1st quadrant of XRS-A solar maximum channel\u2019s quadrant photodiode", 
+                "units": "A", 
+                "valid_range": [
+                    0.0, 
+                    5.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "corrected_current_xrsa_1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "corrected current for 2nd quadrant of XRS-A solar maximum channel\u2019s quadrant photodiode", 
+                "units": "A", 
+                "valid_range": [
+                    0.0, 
+                    5.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "corrected_current_xrsa_2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "corrected current for 3rd quadrant of XRS-A solar maximum channel\u2019s quadrant photodiode", 
+                "units": "A", 
+                "valid_range": [
+                    0.0, 
+                    5.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "corrected_current_xrsa_3"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "corrected current for 4th quadrant of XRS-A solar maximum channel\u2019s quadrant photodiode", 
+                "units": "A", 
+                "valid_range": [
+                    0.0, 
+                    5.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "corrected_current_xrsa_4"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "corrected current for 1st quadrant of XRS-B solar maximum channel\u2019s quadrant photodiode", 
+                "units": "A", 
+                "valid_range": [
+                    0.0, 
+                    5.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "corrected_current_xrsb_1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "corrected current for 2nd quadrant of XRS-B solar maximum channel\u2019s quadrant photodiode", 
+                "units": "A", 
+                "valid_range": [
+                    0.0, 
+                    5.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "corrected_current_xrsb_2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "corrected current for 3rd quadrant of XRS-B solar maximum channel\u2019s quadrant photodiode", 
+                "units": "A", 
+                "valid_range": [
+                    0.0, 
+                    5.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "corrected_current_xrsb_3"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "corrected current for 4th quadrant of XRS-B solar maximum channel\u2019s quadrant photodiode", 
+                "units": "A", 
+                "valid_range": [
+                    0.0, 
+                    5.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "corrected_current_xrsb_4"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average dispersion direction pointing angle from SPS during time interval associated with observation", 
+                "units": "degree", 
+                "valid_range": [
+                    -10.0, 
+                    10.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "dispersion_angle"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "average cross-dispersion direction pointing angle from SPS during time interval associated with observation", 
+                "units": "degree", 
+                "valid_range": [
+                    -10.0, 
+                    10.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "crossdispersion_angle"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "EXIS_power_board_A_active EXIS_power_board_B_active EXIS_power_board_A_and_B_failure_type_1 EXIS_power_board_A_and_B_failuer_type_2", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    3
+                ], 
+                "long_name": "flags indicating which of two EXIS power boards, A or B, is active", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    3
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "sc_power_side"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 0, 
+                "_Unsigned": "true", 
+                "long_name": "flags indicating EXIS flight model. also serves as serial number of instrument", 
+                "units": "1", 
+                "valid_range": [
+                    1, 
+                    -1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "exis_flight_model"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "EXIS configuration identifier", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    -2
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "exis_configuration_id"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "bad_data_no_mode science_observation_in_progress calibration_in_progress bad_data_undetermined_mode", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    3
+                ], 
+                "long_name": "flags indicating XRS internal gain calibration circuit and data retrieval indicator settings", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    3
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "xrs_runctrlmd"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 0.0, 
+                "long_name": "XRS integration time used to collect data associated with observation", 
+                "units": "s", 
+                "valid_range": [
+                    0.23899999260902405, 
+                    63.98899841308594
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "integration_time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "power_disabled power_enabled", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether power to currently selected EXIS stimulus lamp is enabled", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "exs_sl_pwr_ena"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "temperature of XRS ASIC board #1", 
+                "units": "degrees_C", 
+                "valid_range": [
+                    -142.51690673828125, 
+                    933.1731567382812
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "asic1_temperature"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "temperature of XRS ASIC board #2", 
+                "units": "degrees_C", 
+                "valid_range": [
+                    -142.51690673828125, 
+                    933.1731567382812
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "asic2_temperature"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "no_potentially_invalid_condition potentially_invalid_due_to_XRS_integration_time_change potentially_invalid_due_to_stimulus_lamp_power_change EDAC_single_bit_error_detected_and_corrected  potentially_invalid_due_to_EDAC_multi_bit_error_detected", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8
+                ], 
+                "long_name": "flags indicating observation data may be invalid", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    8
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "invalid_flags"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 0, 
+                "_Unsigned": "true", 
+                "long_name": "count of XRS detector measurements since last sensor power-on or settings change", 
+                "units": "count", 
+                "valid_range": [
+                    1, 
+                    -1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "xrs_det_chg"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "operational_mode in-flight_calibration_mode instrument_diagnostic_mode failsafe_recovery_mode ", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    3
+                ], 
+                "long_name": "instrument (sensor) mode", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    3
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "xrs_mode"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "time of observation for each SPS 4 Hz measurement", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": [
+                256, 
+                4
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number", 
+                "sps_measurement_count"
+            ], 
+            "name": "sps_obs_time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 0.0, 
+                "long_name": "SPS integration time for each (4 Hz) SPS measurement", 
+                "units": "s", 
+                "valid_range": [
+                    0.23899999260902405, 
+                    63.98899841308594
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                4
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sps_measurement_count"
+            ], 
+            "name": "sps_int_time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "temperature of SPS detector for (4 Hz) each SPS measurement", 
+                "units": "degrees_C", 
+                "valid_range": [
+                    -142.51690673828125, 
+                    933.1731567382812
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                4
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number", 
+                "sps_measurement_count"
+            ], 
+            "name": "sps_temperature"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 0, 
+                "_Unsigned": "true", 
+                "long_name": "counter, which resets after SPS power-on or setting change, indicating whether to disregard observation (conditions to disregard: .lt. configurable value after power on; .lt. configurable value after internal gain calibration)", 
+                "units": "count", 
+                "valid_range": [
+                    1, 
+                    -1
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                4
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number", 
+                "sps_measurement_count"
+            ], 
+            "name": "sps_det_chg"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "number of valid SPS measurements used during XRS L1b processing", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    4
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "num_angle_pairs"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "upright neither inverted", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2
+                ], 
+                "long_name": "flags indicating whether spacecraft is operating in yaw flip configuration", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    2
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "yaw_flip_flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": 0.0, 
+                "long_name": "earth to sun distance multiplicative correction factor to normalize to 1-AU at time of observation. not applied in XRS L1b product processing", 
+                "units": "1", 
+                "valid_range": [
+                    0.9759497046470642, 
+                    1.0167256593704224
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "au_factor"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_masks": [
+                    524287, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144
+                ], 
+                "flag_meanings": "good_quality_qf invalid_due_to_out_of_range_XRS_pointing_qf degraded_due_to_uncalibrated_range_XRS_pointing_qf degraded_due_to_calibrated_but_exceeds_requirements_XRS_pointing_qf invalid_due_to_XRS_L0_data_checksum_error_qf degraded_due_to_low_XRS_A_and_B_temperature_qf degraded_due_to_high_XRS_A_and_B_temperature_qf degraded_due_to_XRS-A_solar_miniumum_channel_signal_near_zero_qf degraded_due_to_XRS-A_solar_maximum_channel_signal_near_zero_qf degraded_due_to_XRS-B_solar_miniumum_channel_signal_near_zero_qf degraded_due_to_XRS-B_solar_maximum_channel_signal_near_zero_qf degraded_due_to_XRS-A_solar_miniumum_channel_signal_at_saturation_qf degraded_due_to_XRS-A_solar_maxiumum_channel_signal_at_saturation_qf degraded_due_to_XRS-B_solar_miniumum_channel_signal_at_saturation_qf degraded_due_to_XRS-B_solar_maxiumum_channel_signal_at_saturation_qf degraded_due_to_flatfield_LED_flash_during_XRS_integration_qf degraded_due_to_insufficient_number_of_integrations_after_XRS_reset_qf degraded_due_to_non-nominal_XRS-A_irradiance_qf degraded_due_to_non-nominal_XRS-B_irradiance_qf degraded_due_to_out_of_valid_range_primary_XRS-B_to_XRS-A_irradiance_ratio_qf", 
+                "flag_values": [
+                    0, 
+                    1, 
+                    2, 
+                    4, 
+                    8, 
+                    16, 
+                    32, 
+                    64, 
+                    128, 
+                    256, 
+                    512, 
+                    1024, 
+                    2048, 
+                    4096, 
+                    8192, 
+                    16384, 
+                    32768, 
+                    65536, 
+                    131072, 
+                    262144
+                ], 
+                "long_name": "XRS L1b processing and data quality flags", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    524287
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quality_flags"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "time of XRS observation for each report", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float64", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "current count of XRS L0 telemetry packets received since instrument start-up or reset", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    65535
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "packet_count"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "known unknown", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether instrument has received field-of-view information (eclipse, planetary and lunar transit, off-pointing calibration maneuver conditions) provided by ground system", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "fov_unknown"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "false true", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether sun being obscured by earth is imminent or in progress as provided by ground system", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "fov_eclipse"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "false true", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether lunar transit across sun is imminent or in progress as provided by ground system", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "fov_lunar_transit"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "false true", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether planetary transit across sun is imminent or in progress as provided by ground system", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "fov_planet_transit"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "false true", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether off-pointing calibration maneuver is imminent or in progress as provided by ground system", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "fov_off_point"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q0", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q0"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q1", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q1"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q2", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q2"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ACRF to J2000 ECI attitude quaternion Q3", 
+                "units": "1", 
+                "valid_range": [
+                    -1.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "quaternion_Q3"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF X coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -42171520.0, 
+                    42171520.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ecef_X"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF Y coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -42171520.0, 
+                    42171520.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ecef_Y"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -9.999999848243207e+30, 
+                "long_name": "spacecraft ECEF Z coordinate", 
+                "units": "m", 
+                "valid_range": [
+                    -7360.0, 
+                    7360.0
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "float32", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "ecef_Z"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "long_name": "solar array current in DN for 4 channel groups (1-4, 5-8, 9-12, 13-16)", 
+                "units": "count", 
+                "valid_range": [
+                    0, 
+                    -2
+                ]
+            }, 
+            "chunksizes": [
+                256, 
+                4
+            ], 
+            "datatype": "int16", 
+            "dimensions": [
+                "report_number", 
+                "solar_array_current_channel_index"
+            ], 
+            "name": "solar_array_current"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -1, 
+                "_Unsigned": "true", 
+                "flag_meanings": "false true", 
+                "flag_values": [
+                    0, 
+                    1
+                ], 
+                "long_name": "flags indicating whether sun is obscured by earth as provided by spacecraft", 
+                "units": "1", 
+                "valid_range": [
+                    0, 
+                    1
+                ]
+            }, 
+            "chunksizes": [
+                256
+            ], 
+            "datatype": "int8", 
+            "dimensions": [
+                "report_number"
+            ], 
+            "name": "SC_eclipse_flag"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "start and end time of observations associated with product", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": null, 
+            "datatype": "float64", 
+            "dimensions": [
+                "number_of_time_bounds"
+            ], 
+            "name": "product_time"
+        }, 
+        {
+            "attributes": {
+                "long_name": "labels for four solar array current telemetry mnemonics. labels are ordered the same as applicable data variable"
+            }, 
+            "chunksizes": null, 
+            "datatype": "|S1", 
+            "dimensions": [
+                "solar_array_current_channel_index", 
+                "solar_array_mnemonic_str_len"
+            ], 
+            "name": "solar_array_current_channel_index_label"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "comment": "solar north pole angular offset", 
+                "long_name": "angular offset of the solar north rotational pole in image with positive values measured clockwise", 
+                "units": "degree", 
+                "valid_range": [
+                    0.0, 
+                    360.0
+                ]
+            }, 
+            "chunksizes": null, 
+            "datatype": "float32", 
+            "dimensions": ["crota_report_number"], 
+            "name": "SUVI_CROTA"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "time of SUVI_CROTA measurement, in seconds since J2000 epoch (2000-01-01 12:00:00 UTC)", 
+                "units": "seconds since 2000-01-01 12:00:00"
+            }, 
+            "chunksizes": null, 
+            "datatype": "float64", 
+            "dimensions": ["crota_report_number"], 
+            "name": "SUVI_CROTA_time"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -999.0, 
+                "long_name": "percent data lost due to uncorrectable L0 errors", 
+                "units": "percent", 
+                "valid_range": [
+                    0.0, 
+                    1.0
+                ]
+            }, 
+            "chunksizes": null, 
+            "datatype": "float32", 
+            "dimensions": [], 
+            "name": "percent_uncorrectable_L0_errors"
+        }, 
+        {
+            "attributes": {
+                "_FillValue": -2147483647, 
+                "input_EUVS_L0_data": "OR_EXIS-L0_G16_s20172761550300_e20172761550587_c*.nc", 
+                "long_name": "container for filenames of dynamic algorithm input data"
+            }, 
+            "chunksizes": null, 
+            "datatype": "int32", 
+            "dimensions": [], 
+            "name": "algorithm_dynamic_input_data_container"
+        }
+    ]
+}

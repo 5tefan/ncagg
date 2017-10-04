@@ -360,7 +360,13 @@ class InputFileNode(AbstractNode):
         if internal_aggregation_list is None:
             if dim["size"] is None:
                 with nc.Dataset(self.filename) as nc_in:
-                    return nc_in.dimensions[dim["name"]].size
+                    if dim["name"] in nc_in.dimensions.keys():
+                        return nc_in.dimensions[dim["name"]].size
+                    else:
+                        # CASE: new dim... handle a new dimension in output that doesn't
+                        # exist in the input. It will always have size one, since it implicitly
+                        # depends on file, and inside this InputFileNode, we're representing 1 file.
+                        return 1
             else:
                 return dim["size"]
 
