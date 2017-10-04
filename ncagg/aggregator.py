@@ -279,7 +279,8 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                     else:
                         write_slices.append(slice(None))
                 try:
-                    nc_out.variables[var["name"]][write_slices] = component.data_for(var)
+                    output_data = component.data_for(var)
+                    nc_out.variables[var["name"]][write_slices] = np.ma.masked_where(np.isnan(output_data), output_data)
                 except Exception as e:
                     logger.error("Unexpected error copying from component into output: %s" % component)
                     logger.error(traceback.format_exc())
