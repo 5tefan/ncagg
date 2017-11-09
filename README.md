@@ -394,9 +394,9 @@ pip install --editable .
 
 Deploy to pip, after testing with python2 and python3:
 
-`
-fm -rf dist/
+```bash
+rm -r dist/
 python setup.py bdist_wheel --universal
 twine upload dist/*
-`
+```
 
