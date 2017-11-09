@@ -4,6 +4,7 @@ import click
 from datetime import datetime, timedelta
 import logging
 import json
+import pkg_resources
 from fractions import Fraction
 
 
@@ -71,6 +72,7 @@ def parse_bound_arg(b):
 
 
 @click.command()
+@click.version_option(pkg_resources.require("ncagg")[0].version, "-v", "--version")
 @click.argument("dst", type=click.Path(exists=False))
 @click.argument("src", nargs=-1, type=click.Path(exists=True))
 @click.option("-u", help="Give an Unlimited Dimension Configuration as udim:ivar[:hz[:hz]]")
