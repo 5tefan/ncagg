@@ -238,21 +238,22 @@ The `desired_aggregated_flux` is achieved by setting {"flatten": true} within an
 The aggregated netcdf file contains global attributes formed from the constituent granules. A number of
 strategies exist to aggregate Global Attributes across the granules. Most are quite self explanatory:
 
+ - "static": use the configured "value" in the template, ignoring any values that may be in the file.
  - "first": first value seen will be taken as the output value for this global attribute
  - "last": the last value seen will be taken as global attribute
  - "unique_list": compile values into a unique list "first, second, etc"
  - "int_sum": resulting in integer sum of the inputs
  - "float_sum": StratFloatSum
- - "constant": StratAssertConst
+ - "constant": StratAssertConst, similar to first, but raises an error if value changes among input files.
  - "date_created": simply yeilds the current date when finalized, standard dt fmt
  - "time_coverage_start": start bound, if specified, standard dt fmt
  - "time_coverage_end": end bound, if specified, standard dt fmt
- - "filename": StratOutputFilename
+ - "filename": StratOutputFilename, set attribute to name of output file
  - "remove": remove/do not include this global attribute
  
  The configuration format expects a key "global attributes" associated with a list of objects each containing 
- a global attribute name and strategy. A list is used to preserve order, as the order in the configuration will
- be the resulting order in the output NetCDF.
+ a global attribute name, strategy, and possible value (for static). A list is used to preserve order, as the
+ order in the configuration will be the resulting order in the output NetCDF.
  
 
 ```json
@@ -262,6 +263,11 @@ strategies exist to aggregate Global Attributes across the granules. Most are qu
             "name": "production_site", 
             "strategy": "unique_list"
         }, {
+            "name": "creator",
+            "strategy": "static",
+            "value": "Stefan Codrescu"
+        }, {
+            
         ...
         }
      ]
@@ -383,3 +389,14 @@ virtualenv venv
 . venv/bin/activate
 pip install --editable .
 ```
+
+---------------------
+
+Deploy to pip, after testing with python2 and python3:
+
+`
+fm -rf dist/
+python setup.py bdist_wheel --universal
+twine upload dist/*
+`
+

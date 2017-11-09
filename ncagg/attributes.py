@@ -244,6 +244,7 @@ class StratOutputFilename(Strat):
 class AttributeHandler(object):
     # dict to look up handlers for specific strategies
     strategy_handlers = {
+        "static": StratStatic,
         "first": StratFirst,
         "last": StratLast,
         "unique_list": StratUniqueList,
