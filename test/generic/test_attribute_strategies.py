@@ -6,6 +6,7 @@ import os
 
 from ncagg.attributes import StratFirst, StratLast,StratUniqueList, StratIntSum, StratFloatSum, StratAssertConst
 from ncagg.attributes import StratDateCreated, StratStatic, StratTimeCoverageStart, StratTimeCoverageEnd
+from ncagg.attributes import StartFirstInputFilename, StartLastInputFilename, StratCountInputFiles
 
 from ncagg.attributes import datetime_format
 
@@ -72,4 +73,9 @@ class TestAttributeStrategies(unittest.TestCase):
         # only check to make sure they are mostly the same, it's ok if there is some difference
         # in the last milliseconds piece.
         self.assertEqual(finalize(self.test_nc)[:-3], datetime_format(datetime.now())[:-3])
+
+    def test_strat_first_filename(self):
+        process, finalize = StartFirstInputFilename.setup_handler()
+        process("test", self.test_nc)
+        self.assertIn(".nc", finalize(self.test_nc))
 

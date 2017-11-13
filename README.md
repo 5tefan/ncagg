@@ -16,6 +16,9 @@ On the command line, use `ncagg`:
 Usage: ncagg [OPTIONS] DST [SRC]...
 
 Options:
+  -v, --version                   Show the version and exit.
+  --generate_template PATH        Print the default template generated for
+                                  PATH and exit.
   -u TEXT                         Give an Unlimited Dimension Configuration as
                                   udim:ivar[:hz[:hz]]
   -b TEXT                         If -u given, specify bounds for ivar as
@@ -27,9 +30,8 @@ Options:
                                   significantly specified date + 1.
   -l [DEBUG|INFO|WARNING|ERROR|CRITICAL]
                                   log level
-  -t FILENAME                     configuration template
+  -t FILENAME                     Specify a configuration template
   --help                          Show this message and exit.
-
 ```
 
 Notes:
@@ -38,7 +40,7 @@ Notes:
  - SRC is a list of input NetCDF files to aggregate.
  - -u should specify an Unlimited Dimension Configuration. See below for details.
  - Taking tens of minutes for a day is normal, a progress bar will indicate time remaining.
- - For fine grained control over the output, use a configuration template (-t). See below for details.
+ - For fine grained control over the output, specify a configuration template (-t). See below for details.
 
 Examples:
 
@@ -250,6 +252,10 @@ strategies exist to aggregate Global Attributes across the granules. Most are qu
  - "time_coverage_end": end bound, if specified, standard dt fmt
  - "filename": StratOutputFilename, set attribute to name of output file
  - "remove": remove/do not include this global attribute
+ - "first_input": Filename of first file included in aggregate
+ - "last_input": Filename of last file included in aggregate
+ - "input_count": Number of files included in aggregate
+
  
  The configuration format expects a key "global attributes" associated with a list of objects each containing 
  a global attribute name, strategy, and possible value (for static). A list is used to preserve order, as the
@@ -298,12 +304,12 @@ of values of the same length as dimensions.
 ### Configuration Template
 
 `ncagg` can be configured to output files into a format specified by a configuration template file. It is expected
-that this is a json format file. A generic template can be created using the `template-ncagg` command. The output
-of the template command is the default template that is used internally if no template is specified.
+that this is a json format file. A generic template can be created using the `ncagg --generate_template [SAMPLE_NC]` 
+command. The output of the template command is the default template that is used internally if no template is specified.
 
 #### Example usage
 
-Use `template-ncagg example_netcdf.nc > my_template.json` to save the default template for an example_netcdf.nc file
+Use `ncagg --generate_template example_netcdf.nc > my_template.json` to save the default template for an example_netcdf.nc file
 into my_template.nc. Edit my_template.json to your liking, then run aggregation using `ncagg -t my_template.json [...]`.
 
 #### Template syntax
@@ -326,7 +332,7 @@ are covered in [Unlimited Dimension Configuration](#Unlimited-Dimension-Configur
 
 - size: integer if dimension has a fixed size. null if it's unlimited.
 
-##### Varaibles
+##### Variables
 
 Similarly, variables section is a list of objects configuring output variables. Remove the object
 corresponding to some variable to remove it from the output.
@@ -370,14 +376,16 @@ been assembled according to it's internal aggregation list and internal sorting.
 ## Testing
 
 This software is written for aggregation of GOES-R series Space Weather data products (L1b and L2+). As
-such, it contains extensive test against real GOES-16 satellite data. Many "features" in this code are
-intended to address incompetence from the contractor who implemented the L1b ground processing algorithms.
+such, it contains extensive tests against real GOES-16 satellite data. Many "features" in this code are
+intended to address "quirks" in the ground processing (implemented by a certain contractor...).
 
 Tests are in the `test` subdirectory. Run all tests with
 
 ```bash
-python -m unittest discover
+python -m unittest discover 
 ```
+
+The code is compatible with Python2 (2.7) and Python3, so unittests should be run with both.
 
 
 ## Development

@@ -37,10 +37,11 @@ class Strat(object):
         instance = cls(*args, **kwargs)
         return instance.process, instance.finalize
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         """
         Collect an attribute from a file according to the strategy cls implemnets.
 
+        :param nc_obj=None:
         :type attr: str
         :param attr: an incoming attribute
         :return: None
@@ -64,7 +65,7 @@ class StratFirst(Strat):
     """
     Strategy processes to the first attribute value processed.
     """
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         if self.attr == "":
             self.attr = attr
 
@@ -74,11 +75,31 @@ class StratLast(Strat):
     Strategy finalizes to the value of the last attribute value
     processed.
 
-    Note, this is included to semantics as the base Strat class
-    implements StratLast.
+    Note, this is included for semantics as the base Strat class
+    already implements StratLast.
     """
     pass
 
+
+class StartFirstInputFilename(Strat):
+    def process(self, attr, nc_obj=None):
+        if not self.attr and nc_obj is not None:
+            self.attr = os.path.basename(nc_obj.filepath())
+
+
+class StartLastInputFilename(Strat):
+    def process(self, attr, nc_obj=None):
+        if nc_obj is not None:
+            self.attr = os.path.basename(nc_obj.filepath())
+
+
+class StratCountInputFiles(Strat):
+    def __init__(self, *args, **kwargs):
+        super(StratCountInputFiles, self).__init__(*args, **kwargs)
+        self.attr = 0
+
+    def process(self, attr, nc_obj=None):
+        self.attr += 1
 
 class StratUniqueList(Strat):
     """
@@ -89,7 +110,7 @@ class StratUniqueList(Strat):
         super(StratUniqueList, self).__init__()
         self.attr = []
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         for each in re.split(", *", attr):
             if each not in self.attr:
                 self.attr.append(each)
@@ -103,10 +124,10 @@ class StratIntSum(Strat):
     Process attributes as integer values and finalize to their sum.
     """
     def __init__(self, *args, **kwargs):
-        super(StratIntSum, self).__init__()
+        super(StratIntSum, self).__init__(*args, **kwargs)
         self.attr = 0
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         self.attr += int(attr)
 
 
@@ -118,7 +139,7 @@ class StratFloatSum(Strat):
         super(StratFloatSum, self).__init__()
         self.attr = 0.0
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         self.attr += float(attr)
 
 
@@ -127,7 +148,7 @@ class StratAssertConst(Strat):
     Strategy raises an exception if any subsequent attributes processed
     do not match the first one seen.
     """
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         if self.attr == "":
             self.attr = attr
         elif self.attr != attr:
@@ -142,7 +163,7 @@ class StratDateCreated(Strat):
     def __init__(self, *args, **kwargs):
         pass
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         pass
 
     def finalize(self, nc_out):
@@ -159,7 +180,7 @@ class StratRemove(Strat):
     def __init__(self, *args, **kwargs):
         pass
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         pass
 
     def finalize(self, nc_out):
@@ -174,7 +195,7 @@ class StratWithConfig(Strat):
         super(StratWithConfig, self).__init__()
         self.config = config
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         pass
 
 
@@ -182,7 +203,7 @@ class StratStatic(StratWithConfig):
     def __init__(self, *args, **kwargs):
         super(StratStatic, self).__init__(*args, **kwargs)
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         return self.config.attrs.get(attr, {}).get("value", "")
 
 
@@ -231,7 +252,7 @@ class StratOutputFilename(Strat):
     def __init__(self, *args, **kwargs):
         self.attr = kwargs.get("filename", "")
 
-    def process(self, attr):
+    def process(self, attr, nc_obj=None):
         pass
 
     def finalize(self, nc_out):
@@ -255,7 +276,10 @@ class AttributeHandler(object):
         "time_coverage_start": StratTimeCoverageStart,
         "time_coverage_end": StratTimeCoverageEnd,
         "filename": StratOutputFilename,
-        "remove": StratRemove
+        "remove": StratRemove,
+        "first_input": StartFirstInputFilename,
+        "last_input": StartLastInputFilename,
+        "input_count": StratCountInputFiles
     }
 
     def __init__(self, config, *args, **kwargs):
@@ -283,9 +307,8 @@ class AttributeHandler(object):
             handler = self.attr_handlers.get(attr["name"], None)
             if handler is not None and handler[0] is not None:
                 try:
-                    attr_val = nc_in.getncattr(attr["name"])
-                    if attr_val is not None and attr_val != "":
-                        handler[0](attr_val)
+                    attr_val = getattr(nc_in, attr["name"], None)
+                    handler[0](attr_val, nc_in)
                 except Exception as e:
                     # ignore if there is no attribute, may happen in cases like date_created
                     # and time_coverage_begin if they don't exist in advance (which is ok)

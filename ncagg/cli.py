@@ -71,10 +71,19 @@ def parse_bound_arg(b):
     return b_split
 
 
+def print_config(ctx, param, sample_netcdf):
+    if not sample_netcdf or ctx.resilient_parsing:
+        return
+    the_config = Config.from_nc(click.format_filename(sample_netcdf)).to_dict()
+    click.echo(json.dumps(the_config, sort_keys=True, indent=4))
+    ctx.exit()
+
 @click.command()
 @click.version_option(pkg_resources.require("ncagg")[0].version, "-v", "--version")
-@click.argument("dst", type=click.Path(exists=False))
-@click.argument("src", nargs=-1, type=click.Path(exists=True))
+@click.option("--generate_template", callback=print_config, expose_value=False, is_eager=True,
+              type=click.Path(exists=True, dir_okay=False), help="Print the default template generated for PATH and exit.")
+@click.argument("dst", type=click.Path(exists=False, dir_okay=False))
+@click.argument("src", nargs=-1, type=click.Path(exists=True, dir_okay=False))
 @click.option("-u", help="Give an Unlimited Dimension Configuration as udim:ivar[:hz[:hz]]")
 @click.option("-b", help="If -u given, specify bounds for ivar as min:max or Tstart[:[T]stop]. "
                          "min and max are numerical, otherwise T indicates start and stop are times."
@@ -82,7 +91,7 @@ def parse_bound_arg(b):
                          "it will be inferred to be the least significantly specified date + 1.")
 @click.option("-l", help="log level", type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']),
               default="WARNING")
-@click.option("-t", help="configuration template", type=click.File("r"))
+@click.option("-t", help="Specify a configuration template", type=click.File("r"))
 def cli(dst, src, u=None, b=None, l="WARNING", t=None):
     logging.getLogger().setLevel(l)
     if t is not None:  # if given a template...
