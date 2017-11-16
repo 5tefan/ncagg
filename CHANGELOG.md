@@ -1,4 +1,19 @@
 
+# V0.4.0
+
+Minor version bump because `template-ncagg` command is gone, everything
+is in `ncagg` now. (delaying v1.0.0 for a seriously mature version).
+
+- Feature: `ncagg -v` prints version info.
+- Change: Former `template-ncagg` command removed, use `ncagg --generate_template [example.nc]` now.
+- Adds: New strategies: StratFirstInputFilename, StratLastInputFilename, StratCountInputFiles
+
+
+# v0.3.3
+
+- Adds: StratStatic global attribute handler, for predefined static values.
+- Fix: output format of template generator
+- Minor documentation improvements.
 
 
 # v0.3.2
