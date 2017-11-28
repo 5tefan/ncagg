@@ -8,9 +8,10 @@ import pkg_resources
 from fractions import Fraction
 
 try:
-    version = pkg_resources.require(__name__)[0].version
-except (pkg_resources.DistributionNotFound, pkg_resources.RequirementParseError):
-    # if version is unknwon, you're probably running a copy not installed through setuputils, eg repo clone, etc.
+    version = pkg_resources.require("ncagg")[0].version
+except pkg_resources.DistributionNotFound:
+    # if version unknwon - you're probably running cli from a clone of the repo, not setup through setuputils/pip
+    # if version is wrong - same as above, but you probably have an older version installed through setuputils
     version = "unknown"
 
 def parse_time(dt_str):
