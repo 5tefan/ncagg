@@ -344,6 +344,27 @@ Important notes:
 
 Take care that everything is consistent when doing heavy modifications.
 
+## Use from code
+
+In addition to the CLI, `ncagg` exposes an API which makes it possible to call from Python code:
+
+```
+from ncagg import aggregate
+aggregate(["file1.nc", "file2.nc"], "output.nc")
+```
+
+`aggregate` optionally accepts as a third argument a configuration template. If none is given,
+the default template created from the first input file is used. Thus code above is equivalent to:
+
+```
+from ncagg import aggregate, Config
+config = Config.from_nc("file1.nc")
+aggregate(["file1.nc", "file2.nc"], "output.nc", config)
+```
+
+This allows for the possibility of programatically manipulating the configuration at runtime before
+performing aggregation.
+
 
 ## Technical and Implementation details
 

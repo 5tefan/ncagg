@@ -7,6 +7,11 @@ import json
 import pkg_resources
 from fractions import Fraction
 
+try:
+    version = pkg_resources.require(__name__)[0].version
+except (pkg_resources.DistributionNotFound, pkg_resources.RequirementParseError):
+    # if version is unknwon, you're probably running a copy not installed through setuputils, eg repo clone, etc.
+    version = "unknown"
 
 def parse_time(dt_str):
     """
@@ -79,7 +84,7 @@ def print_config(ctx, param, sample_netcdf):
     ctx.exit()
 
 @click.command()
-@click.version_option(pkg_resources.require("ncagg")[0].version, "-v", "--version")
+@click.version_option(version, "-v", "--version")
 @click.option("--generate_template", callback=print_config, expose_value=False, is_eager=True,
               type=click.Path(exists=True, dir_okay=False), help="Print the default template generated for PATH and exit.")
 @click.argument("dst", type=click.Path(exists=False, dir_okay=False))
