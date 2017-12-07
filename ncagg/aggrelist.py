@@ -1,8 +1,9 @@
+import logging
+import os
+from functools import reduce
+
 import netCDF4 as nc
 import numpy as np
-import os
-import logging
-from functools import reduce
 
 from ncagg.config import Config
 
@@ -421,14 +422,19 @@ class InputFileNode(AbstractNode):
         :param variable: a dict specification of the variable to get
         :return: array of data for variable
         """
-        with nc.Dataset(self.filename) as nc_in:
+        with nc.Dataset(self.filename) as nc_in:  # type: nc.Dataset
             fill_value = get_fill_for(var)
             dims = [self.config.dims[d] for d in var["dimensions"]
                     if d in nc_in.variables[var["name"]].dimensions]
 
             # step 1: get the sorted data
             dim_slices = tuple([self.sort_unlim.get(d["name"], slice(None)) for d in dims]) or slice(None)
-            prelim_data = np.ma.filled(nc_in.variables[var["name"]][dim_slices], fill_value=fill_value)
+            nc_in.variables[var["name"]].set_auto_mask(False)
+            prelim_data = nc_in.variables[var["name"]][dim_slices]
+            if hasattr(nc_in.variables[var["name"]], "_FillValue"):
+                where_to_fill = (prelim_data == nc_in.variables[var["name"]]._FillValue)
+                prelim_data[where_to_fill] = fill_value
+            # prelim_data = np.ma.filled(nc_in.variables[var["name"]][dim_slices], fill_value=fill_value)
 
             if len(dims) == 0:
                 # if this is just a scalar value, return

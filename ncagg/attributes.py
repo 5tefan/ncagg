@@ -1,8 +1,10 @@
-import re
+import logging
 import os
+import re
+import traceback
 from datetime import datetime
+
 import netCDF4 as nc
-import logging, traceback
 
 logger = logging.getLogger(__name__)
 

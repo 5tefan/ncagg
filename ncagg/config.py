@@ -1,7 +1,8 @@
-import numpy as np
+from collections import OrderedDict
+
 import cerberus
 import netCDF4 as nc
-from collections import OrderedDict
+import numpy as np
 
 from ncagg.attributes import AttributeHandler
 
