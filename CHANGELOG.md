@@ -1,5 +1,12 @@
+# v0.4.3
 
-# V0.4.0
+Minor changes:
+
+- `aggregate` function and `Config` class available in root (ncagg) namespace.
+- correctly handle changed `valid_min` and `valid_max` in template
+- Fix StratStatic "static" attribute stragey implementation
+
+# v0.4.0
 
 Minor version bump because `template-ncagg` command is gone, everything
 is in `ncagg` now. (delaying v1.0.0 for a seriously mature version).

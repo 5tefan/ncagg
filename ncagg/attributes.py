@@ -204,9 +204,14 @@ class StratWithConfig(Strat):
 class StratStatic(StratWithConfig):
     def __init__(self, *args, **kwargs):
         super(StratStatic, self).__init__(*args, **kwargs)
+        self.attr_name = ""
 
     def process(self, attr, nc_obj=None):
-        return self.config.attrs.get(attr, {}).get("value", "")
+        if self.attr_name == "":
+            self.attr_name = attr
+
+    def finalize(self, nc_out):
+        return self.config.attrs.get(self.attr_name, {}).get("value", "")
 
 
 class StratTimeCoverageStart(StratWithConfig):
