@@ -1,6 +1,6 @@
-# v0.4.4
+# v0.4.5
 
-Minor changes:
+Minor changes, 5 patch increments because of some mistakes on my part creating releases:
 
 - `aggregate` function and `Config` class available in root (ncagg) namespace.
 - correctly handle changed `valid_min` and `valid_max` in template.

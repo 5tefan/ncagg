@@ -421,9 +421,11 @@ pip install --editable .
 
 ---------------------
 
-Deploy to pip, after testing with python2 and python3:
+Deploy to pip, after running unittest with both with python2 and python3. The `git stash` is important so that
+the build is from a clean repo! We don't want any dev or debug changes that are sitting unstaged to be included.
 
 ```bash
+git stash
 rm -r dist/
 python setup.py bdist_wheel --universal
 twine upload dist/*
