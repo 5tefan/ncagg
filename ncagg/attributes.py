@@ -203,15 +203,11 @@ class StratWithConfig(Strat):
 
 class StratStatic(StratWithConfig):
     def __init__(self, *args, **kwargs):
+        self.name = kwargs.pop("name", "")
         super(StratStatic, self).__init__(*args, **kwargs)
-        self.attr_name = ""
-
-    def process(self, attr, nc_obj=None):
-        if self.attr_name == "":
-            self.attr_name = attr
 
     def finalize(self, nc_out):
-        return self.config.attrs.get(self.attr_name, {}).get("value", "")
+        return self.config.attrs.get(self.name, {}).get("value", "")
 
 
 class StratTimeCoverageStart(StratWithConfig):
@@ -296,7 +292,7 @@ class AttributeHandler(object):
         self.attr_handlers = {
             attr["name"]: self.strategy_handlers.get(attr.get("strategy", "first"), StratFirst).setup_handler(
                 # expecting in kwargs at least runtime_config and filename
-                config=config, *args, **kwargs
+                config=config, name=attr.get("name", None), *args, **kwargs
             )
             for attr in self.config.attrs.values()
         }

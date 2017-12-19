@@ -8,6 +8,7 @@ from ncagg.attributes import StratFirst, StratLast,StratUniqueList, StratIntSum,
 from ncagg.attributes import StratDateCreated, StratStatic, StratTimeCoverageStart, StratTimeCoverageEnd
 from ncagg.attributes import StartFirstInputFilename, StartLastInputFilename, StratCountInputFiles
 
+from ncagg import Config
 from ncagg.attributes import datetime_format
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
@@ -21,52 +22,55 @@ class TestAttributeStrategies(unittest.TestCase):
         self.mock_int_attributes = [1, 2, 2, 3]
         self.mock_float_attributes = [1.1, 2.2, 2.3, 3.3]
         self.test_nc = nc.Dataset(test_input_file)
+        self.handler_kwargs = {
+            "config": Config.from_nc(test_input_file),  # type: Config
+        }
 
     def test_strat_first_gives_first(self):
-        process, finalize = StratFirst.setup_handler()
+        process, finalize = StratFirst.setup_handler(**self.handler_kwargs)
         for attr in self.mock_str_attributes:
             process(attr)
         self.assertEqual(finalize(self.test_nc), "first")
 
     def test_strat_last_gives_last(self):
-        process, finalize = StratLast.setup_handler()
+        process, finalize = StratLast.setup_handler(**self.handler_kwargs)
         for attr in self.mock_str_attributes:
             process(attr)
         self.assertEqual(finalize(self.test_nc), "third")
 
     def test_strat_unique_list(self):
-        process, finalize = StratUniqueList.setup_handler()
+        process, finalize = StratUniqueList.setup_handler(**self.handler_kwargs)
         for attr in self.mock_str_attributes:
             process(attr)
         self.assertEqual(finalize(self.test_nc), "first, second, third")
 
     def test_int_sum(self):
-        process, finalize = StratIntSum.setup_handler()
+        process, finalize = StratIntSum.setup_handler(**self.handler_kwargs)
         for attr in self.mock_int_attributes:
             process(attr)
         self.assertEqual(finalize(self.test_nc), sum(self.mock_int_attributes))
 
     def test_float_sum(self):
-        process, finalize = StratFloatSum.setup_handler()
+        process, finalize = StratFloatSum.setup_handler(**self.handler_kwargs)
         for attr in self.mock_float_attributes:
             process(attr)
         self.assertEqual(finalize(self.test_nc), sum(self.mock_float_attributes))
 
     def test_assert_const_fails_nonconst(self):
-        process, finalize = StratAssertConst.setup_handler()
+        process, finalize = StratAssertConst.setup_handler(**self.handler_kwargs)
         with self.assertRaises(AssertionError):
             for attr in self.mock_str_attributes:
                 process(attr)
         self.assertEqual(finalize(self.test_nc), "first")
 
     def test_assert_const_pass_consts(self):
-        process, finalize = StratAssertConst.setup_handler()
+        process, finalize = StratAssertConst.setup_handler(**self.handler_kwargs)
         for attr in ["const", "const", "const"]:
             process(attr)
         self.assertEqual(finalize(self.test_nc), "const")
 
     def test_date_created_close(self):
-        process, finalize = StratDateCreated.setup_handler()
+        process, finalize = StratDateCreated.setup_handler(**self.handler_kwargs)
         for attr in self.mock_str_attributes:
             process(attr)
         # since both of these date time strings may not be created exactly at the same time,
@@ -75,7 +79,20 @@ class TestAttributeStrategies(unittest.TestCase):
         self.assertEqual(finalize(self.test_nc)[:-3], datetime_format(datetime.now())[:-3])
 
     def test_strat_first_filename(self):
-        process, finalize = StartFirstInputFilename.setup_handler()
+        process, finalize = StartFirstInputFilename.setup_handler(**self.handler_kwargs)
         process("test", self.test_nc)
         self.assertIn(".nc", finalize(self.test_nc))
+
+    def test_strat_static(self):
+
+        # set the config for a static "license" attribute...
+        value = "Hello world"
+        self.handler_kwargs["config"].attrs["license"] = {
+            "name": "license",
+            "strategy": "static",
+            "value": value
+        }
+        process, finalize = StratStatic.setup_handler(name="license", **self.handler_kwargs)
+        process("test", self.test_nc)
+        self.assertEqual(value, finalize(self.test_nc))
 

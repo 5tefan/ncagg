@@ -1,10 +1,10 @@
-# v0.4.3
+# v0.4.4
 
 Minor changes:
 
 - `aggregate` function and `Config` class available in root (ncagg) namespace.
-- correctly handle changed `valid_min` and `valid_max` in template
-- Fix StratStatic "static" attribute stragey implementation
+- correctly handle changed `valid_min` and `valid_max` in template.
+- Fix StratStatic "static" attribute stragey implementation, adds test for it.
 
 # v0.4.0
 
