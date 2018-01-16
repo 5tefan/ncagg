@@ -1,3 +1,10 @@
+# v0.5.0
+
+Support piped list of files to aggregate in case [Argument list too long] encountered
+when attempting to pass argument in commandline.
+
+eg: `find /path/to/files -type f -name "*.nc" | ncagg output.nc`
+
 # v0.4.5
 
 Minor changes, 5 patch increments because of some mistakes on my part creating releases:

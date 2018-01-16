@@ -37,7 +37,7 @@ Options:
 Notes:
 
  - DST is the filename for the NetCDF output and should not already exist, or will be overwritten.
- - SRC is a list of input NetCDF files to aggregate.
+ - SRC is a list of input NetCDF files to aggregate, can be passed on the command line or piped to ncagg.
  - -u should specify an Unlimited Dimension Configuration. See below for details.
  - Taking tens of minutes for a day is normal, a progress bar will indicate time remaining.
  - For fine grained control over the output, specify a configuration template (-t). See below for details.
@@ -63,6 +63,9 @@ ncagg -u record_number:time:10 output_filename.nc path_to_files/*.nc
 ncagg -u record_number:time:10 -b T20170601:T20170602 output_filename.nc path_to_files/*.nc
 #     or equivalently, if only one bound is specified, the end is inferred to be most significant + 1
 ncagg -u record_number:time:10 -b T20170601 output_filename.nc path_to_files/*.nc
+
+#     aggregate more files than fit on the command line... (in case of: Argument list too long)
+find /path/to/files -type f -name "*.nc" | ncagg output.nc
 ```
 
 For more information, see the Unlimited Dimension Configuration below. The `ncagg` Command Line Interface (CLI)

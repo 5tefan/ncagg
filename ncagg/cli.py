@@ -85,12 +85,29 @@ def print_config(ctx, param, sample_netcdf):
     click.echo(json.dumps(the_config, sort_keys=True, indent=4))
     ctx.exit()
 
+
+src_path_type = click.Path(exists=True, dir_okay=False)
+
+def get_src_from_stdin(ctx, param, value):
+    stdin = click.get_text_stream("stdin")
+    if not value and not stdin.isatty():
+        f = lambda should_be_file: src_path_type.convert(should_be_file, param, ctx)
+        value = map(f, stdin.read().strip().split())
+        if not value:
+            # otherwise, nothing found
+            raise click.BadParameter("No files provided as argument or via stdin.", ctx=ctx, param=param)
+    elif not value:
+        # otherwise, nothing found
+        raise click.BadParameter("No files provided as argument or via stdin.", ctx=ctx, param=param)
+    return value
+
+
 @click.command()
 @click.version_option(version, "-v", "--version")
 @click.option("--generate_template", callback=print_config, expose_value=False, is_eager=True,
               type=click.Path(exists=True, dir_okay=False), help="Print the default template generated for PATH and exit.")
 @click.argument("dst", type=click.Path(exists=False, dir_okay=False))
-@click.argument("src", nargs=-1, type=click.Path(exists=True, dir_okay=False))
+@click.argument("src", nargs=-1, callback=get_src_from_stdin, type=src_path_type)
 @click.option("-u", help="Give an Unlimited Dimension Configuration as udim:ivar[:hz[:hz]]")
 @click.option("-b", help="If -u given, specify bounds for ivar as min:max or Tstart[:[T]stop]. "
                          "min and max are numerical, otherwise T indicates start and stop are times."
@@ -100,6 +117,8 @@ def print_config(ctx, param, sample_netcdf):
               default="WARNING")
 @click.option("-t", help="Specify a configuration template", type=click.File("r"))
 def cli(dst, src, u=None, b=None, l="WARNING", t=None):
+    print("src", src)
+    click.echo("hello")
     logging.getLogger().setLevel(l)
     if t is not None:  # if given a template...
         config = Config.from_dict(json.load(t))
