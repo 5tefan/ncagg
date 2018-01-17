@@ -258,6 +258,7 @@ strategies exist to aggregate Global Attributes across the granules. Most are qu
  - "first_input": Filename of first file included in aggregate
  - "last_input": Filename of last file included in aggregate
  - "input_count": Number of files included in aggregate
+ - "ncagg_version": Version number for the ncagg software running
 
  
  The configuration format expects a key "global attributes" associated with a list of objects each containing 

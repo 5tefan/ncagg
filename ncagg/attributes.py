@@ -1,10 +1,11 @@
-import logging
 import os
 import re
+import logging
 import traceback
 from datetime import datetime
 
 import netCDF4 as nc
+import pkg_resources
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +120,17 @@ class StratUniqueList(Strat):
 
     def finalize(self, nc_out):
         return ", ".join(self.attr)
+
+class StratNcaggVersion(Strat):
+    """
+    Include an attribute indicating what version of ncagg was used.
+    """
+    def process(self, attr, nc_obj=None):
+        pass  # do nothing
+
+    def finalize(self, nc_out):
+        return pkg_resources.require("ncagg")[0].version
+    
 
 
 class StratIntSum(Strat):
@@ -282,7 +294,8 @@ class AttributeHandler(object):
         "remove": StratRemove,
         "first_input": StartFirstInputFilename,
         "last_input": StartLastInputFilename,
-        "input_count": StratCountInputFiles
+        "input_count": StratCountInputFiles,
+        "ncagg_version": StratNcaggVersion
     }
 
     def __init__(self, config, *args, **kwargs):
