@@ -212,7 +212,11 @@ def get_coverage_for(config, input_files, udim):
         if not coverage_diff[problem_index] <= gap_too_small_upper_bound_seconds:
             continue  # case: prev file removed, coverage diff updated to exclude rm'd file.
                       # now it's fine so move along...
-        num_overlap = int(np.ceil(np.abs(coverage_diff[problem_index] * cadence_hz)))
+        #num_overlap = int(np.round(np.abs(coverage_diff[problem_index] * cadence_hz)))
+        if problem_index == 0 or problem_index == len(coverage_diff) - 1:
+            num_overlap = np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))
+        else:
+            num_overlap = np.abs(np.ceil(coverage_diff[problem_index] * cadence_hz))
         if num_overlap == 0:
             continue  # skip if num overlap == 0, nothing to do!
         # Take the gap off from front of following file, ie. bias towards first values that arrived.
@@ -233,6 +237,7 @@ def get_coverage_for(config, input_files, udim):
                 # Recall that ends is offset by 1 because the first ends (ie. ends[0]) is the beginning
                 # of the aggregation window, not the end of an actual file.
                 coverage_diff[problem_index+1] = starts[problem_index+1] - ends[problem_index]
+                print coverage_diff
         else:
             # if it's the last file, have to take it off the end of the previous instead of beginning of next.
             input_files[problem_index - 1].set_dim_slice_stop(udim, -num_overlap)
