@@ -93,7 +93,8 @@ def generate_aggregation_list(config, files_to_aggregate):
         # implication: files will be sorted according to the first indexed unlimited dimension.
         input_files = sorted(input_files, key=lambda i: i.get_first_of_index_by(index_by[0]))
 
-        # calculate where fill value are needed between files
+        # calculate where fill value are needed between files, get_coverage_for has side effect
+        # of updating start and stop index of each dimension if any overlapping files are detected.
         fills_needed = {d["name"]: get_coverage_for(config, input_files, d) for d in index_by}
 
         for i in range(len(input_files)+1):
@@ -110,6 +111,7 @@ def generate_aggregation_list(config, files_to_aggregate):
                 aggregation_list.append(fill_node)
             if i < len(input_files):
                 aggregation_list.append(input_files[i])
+
     else:  # case: no sorting, just glue files together
         aggregation_list.extend(input_files)
 
@@ -194,21 +196,43 @@ def get_coverage_for(config, input_files, udim):
     # if the gap is less than 0, we'll need to trim something, ie two files overlap and
     # we'll need to pick one of the overlapping
     gap_too_small_upper_bound_seconds = dt_min if cadence_hz > 0 else 0
-    where_gap_too_small = np.where(coverage_diff <= gap_too_small_upper_bound_seconds)[0]
+
+    # chop the first and last coverage diff, we just don't care if they're too small...
+    # - if the first gap is too small, means space between beginning of aggregation time bound and first
+    #   file start is less than cadence_hz, which is ok....
+    # - if the last gap is too small, means the space between end of aggregation time bound and end of
+    #   last record is less than cadence_hz, which is also ok. Don't get rid of it or anything since it
+    #   won't be included in the next aggregation.
+    # note: also add 1, since we'll be indexing coverage_diff with the indicies of where_gap_too_small,
+    #   so when chopping the first, must add 1 to algin indicies. 
+    where_gap_too_small = np.where((coverage_diff <= gap_too_small_upper_bound_seconds))[0]
     for problem_index in where_gap_too_small:
-        # TODO: do we need both ceil and floor in there?
-        num_overlap = int(np.ceil(np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))))
+        # make sure the gap is _still_ too small, just in case it was fixed perviously by removing 
+        # and recomputing a gap... in an earlier round of this loop.
+        if not coverage_diff[problem_index] <= gap_too_small_upper_bound_seconds:
+            continue  # case: prev file removed, coverage diff updated to exclude rm'd file.
+                      # now it's fine so move along...
+        num_overlap = int(np.ceil(np.abs(coverage_diff[problem_index] * cadence_hz)))
         if num_overlap == 0:
             continue  # skip if num overlap == 0, nothing to do!
         # Take the gap off from front of following file, ie. bias towards first values that arrived.
-        # On the end, when there is no following file, instead chop the end from the last file. Check
-        # also num_missing just in case there's a FillNode after in which case don't take it off of
-        # the end even if it's the last file.
+        # On the end, when there is no following file, instead chop the end from the last file. 
+        # Note: problem_index==0 is important in case len(input_files) is 1.
+        # TODO: also check num_missing just in case there's a FillNode after in which case don't 
+        # take it off of the end even if it's the last file.
         if problem_index < len(input_files) - 1 or problem_index == 0:
             # this np.floor is consistent with np.ceil (pretty sure, bias towards keeping data
             # with the previous agg interval if a record falls over? Shouldn't really matter as long
             # as we're consistent.
             input_files[problem_index].set_dim_slice_start(udim, num_overlap)
+            if input_files[problem_index].get_size_along(udim) == 0:
+                # If the size is now 0, we've completely removed this file from aggregation.
+                # we'll need to update the next coverage_diff to make it reflect the diff between 
+                # the end of the previous file and the beginning of the next. (ie. skip this file that has
+                # just been removed.
+                # Recall that ends is offset by 1 because the first ends (ie. ends[0]) is the beginning
+                # of the aggregation window, not the end of an actual file.
+                coverage_diff[problem_index+1] = starts[problem_index+1] - ends[problem_index]
         else:
             # if it's the last file, have to take it off the end of the previous instead of beginning of next.
             input_files[problem_index - 1].set_dim_slice_stop(udim, -num_overlap)
@@ -257,7 +281,7 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
             nc_out.variables[var["name"]][:] = vars_once_src.data_for(var)
 
         for component in aggregation_list:
-
+            
             unlim_starts = {k: nc_out.dimensions[k].size for k, v in config.dims.items() if v["size"] is None}
 
             for var in vars_unlim:

@@ -1,3 +1,13 @@
+# v0.6.0 - 2018-01-19
+
+Bug fixes and new attribute strategy:
+
+ - Adds ncagg_version global attribute strategy
+ - Taking the floor of record overlap was incorrect, noticable with single record files
+ - Overlap between files with one record could cause all the records to be
+     removed - in which case time diff between files needs to be updated.
+
+
 # v0.5.0
 
 Support piped list of files to aggregate in case [Argument list too long] encountered

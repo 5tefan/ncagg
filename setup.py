@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name='ncagg',
-    version='0.5.0',
+    version='0.6.0',
     description="Utility for aggregation of NetCDF data.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",

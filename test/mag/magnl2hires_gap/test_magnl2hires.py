@@ -102,7 +102,13 @@ class TestEvaluateAggregationList(unittest.TestCase):
 
         datetimes = nc.num2date(numeric_times, self.output.variables["time"].units)
         self.assertLess(abs((datetimes[0]-self.start_time).total_seconds()), 0.1)
-        self.assertLess(abs((datetimes[-1]-self.end_time).total_seconds()), 0.1)
+        # verified, this difference should be ~0.000825, first timestamp after 
+        # start_time is datetime(2017, 4, 14, 19, 23, 0, 825)
+        self.assertTrue(0. <= (datetimes[0] - self.start_time).total_seconds() < 0.1)
+        self.assertEqual(datetimes[0], datetime(2017, 4, 14, 19, 23, 0, 825))
+
+        # the end timestamp should be at most 1 cadence before the end_time
+        self.assertTrue(0. <= (self.end_time - datetimes[-1]).total_seconds() < 0.1)
 
     def test_data(self):
         """Make sure there is some data in the file."""
