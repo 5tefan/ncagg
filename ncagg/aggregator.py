@@ -6,7 +6,7 @@ from datetime import datetime
 import netCDF4 as nc
 import numpy as np
 
-from ncagg.aggrelist import FillNode, InputFileNode, AggreList
+from ncagg.aggrelist import FillNode, InputFileNode
 from ncagg.attributes import AttributeHandler
 from ncagg.config import Config
 
@@ -45,7 +45,7 @@ def aggregate(files_to_aggregate, output_filename, config=None):
 
 
 def generate_aggregation_list(config, files_to_aggregate):
-    # type: (Config, list) -> AggreList
+    # type: (Config, list) -> list
     """
     Generate an aggregation list from a list of input files.
 
@@ -53,196 +53,119 @@ def generate_aggregation_list(config, files_to_aggregate):
     :param files_to_aggregate: a list of filenames to aggregate.
     :type config: Config
     :param config: An aggregation configuration.
-    :rtype: AggreList
-    :return: an aggregation list
+    :rtype: list
+    :return: a list containing objects inheriting from AbstractNode describing aggregation
     """
-    aggregation_list = AggreList()
+    preliminary = []
 
-    if len(files_to_aggregate) == 0:
-        # no files to aggregate, exit immediately, do nothing
-        logger.error("No files to aggregate!")
-        return aggregation_list
-
-    logger.info("Initializing input file nodes...")
-    input_files = []
-    n_errors = 0.0
-    for fn in sorted(files_to_aggregate):
+    for f in sorted(files_to_aggregate):
         try:
-            input_files.append(InputFileNode(config, fn))
+            preliminary.append(InputFileNode(config, f))
         except Exception as e:
-            n_errors += 1
-            logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (fn, repr(e)))
+            logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (f, repr(e)))
             logger.debug(traceback.format_exc())
-            if n_errors / len(files_to_aggregate) >= 0.5:
-                logger.error("Exceeding half bad granules. Something likely wrong, but continuing."
-                             "Resulting file will probably have lots of fill values. Latest error was:\n"
-                             "Error initializing InputFileNode for %s, skipping." % fn)
-                logger.error(traceback.format_exc())
-                # once logger.error triggered once for input problem, make sure it won't trigger again.
-                n_errors = -1.0
 
-    if len(input_files) == 0:
-        # hmmm, no files survived initialization is InputFileNode
-        logger.error("No valid files found.")
-        return aggregation_list
+    if len(preliminary) == 0:
+        # no files in aggregation list... abort
+        return preliminary
 
-    # calculate file coverage if any unlimited dimensions are configured.
-    # must have an index_by dimension configured, flatten ones don't count
-    index_by = [d for d in config.dims.values() if d["index_by"] is not None and not d["flatten"]]
-    if len(index_by) > 0:  # case: doing sorting
-        # implication: files will be sorted according to the first indexed unlimited dimension.
-        input_files = sorted(input_files, key=lambda i: i.get_first_of_index_by(index_by[0]))
+    index_by_dims = [d for d in config.dims.values() if d["index_by"] is not None and not d["flatten"]]
+    if len(index_by_dims) == 0:
+        # no indexing dimensions found... nothing further to do here...
+        return preliminary
 
-        # calculate where fill value are needed between files, get_coverage_for has side effect
-        # of updating start and stop index of each dimension if any overlapping files are detected.
-        fills_needed = {d["name"]: get_coverage_for(config, input_files, d) for d in index_by}
+    # Find the primary index_by dim. First is_primary found, otherwise first index_by dim.
+    primary_index_by = next((d for d in config.dims.values() if d.get("is_primary", False) == True), index_by_dims[0])
 
-        for i in range(len(input_files)+1):
-            fills_needed_dim_start_size = []
-            for d in index_by:
-                num_missing, missing_start = fills_needed[d["name"]]  # fills needed and start of missing for a dim d
-                if num_missing[i] > 0:  # Any missing point along this dimension between these files?
-                    fills_needed_dim_start_size.append((d, missing_start[i], num_missing[i]))
-            if len(fills_needed_dim_start_size) > 0:
-                # If there's anything to put in the fill node, init, fill and add to agg list.
-                fill_node = FillNode(config)
-                for d, start, size in fills_needed_dim_start_size:
-                    fill_node.set_udim(d, size, start)
-                aggregation_list.append(fill_node)
-            if i < len(input_files):
-                aggregation_list.append(input_files[i])
-
-    else:  # case: no sorting, just glue files together
-        aggregation_list.extend(input_files)
-
-    return aggregation_list
-
-
-def get_coverage_for(config, input_files, udim):
-    # type: (Config, list, dict) -> (np.array, np.array)
-    """
-    Mutate the actual input_files to fix overlap problems, by setting slicing on appropriate dims.
-    Return how big the gaps between files are in terms of missing expected_cadence steps and
-    what the last value before the gap is.
-
-    :type config: Config
-    :type input_files: list[InputFileNode]
-    :param input_files:
-    :type unlim_dim: dict
-    :param unlim_dim: Configuration for an unlimited dim. Element of Config.dims
-    :rtype: (np.array, np.array)
-    :return: (size of gaps, if gap: last value: else 0)
-    """
-
-    # to complete the operation of this function, the udim must be configured with an expected_cadence, min, and max
-    required_keys = ["expected_cadence", "min", "max"]
-    keys_to_none = [k for k in required_keys if udim.get(k, None) is None]
-    if len(keys_to_none) > 0:
-        raise ValueError("Cannot get coverage for unlimited dim %s, missing %s" % (udim["name"], keys_to_none))
-
-    cadence_hz = float(udim["expected_cadence"].get(udim["name"], np.nan))  # TODO: what to do if None?
+    # Transfer items from perlimiary to final. According to primary index_by dim,
+    # adding fill nodes and correcting overlap.
+    preliminary = sorted(preliminary, key=lambda p: p.get_first_of_index_by(primary_index_by))
 
     def cast_bound(bound):
         """ Cast a bound to a numerical type for use. Will not be working directly with datetime objects. """
         if isinstance(bound, datetime):
-            units = config.vars[udim["index_by"]]["attributes"]["units"]
+            units = config.vars[primary_index_by["index_by"]]["attributes"]["units"]
             return nc.date2num(bound, units)
         return bound
 
-    # turn min and max into numerical object if they come in as datetime
-    last_value_before = cast_bound(udim["min"])
-    first_value_after = cast_bound(udim["max"])
+    first_along_primary = cast_bound(primary_index_by["min"])
+    last_along_primary = cast_bound(primary_index_by["max"])
+    cadence_hz = primary_index_by["expected_cadence"].get(primary_index_by["name"], None)
 
-    # remove files that aren't between last_value_before and first_value_after
-    starts = []
-    ends = []
-    # iterate over a copy of the list since we might be removing things while iterating over it
-    for each in input_files[:]:
-        try:
-            start = each.get_first_of_index_by(udim)
-            end = each.get_last_of_index_by(udim)
-        except Exception as e:
-            logger.error("Error getting start or end of %s, removing from processing: %s" % (each, repr(e)))
-            input_files.remove(each)
-            continue
-
-        if (last_value_before and end < last_value_before) or (first_value_after and start > first_value_after):
-            logger.info("File not in bounds: %s" % each)
-            input_files.remove(each)
-        else:  # case: file good to include.
-            starts.append(start)
-            ends.append(end)
+    # Can continue into the correction loop as long as we have at least cadence_hz, or min and max.
+    if cadence_hz is None and first_along_primary is None and last_along_primary is None:
+        return preliminary
 
     dt_min = (1.0 / ((2.0 - timing_certainty) * cadence_hz))
-    dt_max = (1.0 / (timing_certainty * cadence_hz))
-    assert dt_min <= dt_max
-    # turn starts and ends into np.ndarray with last_value_before and first_value_after in approriate spots
-    starts = np.hstack((starts, [(first_value_after or ends[-1])]))
-    ends = np.hstack(([(last_value_before or starts[0])], ends))
+    dt_max = (1.0 / (timing_certainty * cadence_hz))  # gap is too small if less than 1 of smallest timestep
 
-    # stagger and take diff so that eg. coverage_diff[1] is gap between first and second file...
-    coverage = np.empty((starts.size + ends.size), dtype=starts.dtype)
-    coverage[0::2] = ends
-    coverage[1::2] = starts
-    coverage_diff = np.diff(coverage)[::2]
+    final = []
+    while len(preliminary) > 0:
+        next_f = preliminary.pop(0)  # type: InputFileNode
+        next_start = next_f.get_first_of_index_by(primary_index_by)
+        next_end = next_f.get_last_of_index_by(primary_index_by)
 
-    # if the gap is larger than 2 nominal steps, we'll need to fill (if the expected cadence is known)
-    # number of filles needed is insert coverage_diff[gap_too_big] * cadence_hz fill values
-    gap_too_big = coverage_diff > (2.0 * dt_min)  # type: np.ndarray
-    num_missing = np.zeros_like(gap_too_big, dtype=int)
-    for index in gap_too_big.nonzero()[0]:
-        num_missing[index] = np.floor((coverage_diff[index] - (1.0 / cadence_hz)) * cadence_hz)
+        # check if this potential next file is completely outside of the time bounds...
+        if ((first_along_primary is not None and first_along_primary > next_end) or
+                (last_along_primary is not None and last_along_primary < next_start)):
+            logger.info("File not in bounds: %s" % next_f)
+            # out of bounds, doesn't get included
+            continue
 
-    # if the gap is less than 0, we'll need to trim something, ie two files overlap and
-    # we'll need to pick one of the overlapping
-    gap_too_small_upper_bound_seconds = dt_min if cadence_hz > 0 else 0
+        # if we get here, but have no cadence_hz, nothing more to do, just add file to final and continue.
+        if cadence_hz is None:
+            final.append(next_f)
+            continue
 
-    # chop the first and last coverage diff, we just don't care if they're too small...
-    # - if the first gap is too small, means space between beginning of aggregation time bound and first
-    #   file start is less than cadence_hz, which is ok....
-    # - if the last gap is too small, means the space between end of aggregation time bound and end of
-    #   last record is less than cadence_hz, which is also ok. Don't get rid of it or anything since it
-    #   won't be included in the next aggregation.
-    # note: also add 1, since we'll be indexing coverage_diff with the indicies of where_gap_too_small,
-    #   so when chopping the first, must add 1 to algin indicies. 
-    where_gap_too_small = np.where((coverage_diff <= gap_too_small_upper_bound_seconds))[0]
-    for problem_index in where_gap_too_small:
-        # make sure the gap is _still_ too small, just in case it was fixed perviously by removing 
-        # and recomputing a gap... in an earlier round of this loop.
-        if not coverage_diff[problem_index] <= gap_too_small_upper_bound_seconds:
-            continue  # case: prev file removed, coverage diff updated to exclude rm'd file.
-                      # now it's fine so move along...
-        #num_overlap = int(np.round(np.abs(coverage_diff[problem_index] * cadence_hz)))
-        if problem_index == 0 or problem_index == len(coverage_diff) - 1:
-            num_overlap = np.abs(np.floor(coverage_diff[problem_index] * cadence_hz))
-        else:
-            num_overlap = np.abs(np.ceil(coverage_diff[problem_index] * cadence_hz))
-        if num_overlap == 0:
-            continue  # skip if num overlap == 0, nothing to do!
-        # Take the gap off from front of following file, ie. bias towards first values that arrived.
-        # On the end, when there is no following file, instead chop the end from the last file. 
-        # Note: problem_index==0 is important in case len(input_files) is 1.
-        # TODO: also check num_missing just in case there's a FillNode after in which case don't 
-        # take it off of the end even if it's the last file.
-        if problem_index < len(input_files) - 1 or problem_index == 0:
-            # this np.floor is consistent with np.ceil (pretty sure, bias towards keeping data
-            # with the previous agg interval if a record falls over? Shouldn't really matter as long
-            # as we're consistent.
-            input_files[problem_index].set_dim_slice_start(udim, num_overlap)
-            if input_files[problem_index].get_size_along(udim) == 0:
-                # If the size is now 0, we've completely removed this file from aggregation.
-                # we'll need to update the next coverage_diff to make it reflect the diff between 
-                # the end of the previous file and the beginning of the next. (ie. skip this file that has
-                # just been removed.
-                # Recall that ends is offset by 1 because the first ends (ie. ends[0]) is the beginning
-                # of the aggregation window, not the end of an actual file.
-                coverage_diff[problem_index+1] = starts[problem_index+1] - ends[problem_index]
-                print coverage_diff
-        else:
-            # if it's the last file, have to take it off the end of the previous instead of beginning of next.
-            input_files[problem_index - 1].set_dim_slice_stop(udim, -num_overlap)
+        prev_end = final[-1].get_last_of_index_by(primary_index_by) if len(final) > 0 else first_along_primary
 
-    return num_missing, np.where(num_missing, ends, np.zeros_like(num_missing))
+        # if the gap between last file and this potential file to be added
+        gap_between = next_start - prev_end
+
+        # gap too big if skips 1.5 of the largest possible expected timesteps.
+        if gap_between > (1.5 * dt_max):
+            # if the gap is too big, insert an appropriate fill value.
+            fill_node = FillNode(config)
+            size = np.floor((gap_between - (1.0 / cadence_hz)) * cadence_hz)
+            fill_node.set_udim(primary_index_by, size, prev_end)
+            final.append(fill_node)
+
+        # if the gap is too small, chop some off this next file to make it fit...
+        if gap_between < 0.5 * dt_min:
+            num_overlap = np.abs(gap_between * cadence_hz)
+            num_overlap = np.ceil(num_overlap) if num_overlap < 1 else np.floor(num_overlap)
+            next_f.set_dim_slice_start(primary_index_by, num_overlap)
+            next_start = next_f.get_first_of_index_by(primary_index_by)  # update, it changed and is used later!
+
+        # make sure the start of next_f isn't sticking out over the min bound
+        if first_along_primary is not None and first_along_primary > next_start:
+            gap_between_start = first_along_primary - next_start
+            num_overlap = np.abs(np.floor((gap_between_start - (1.0 / cadence_hz)) * cadence_hz))
+            next_f.set_dim_slice_start(primary_index_by, num_overlap)
+
+        # make sure the end of the next_f isn't sticking out over the max boundary
+        if last_along_primary is not None and last_along_primary < next_end:
+            gap_between_end = next_end - last_along_primary
+            num_overlap = np.abs(np.floor((gap_between_end + (1.0 / cadence_hz)) * cadence_hz))
+            next_f.set_dim_slice_stop(primary_index_by, -num_overlap)
+
+        # and finally, if there's anything left of this next_f, add it to the final
+        if next_f.get_size_along(primary_index_by) > 0:
+            final.append(next_f)
+
+    # after looping over the input files given, check if we haven't quite reached the end point and need
+    # to add a FillNode to get the final way there.
+    if not isinstance(final[-1], FillNode):
+        prev_end = final[-1].get_last_of_index_by(primary_index_by)
+        gap_to_end = last_along_primary - prev_end
+        if gap_to_end > (2.0 * dt_max):
+            fill_node = FillNode(config)
+            size = np.floor((gap_to_end - (1.0 / cadence_hz)) * cadence_hz)
+            fill_node.set_udim(primary_index_by, size, prev_end)
+            final.append(fill_node)
+
+    return final
+
 
 def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=None):
     """
@@ -254,7 +177,7 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
     :param callback: called every time an aggregation_list element is processed.
     :return: None
     """
-    if len(aggregation_list) == 0:
+    if aggregation_list is None or len(aggregation_list) == 0:
         logger.warn("No files in aggregation list, nothing to do.")
         return  # bail early
 

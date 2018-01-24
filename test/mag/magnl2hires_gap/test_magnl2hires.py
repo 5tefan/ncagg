@@ -4,6 +4,7 @@ import numpy as np
 import netCDF4 as nc
 from ncagg.config import Config
 from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
+from ncagg.aggregator import FillNode
 from datetime import datetime
 import glob
 import os
@@ -45,7 +46,7 @@ class TestGenerateAggregationList(unittest.TestCase):
         self.assertEqual(len(agg_list), 9)
 
     def test_superset_back(self):
-        """Test if it correctly inserts fill node to cover a gap at the start."""
+        """Test if it correctly inserts fill node to cover a gap at the end."""
         start_time = datetime(2017, 4, 14, 19, 23)
         end_time = datetime(2017, 4, 14, 20, 35)
         self.config.dims["time"].update({
@@ -53,7 +54,7 @@ class TestGenerateAggregationList(unittest.TestCase):
             "max": end_time,
         })
         agg_list = generate_aggregation_list(self.config, self.files)
-        self.assertEqual(len(agg_list), 9)
+        self.assertTrue(isinstance(agg_list[-1], FillNode))
 
     def test_subset(self):
         """Test if it correctly chops out enough outside the time bounds."""
@@ -96,11 +97,19 @@ class TestEvaluateAggregationList(unittest.TestCase):
     def test_time(self):
         """Make sure the time array looks ok. Evenly spaced, bounds are correct."""
         numeric_times = self.output.variables["time"][:]
+
+        self.assertGreater(numeric_times.size, 0)
+
         self.assertAlmostEqual(np.mean(np.diff(numeric_times)), 0.1, delta=0.01)
         self.assertAlmostEqual(np.min(np.diff(numeric_times)), 0.1, delta=0.01)
         self.assertAlmostEqual(np.max(np.diff(numeric_times)), 0.1, delta=0.01)
 
         datetimes = nc.num2date(numeric_times, self.output.variables["time"].units)
+
+        self.assertGreaterEqual(datetimes[0], self.start_time)
+        self.assertLessEqual(datetimes[-1], self.end_time)
+
+
         self.assertLess(abs((datetimes[0]-self.start_time).total_seconds()), 0.1)
         # verified, this difference should be ~0.000825, first timestamp after 
         # start_time is datetime(2017, 4, 14, 19, 23, 0, 825)
@@ -109,12 +118,5 @@ class TestEvaluateAggregationList(unittest.TestCase):
 
         # the end timestamp should be at most 1 cadence before the end_time
         self.assertTrue(0. <= (self.end_time - datetimes[-1]).total_seconds() < 0.1)
-
-    def test_data(self):
-        """Make sure there is some data in the file."""
-        self.assertEqual(
-            self.output.variables["b_gse"].shape,
-            (int((self.end_time - self.start_time).total_seconds()*10), 3)
-        )
 
 

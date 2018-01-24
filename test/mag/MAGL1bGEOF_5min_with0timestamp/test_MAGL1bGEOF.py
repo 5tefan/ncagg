@@ -4,6 +4,7 @@ import netCDF4 as nc
 import numpy as np
 from ncagg.config import Config
 from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
+from ncagg.aggrelist import FillNode
 from datetime import datetime, timedelta
 import glob
 import os
@@ -59,7 +60,7 @@ class TestGenerateAggregationList(unittest.TestCase):
             "max": end_time,
         })
         agg_list = generate_aggregation_list(self.config, self.files)
-        self.assertEqual(len(agg_list), 7)
+        self.assertTrue(isinstance(agg_list[-1], FillNode))
 
     def test_subset(self):
         """Test if it correctly chops out enough outside the time bounds."""
@@ -101,33 +102,34 @@ class TestEvaluateAggregationList(unittest.TestCase):
         super(TestEvaluateAggregationList, cls).tearDownClass()
         os.remove(cls.filename)
 
-    def test_time(self):
-        """Make sure the time array looks ok. Evenly spaced, bounds are correct."""
-        numeric_times = self.output.variables["OB_time"][:, 0].flatten()
-        self.assertAlmostEqual(np.mean(np.diff(numeric_times)), 1, delta=0.02)
-        self.assertAlmostEqual(np.min(np.diff(numeric_times)), 1, delta=0.02)
-        self.assertAlmostEqual(np.max(np.diff(numeric_times)), 1, delta=0.02)
-
-        datetimes = nc.num2date(numeric_times, self.output.variables["OB_time"].units)
-        self.assertLess(abs((datetimes[0]-self.start_time).total_seconds()), 1)
-        self.assertLess(abs((datetimes[-1]-self.end_time).total_seconds()), 1)
-
-
     def test_strict_time(self):
         """Make sure the time array looks ok. Evenly spaced, bounds are correct."""
-        numeric_times = self.output.variables["OB_time"][:].flatten()
-        np.set_printoptions(threshold=np.inf)
+        numeric_times = self.output.variables["OB_time"][:]
+
+        self.assertEqual(numeric_times.shape[1], 10, msg="MAG-L1b-GEOF time shape is (n, 3)")
+        # np.set_printoptions(threshold=np.inf)
         # logger.debug(numeric_times)
         # logger.debug(np.diff(numeric_times)[9:].reshape(-1, 10))
-        self.assertAlmostEqual(np.mean(np.diff(numeric_times)), 0.1, delta=0.002)
-        self.assertAlmostEqual(np.min(np.diff(numeric_times)), 0.1, delta=0.002)
-        self.assertAlmostEqual(np.max(np.diff(numeric_times)), 0.1, delta=0.002)
+
+        self.assertAlmostEqual(np.mean(np.diff(numeric_times[:, 0])), 1, delta=0.01)
+        self.assertAlmostEqual(np.min(np.diff(numeric_times[:, 0])), 1, delta=0.01)
+        self.assertAlmostEqual(np.max(np.diff(numeric_times[:, 0])), 1, delta=0.01)
+
+        flat_time = numeric_times.flatten()
+        self.assertAlmostEqual(np.mean(np.diff(flat_time)), 0.1, delta=0.002)
+        self.assertAlmostEqual(np.min(np.diff(flat_time)), 0.1, delta=0.002)
+        self.assertAlmostEqual(np.max(np.diff(flat_time)), 0.1, delta=0.002)
 
         datetimes = nc.num2date(numeric_times, self.output.variables["OB_time"].units)
+
+        # start and end are within bounds
+        self.assertGreater(datetimes[0, 0], self.start_time)
+        self.assertLess(datetimes[-1, 0], self.end_time)
+
         # since we have records of size 10 and we don't want any coming in before start time
         # the start time may be up to 0.9 after the aggregation start time,
-        self.assertLess(abs((datetimes[0]-self.start_time).total_seconds()), 0.91)
+        self.assertLess(abs((datetimes[0, 0]-self.start_time).total_seconds()), 1)
 
         # similarly for the aggregation end, we aren't chopping off in the middle of a records,
         # so even if the first one is before the end, up to 0.91 may be after.
-        self.assertLess(abs((datetimes[-10]-self.end_time).total_seconds()), 0.91)
+        self.assertLess(abs((datetimes[-1, 0]-self.end_time).total_seconds()), 1)

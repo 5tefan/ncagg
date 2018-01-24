@@ -9,6 +9,11 @@ import os
 import numpy as np
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class TestExis(unittest.TestCase):
     def setUp(self):
         # tmp file to aggregate to
@@ -29,29 +34,6 @@ class TestExis(unittest.TestCase):
         with nc.Dataset(self.nc_out_filename) as nc_out:  # type: nc.Dataset
             self.assertGreater(list(nc_out.variables.values())[0].size, 0)
 
-    def test_tiny_exis_with_config(self):
-        """Test an EXIS-L1b-SFXR aggregation with dimensions specified."""
-        # March 5th 00:30 through 00:35
-        start_time = datetime(2017, 3, 5, 0, 30)
-        end_time = datetime(2017, 3, 5, 0, 31)
-
-        self.config.dims["report_number"].update({
-            "index_by": "time",
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-            "expected_cadence": {"report_number": 1},
-        })
-        self.config.inter_validate()
-        aggregation_list = generate_aggregation_list(self.config, self.files[:2])
-        self.assertEqual(len(aggregation_list), 2)
-        evaluate_aggregation_list(self.config, aggregation_list, self.nc_out_filename)
-        with nc.Dataset(self.nc_out_filename) as nc_out:  # type: nc.Dataset
-            time = nc_out.variables["time"][:]
-            self.assertAlmostEqual(np.min(np.diff(time)), 1., delta=0.001)
-            self.assertAlmostEqual(np.max(np.diff(time)), 1., delta=0.001)
-            self.assertAlmostEqual(np.mean(np.diff(time)), 1., delta=0.001)
-            # print nc_out.variables["irradiance_xrsb1"][:]
-
     def test_exis_with_config(self):
         """Test an EXIS-L1b-SFXR aggregation with dimensions specified."""
         # March 5th 00:30 through 00:35
@@ -66,7 +48,6 @@ class TestExis(unittest.TestCase):
         })
         self.config.inter_validate()
         aggregation_list = generate_aggregation_list(self.config, self.files)
-        self.assertGreater(len(aggregation_list), 2)
         evaluate_aggregation_list(self.config, aggregation_list, self.nc_out_filename)
         with nc.Dataset(self.nc_out_filename) as nc_out:  # type: nc.Dataset
             time = nc_out.variables["time"][:]

@@ -4,6 +4,7 @@ import numpy as np
 import netCDF4 as nc
 from ncagg.config import Config
 from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
+from ncagg.aggrelist import FillNode
 from datetime import datetime
 import glob
 import os
@@ -48,7 +49,7 @@ class TestGenerateAggregationList(unittest.TestCase):
         self.assertEqual(len(agg_list), 8)
 
     def test_superset_back(self):
-        """Test if it correctly inserts fill node to cover a gap at the start."""
+        """Test if it correctly inserts fill node to cover a gap at end."""
         # March 5, 2017. 02:10:00 through 02:15:00
         start_time = datetime(2017, 3, 5, 2, 10)
         end_time = datetime(2017, 3, 5, 2, 20)
@@ -57,8 +58,7 @@ class TestGenerateAggregationList(unittest.TestCase):
             "max": end_time,
         })
         agg_list = generate_aggregation_list(self.config, self.files)
-        # with the fill Node in front... this becomes 8 elements
-        self.assertEqual(len(agg_list), 7)
+        self.assertTrue(isinstance(agg_list[-1], FillNode))
 
     def test_subset(self):
         """Test if it correctly chops out enough outside the time bounds."""
@@ -102,18 +102,18 @@ class TestEvaluateAggregationList(unittest.TestCase):
     def test_time(self):
         """Make sure the time array looks ok. Evenly spaced, bounds are correct."""
         numeric_times = self.output.variables["time"][:]
+
+        self.assertGreater(numeric_times.size, 0)
+
         self.assertAlmostEqual(np.mean(np.diff(numeric_times)), 0.1, delta=0.002)
         self.assertAlmostEqual(np.min(np.diff(numeric_times)), 0.1, delta=0.002)
         self.assertAlmostEqual(np.max(np.diff(numeric_times)), 0.1, delta=0.002)
 
         datetimes = nc.num2date(numeric_times, self.output.variables["time"].units)
-        self.assertLess(abs((datetimes[0] - self.start_time).total_seconds()), 0.1)
+
         self.assertGreaterEqual(datetimes[0], self.start_time)
-        self.assertLess(abs((datetimes[-1] - self.end_time).total_seconds()), 0.1)
         self.assertLessEqual(datetimes[-1], self.end_time)
 
-    def test_data(self):
-        """Make sure there is some data in the file."""
-        self.assertEqual(self.output.variables["b_gse"].shape, (3000, 3))
-        b_gse = self.output.variables["b_gse"][:]
-        self.assertEqual(np.ma.count(b_gse), 3000 * 3)
+        self.assertLess(abs((datetimes[0] - self.start_time).total_seconds()), 0.1)
+        self.assertLess(abs((datetimes[-1] - self.end_time).total_seconds()), 0.1)
+

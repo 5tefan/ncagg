@@ -9,29 +9,6 @@ import glob
 import os
 
 
-class TestGenerateAggregationList(unittest.TestCase):
-    def setUp(self):
-        _, self.file = tempfile.mkstemp()
-        pwd = os.path.dirname(__file__)
-        self.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        self.config = Config.from_nc(self.files[0])
-
-    def tearDown(self):
-        os.remove(self.file)
-
-    def test_with_config(self):
-        start_time = datetime(2017, 6, 8, 16, 45)
-        end_time = datetime(2017, 6, 8, 16, 50)
-        self.config.dims["report_number"].update({
-            "index_by": "L1a_SciData_TimeStamp",
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-            "expected_cadence": {"report_number": 1, "sensor_unit": 0},
-        })
-        agg_list = generate_aggregation_list(self.config, self.files)
-        self.assertEqual(len(agg_list), 6)
-
-
 class TestEvaluateAggregationList(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -65,7 +42,11 @@ class TestEvaluateAggregationList(unittest.TestCase):
         self.assertAlmostEqual(np.max(np.diff(numeric_times)), 1, delta=0.01)
 
         datetimes = nc.num2date(numeric_times, self.output.variables["L1a_SciData_TimeStamp"].units)
-        self.assertLess(abs((datetimes[0]-self.start_time).total_seconds()), 0.1)
-        self.assertLess(abs((datetimes[-1]-self.end_time).total_seconds()), 0.1)
+
+        self.assertGreaterEqual(datetimes[0], self.start_time)
+        self.assertLessEqual(datetimes[-1], self.end_time)
+
+        self.assertLessEqual(abs((datetimes[0]-self.start_time).total_seconds()), 1)
+        self.assertLessEqual(abs((datetimes[-1]-self.end_time).total_seconds()), 1)
 
 

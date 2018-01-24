@@ -117,8 +117,6 @@ def get_src_from_stdin(ctx, param, value):
               default="WARNING")
 @click.option("-t", help="Specify a configuration template", type=click.File("r"))
 def cli(dst, src, u=None, b=None, l="WARNING", t=None):
-    print("src", src)
-    click.echo("hello")
     logging.getLogger().setLevel(l)
     if t is not None:  # if given a template...
         config = Config.from_dict(json.load(t))

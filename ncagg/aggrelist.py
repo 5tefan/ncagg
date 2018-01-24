@@ -109,7 +109,7 @@ class FillNode(AbstractNode):
         some variable, what value the fills should start at.
         """
         udim_name = udim["name"]
-        self.unlimited_dim_sizes[udim_name] = size
+        self.unlimited_dim_sizes[udim_name] = int(size)
         self.unlimited_dim_index_start[udim_name] = 0 if start is None else start
 
     def get_size_along(self, udim):
@@ -505,23 +505,3 @@ class InputFileNode(AbstractNode):
             with nc.Dataset(self.filename) as nc_in:
                 callback(nc_in)
 
-
-class AggreList(list):
-    """
-    An AggreList instance is a list like object which contains data structures which can
-    be evalutated to produce an aggregated output file.
-
-    It is recommended to use the Aggregator class to construct the AggreList object.
-    """
-
-    def __init__(self):
-        super(AggreList, self).__init__()
-
-    def append(self, p_object):
-        """
-        Only insert valid aggregation Node type object.
-        :param p_object:
-        :return:
-        """
-        if isinstance(p_object, AbstractNode):
-            super(AggreList, self).append(p_object)

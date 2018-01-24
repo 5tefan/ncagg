@@ -10,31 +10,6 @@ import os
 import json
 
 
-class TestGenerateAggregationList(unittest.TestCase):
-    def setUp(self):
-        _, self.file = tempfile.mkstemp()
-        pwd = os.path.dirname(__file__)
-        self.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
-        with open(os.path.join(pwd, "seis-l1b-sgps-east.json")) as product_config_file:
-            self.config = Config.from_dict(json.load(product_config_file))
-
-    def tearDown(self):
-        os.remove(self.file)
-
-    def test_with_config(self):
-        start_time = datetime(2017, 6, 8, 16, 45)
-        end_time = datetime(2017, 6, 8, 16, 50)
-
-        self.config.dims["report_number"].update({
-            "index_by": "L1a_SciData_TimeStamp",
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-            "expected_cadence": {"report_number": 1, "sensor_unit": 0},
-        })
-        agg_list = generate_aggregation_list(self.config, self.files)
-        self.assertEqual(len(agg_list), 6)
-
-
 class TestEvaluateAggregationList(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

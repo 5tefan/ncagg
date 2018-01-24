@@ -75,19 +75,22 @@ builds a Config based on the arguments specified.
 
 Aggregation works in two stages:
 
-1. Create an AggreList object.
-2. Evaluate the AggreList.
+1. Create a Aggregation List describing steps and order of aggregation.
+2. Evaluate the Aggregation List.
 
-The AggreList object is a data structure that describes how to combine a set of files. The structure of the
-AggreList specifies the order of the files, what pieces of those files to include, fill values between files,
-as well as fill values and sorting inside files.
+The Aggregation List object is just a list that describes the order in which to combine components of an aggregation.
+The objects within the list represent source files, or segments of fill values. Source files are associated
+with sorting and filling instructions within the file. Fill values indicate where, and how many fill values to create.
 
-During stage 1, the AggreList is generated. The level of configuration given determines how much is done here.
+During stage 1, the Aggregation List is generated. The level of configuration given determines how much is done here.
 At most, each file is inspected according to it's unlimited dimension and the variable that indexes it to determine
-sorting and filling. No data except for index_by variables are read and none written to disk during this stage.
+sorting and filling. No data except for index_by variables are read and none written to disk during this stage. If
+an expected cadence is not provided, filling is not done. If bounds are provided, the unlimited dimension is clipped
+to ensure data is included only within the bounds. For the minimum configuration given, files are simply assembed in
+order of sorted filename.
 
-During stage 2, the AggreList is evaluated. Evaluating the AggreList means simply iterating over it and copying
-data from the nodes into the output aggregation file, while keeping track of global attributes.
+During stage 2, the Aggregation List is evaluated. Evaluating the Aggregation List means simply iterating over the
+components contained and copying data from these into the output aggregation file, while keeping track of global attributes.
 
 Reasons for using this approach:
 
@@ -99,10 +102,11 @@ Reasons for using this approach:
 ## Configuration
 
 The sophistication of the aggregation is determine by how much configuration information is given on
-generation of the AggreList.
+generation of the Aggregation List.
 
  - No Config -> agg files along unlimited dims, sorted by filename.
  - Config with index_by -> agg such that index_by is in ascending order.
+ - Config with index_by and bounds -> agg such that index_by is in ascending order within bounds.
  - Config with index_by and expected_cadences -> agg and regularize, removing duplicates/inserting fills if needed.
 
 The Config contains information that a NetCDF CDL specification would, but in json format, extended
@@ -372,9 +376,9 @@ performing aggregation.
 
 ## Technical and Implementation details
 
-An AggreList is composed of two types of objects, InputFileNode and FillNode objects. These inherit in common
+An Aggregation List is composed of two types of objects, InputFileNode and FillNode objects. These inherit in common
 from an AbstractNode and must implement the `get_size_along(unlimited_dim)` and `data_for(var, dim)` 
-methods. Evaluating an aggregation list is simply going though the AggreList and calling something like:
+methods. Evaluating an aggregation list is simply going though the Aggregation List and calling something like:
 
 ```
 nc_out.variable[var][write_slice] = node.data_for(var)
