@@ -373,6 +373,9 @@ aggregate(["file1.nc", "file2.nc"], "output.nc", config)
 This allows for the possibility of programatically manipulating the configuration at runtime before
 performing aggregation.
 
+## Limitations
+
+ - Does not support netCDF4 enum types.
 
 ## Technical and Implementation details
 
