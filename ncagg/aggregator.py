@@ -117,10 +117,21 @@ def generate_aggregation_list(config, files_to_aggregate):
             final.append(next_f)
             continue
 
-        prev_end = final[-1].get_last_of_index_by(primary_index_by) if len(final) > 0 else first_along_primary
-
-        # if the gap between last file and this potential file to be added
-        gap_between = next_start - prev_end
+        # if this is the first file, there is no previous file for there to be a gap with...
+        # instead, use first_along_primary (ie. min) to see if there is a gap.
+        if len(final) > 0:
+            # case: potential for an actual gap
+            prev_end = final[-1].get_last_of_index_by(primary_index_by)
+            gap_between = next_start - prev_end
+        else:  # len(final) == 0  # ie. this is the first file
+            # case: first file, use dim boundary
+            prev_end = first_along_primary
+            gap_between = next_start - prev_end
+            if 0 <= gap_between < dt_min:
+                # case: if record appears to be too close to the start boundary (small gap), set gap_
+                # between such that the first real record will remain, even if it's less than one
+                # full time step away from the bound.
+                gap_between = dt_min
 
         # gap too big if skips 1.5 of the largest possible expected timesteps.
         if gap_between > (1.5 * dt_max):
