@@ -1,3 +1,8 @@
+# v0.6.1 - 2018-02-26
+
+Bug fix. Will no longer erroneously chop initial record occuring
+too close, but after start bound.
+
 # v0.6.0 - 2018-01-24
 
 Bug fixes and new attribute strategy:
