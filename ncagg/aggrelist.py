@@ -343,7 +343,7 @@ class InputFileNode(AbstractNode):
         explicitly set or overridden, falling back on getting the actual size out of the
         file if it hasn't been overridden.
 
-        :type dim: str
+        :type dim: dict
         :param dim: dimension to get slice for
         :rtype: slice | int
         :return: slice for dimension dim
@@ -455,7 +455,6 @@ class InputFileNode(AbstractNode):
                         assert isinstance(agg_seg, slice), "Found %s" % agg_seg
                         data_in_transit = prelim_data[[agg_seg if d["name"] == dim_along else slice(None)
                                                        for d in dims]]
-
 
                     size_along_dim = np.shape(data_in_transit)[dim_i]
                     transformed_data[[slice(loc_along_dim, loc_along_dim + size_along_dim) if i == dim_i else slice(None)

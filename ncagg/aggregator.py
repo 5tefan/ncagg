@@ -14,15 +14,23 @@ logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-# Nominally, this is a three step process.
-#     # STEP 1. Initialize with an optional config.
-#     aggregator = Aggregator()
-#     # STEP 2. generate aggregation list from a list of files
-#     aggregation_list = aggregator.generate_aggregation_list(files)
-#     # STEP 3. finally, evaluate the aggregation list
-#     aggregator.evaluate_aggregation_list(aggregation_list, filename)
-
+# WELCOME:
+# A convenience wrapper is provided as  `aggregate(files, output, config=None)`
+#
+# Under the hood, this is a two step process.
+#     # STEP 1. Create the aggregation list from a list of files.
+#       aggregation_list = generate_aggregation_list(config, files)
+#     # STEP 2. Evaluate the aggregation list to an output file.
+#       evaluate_aggregation_list(aggregation_list, filename)
+#
+# -----------------------
+#
+# How certain is the cadence/arrival of unlim dim indicies? Most likely, real instruments
+# don't produce measurements at an EXACT step... generally there will be some wiggle room.
+# Should take a value between 0.0 < timing_certainty <= 1.0, where 1.0 is most certain and
+# allows no deviation.  # TODO: configurable per unlim dim?
 timing_certainty = 0.9
+
 
 def aggregate(files_to_aggregate, output_filename, config=None):
     """
@@ -35,7 +43,7 @@ def aggregate(files_to_aggregate, output_filename, config=None):
     :param output_filename: Filename to create and write output to.
     :type config: Config
     :param config: Optional configuration, default generated from first file if not given.
-    :return:
+    :return: None
     """
     if config is None:
         config = Config.from_nc(files_to_aggregate[0])
@@ -49,10 +57,10 @@ def generate_aggregation_list(config, files_to_aggregate):
     """
     Generate an aggregation list from a list of input files.
 
-    :type files_to_aggregate: list[str]
-    :param files_to_aggregate: a list of filenames to aggregate.
+    :param config: Aggregation configuration
     :type config: Config
-    :param config: An aggregation configuration.
+    :param files_to_aggregate: a list of filenames to aggregate.
+    :type files_to_aggregate: list[str]
     :rtype: list
     :return: a list containing objects inheriting from AbstractNode describing aggregation
     """
@@ -82,7 +90,9 @@ def generate_aggregation_list(config, files_to_aggregate):
     preliminary = sorted(preliminary, key=lambda p: p.get_first_of_index_by(primary_index_by))
 
     def cast_bound(bound):
-        """ Cast a bound to a numerical type for use. Will not be working directly with datetime objects. """
+        """ Cast a bound to a numerical type for use. Will not be working directly with datetime objects. 
+        :rtype: float
+        """
         if isinstance(bound, datetime):
             units = config.vars[primary_index_by["index_by"]]["attributes"]["units"]
             return nc.date2num(bound, units)
@@ -96,8 +106,11 @@ def generate_aggregation_list(config, files_to_aggregate):
     if cadence_hz is None and first_along_primary is None and last_along_primary is None:
         return preliminary
 
-    dt_min = (1.0 / ((2.0 - timing_certainty) * cadence_hz))
-    dt_max = (1.0 / (timing_certainty * cadence_hz))  # gap is too small if less than 1 of smallest timestep
+    # dt_min is minimum time between files given timing_certainty. Inflate cadence (higher hz) -> smaller time step
+    # similarly, lower cadence (lower hz) -> larger time step
+    dt_min = (1.0 / ((2.0 - timing_certainty) * cadence_hz))  # smallest expected time step
+    dt_nom = (1.0 / cadence_hz)  # nominal expected time step
+    dt_max = (1.0 / (timing_certainty * cadence_hz))  # largest expected time step
 
     final = []
     while len(preliminary) > 0:
@@ -117,47 +130,49 @@ def generate_aggregation_list(config, files_to_aggregate):
             final.append(next_f)
             continue
 
-        # if this is the first file, there is no previous file for there to be a gap with...
-        # instead, use first_along_primary (ie. min) to see if there is a gap.
+        # subtract dt_min since first_along_primary is the bound, not a valid time point, so decrease to ensure
+        # that CASE: gap-too-small isn't triggered for first point, causing first point to get chopped off.
         if len(final) > 0:
-            # case: potential for an actual gap
             prev_end = final[-1].get_last_of_index_by(primary_index_by)
-            gap_between = next_start - prev_end
-        else:  # len(final) == 0  # ie. this is the first file
-            # case: first file, use dim boundary
-            prev_end = first_along_primary
-            gap_between = next_start - prev_end
-            if 0 <= gap_between < dt_min:
-                # case: if record appears to be too close to the start boundary (small gap), set gap_
-                # between such that the first real record will remain, even if it's less than one
-                # full time step away from the bound.
-                gap_between = dt_min
+        elif first_along_primary is None:
+            # don't have a bound to compare against, so just have to start by adding first file we get
+            final.append(next_f)
+            continue
+        else:
+            prev_end = first_along_primary - dt_min
 
-        # gap too big if skips 1.5 of the largest possible expected timesteps.
-        if gap_between > (1.5 * dt_max):
+        # the size of the gap between the previous file and the next, nominally time gap
+        gap_between = next_start - prev_end
+
+        # gap too big if skips 1.5 of the largest possible expected dt...
+        if gap_between > dt_max:  # <----------- CASE: gap-too-big
             # if the gap is too big, insert an appropriate fill value.
             fill_node = FillNode(config)
-            size = np.floor((gap_between - (1.0 / cadence_hz)) * cadence_hz)
-            fill_node.set_udim(primary_index_by, size, prev_end)
+            size = np.floor((gap_between-dt_min) * cadence_hz)
+
+            if len(final) > 0:  # <-------------- CASE: exists-previous-file
+                # when there is a previous file, make timestamps even from end of that one
+                start_from = prev_end
+            else:  # <------------- CASE: no-previous-file
+                # otherwise look at the next timestamp, and go backward _size_ from there to get the start_from.
+                start_from = next_start - (size * dt_nom) - dt_nom
+
+            fill_node.set_udim(primary_index_by, size, start_from)
             final.append(fill_node)
 
         # if the gap is too small, chop some off this next file to make it fit...
-        if gap_between < 0.5 * dt_min:
+        if gap_between < dt_min:  # <----------- CASE: gap-too-small
             num_overlap = np.abs(gap_between * cadence_hz)
-            num_overlap = np.ceil(num_overlap) if num_overlap < 1 else np.floor(num_overlap)
+            num_overlap = np.ceil(num_overlap)
             next_f.set_dim_slice_start(primary_index_by, num_overlap)
-            next_start = next_f.get_first_of_index_by(primary_index_by)  # update, it changed and is used later!
+            # note: setting dim_slice_start effectively invalidates the previously set next_start variable
 
-        # make sure the start of next_f isn't sticking out over the min bound
-        if first_along_primary is not None and first_along_primary > next_start:
-            gap_between_start = first_along_primary - next_start
-            num_overlap = np.abs(np.floor((gap_between_start - (1.0 / cadence_hz)) * cadence_hz))
-            next_f.set_dim_slice_start(primary_index_by, num_overlap)
-
-        # make sure the end of the next_f isn't sticking out over the max boundary
+        # make sure the end of the next_f isn't sticking out after the max boundary
         if last_along_primary is not None and last_along_primary < next_end:
             gap_between_end = next_end - last_along_primary
-            num_overlap = np.abs(np.floor((gap_between_end + (1.0 / cadence_hz)) * cadence_hz))
+            num_overlap = np.abs(np.ceil(gap_between_end * cadence_hz))
+            # note: set stop to negative of overlap, ie. backwards from end since
+            # there will be no following file.
             next_f.set_dim_slice_stop(primary_index_by, -num_overlap)
 
         # and finally, if there's anything left of this next_f, add it to the final
@@ -168,10 +183,11 @@ def generate_aggregation_list(config, files_to_aggregate):
     # to add a FillNode to get the final way there.
     if not isinstance(final[-1], FillNode):
         prev_end = final[-1].get_last_of_index_by(primary_index_by)
-        gap_to_end = last_along_primary - prev_end
-        if gap_to_end > (2.0 * dt_max):
+        # add dt_min to last_along_primary again since last_along_primary isn't a real data point
+        gap_to_end = last_along_primary + dt_min - prev_end
+        if gap_to_end > dt_max:
             fill_node = FillNode(config)
-            size = np.floor((gap_to_end - (1.0 / cadence_hz)) * cadence_hz)
+            size = np.floor((gap_to_end-dt_min) * cadence_hz)
             fill_node.set_udim(primary_index_by, size, prev_end)
             final.append(fill_node)
 
@@ -182,10 +198,12 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
     """
     Evaluate an aggregation list to a file.... ie. actually do the aggregation.
 
+    :param config: Aggregation configuration
+    :type config: Config
     :param aggregation_list: AggList specifying how to create aggregation.
     :param to_fullpath: Filename for output.
-    :type callback: None | function
     :param callback: called every time an aggregation_list element is processed.
+    :type callback: None | function
     :return: None
     """
     if aggregation_list is None or len(aggregation_list) == 0:
@@ -264,9 +282,14 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
 
 def initialize_aggregation_file(config, fullpath):
     """
-    Based on the configuration, initialize a file in which to write the aggregated output.
+    Based on the configuration, initialize a file in which to write the aggregated output. 
+    
+    In other words, resurrect a netcdf file that would result in config.
 
+    :param config: Aggregation configuration
+    :type config: Config
     :param fullpath: filename of output to initialize.
+    :type fullpath: basestring
     :return: None
     """
     with nc.Dataset(fullpath, 'w') as nc_out:

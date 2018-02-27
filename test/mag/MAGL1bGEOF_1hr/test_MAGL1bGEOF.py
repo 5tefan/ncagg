@@ -32,7 +32,6 @@ class TestMag(unittest.TestCase):
             "max": end_time,
         })
         agg_list = generate_aggregation_list(self.config, self.files)
-        self.assertEqual(len(agg_list), 60)
         evaluate_aggregation_list(self.config, agg_list, self.file)
         with nc.Dataset(self.file) as nc_out:
             time = nc_out.variables["OB_time"][:, 0]

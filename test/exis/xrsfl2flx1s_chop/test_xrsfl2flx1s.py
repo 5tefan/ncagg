@@ -31,7 +31,6 @@ class TestGenerateAggregationList(unittest.TestCase):
             "expected_cadence": {"time": 1},
         })
         agg_list = generate_aggregation_list(self.config, self.files)
-        self.assertEqual(len(agg_list), 1)
         evaluate_aggregation_list(self.config, agg_list, self.file)
         with nc.Dataset(self.file) as nc_out:
             time = nc_out.variables["time"][:]
