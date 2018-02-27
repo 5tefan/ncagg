@@ -1,7 +1,12 @@
-# v0.6.1 - 2018-02-26
+# v0.6.2 - 2018-02-27
 
-Bug fix. Will no longer erroneously chop initial record occuring
-too close, but after start bound.
+Fixes:
+ - Improvents to boundary calculations...
+    - prevent chop initial record if too close to start bound.
+    - prevent chop of final record if too close to end bound.
+    - Fill backwards @ `expected_cadence` from next available
+        time value when a previous one isn't available, eg. at
+        beginning of day.
 
 # v0.6.0 - 2018-01-24
 
