@@ -1,3 +1,11 @@
+# v0.6.3 - 2018-03-30
+
+Changes:
+ - Except and log errors from copying one time only variables
+    (ones that don't depend on an unlimited dim)
+ - attr strats, default self.attr value is None instead of
+    empty string.
+
 # v0.6.2 - 2018-02-27
 
 Fixes:
