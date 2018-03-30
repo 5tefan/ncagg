@@ -235,7 +235,11 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
         # happen, but oh well, use a fill node.
         vars_once_src = next((i for i in aggregation_list if isinstance(i, InputFileNode)), aggregation_list[0])
         for var in vars_once:   # case: do once, only for first input file node
-            nc_out.variables[var["name"]][:] = vars_once_src.data_for(var)
+            try:
+                nc_out.variables[var["name"]][:] = vars_once_src.data_for(var)
+            except Exception as e:
+                logger.error("Error copying component: %s, one time variable: %s" % (vars_once_src, var))
+                logger.error(traceback.format_exc())
 
         for component in aggregation_list:
             
@@ -264,7 +268,7 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                     output_data = component.data_for(var)
                     nc_out.variables[var["name"]][write_slices] = np.ma.masked_where(np.isnan(output_data), output_data)
                 except Exception as e:
-                    logger.error("Unexpected error copying from component into output: %s" % component)
+                    logger.error("Error copying component: %s, unlim variable: %s" % (component, var))
                     logger.error(traceback.format_exc())
 
             # do once per component
