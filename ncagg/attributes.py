@@ -33,7 +33,7 @@ class Strat(object):
     """
     def __init__(self, *args, **kwargs):
         super(Strat, self).__init__()
-        self.attr = ""
+        self.attr = None
 
     @classmethod
     def setup_handler(cls, *args, **kwargs):
@@ -69,7 +69,7 @@ class StratFirst(Strat):
     Strategy processes to the first attribute value processed.
     """
     def process(self, attr, nc_obj=None):
-        if self.attr == "":
+        if self.attr is None:
             self.attr = attr
 
 
@@ -110,7 +110,7 @@ class StratUniqueList(Strat):
     during processing.
     """
     def __init__(self, *args, **kwargs):
-        super(StratUniqueList, self).__init__()
+        super(StratUniqueList, self).__init__(*args, **kwargs)
         self.attr = []
 
     def process(self, attr, nc_obj=None):
@@ -150,7 +150,7 @@ class StratFloatSum(Strat):
     Process attributes as float values and finalize to their sum.
     """
     def __init__(self, *args, **kwargs):
-        super(StratFloatSum, self).__init__()
+        super(StratFloatSum, self).__init__(*args, **kwargs)
         self.attr = 0.0
 
     def process(self, attr, nc_obj=None):
@@ -163,7 +163,7 @@ class StratAssertConst(Strat):
     do not match the first one seen.
     """
     def process(self, attr, nc_obj=None):
-        if self.attr == "":
+        if self.attr is None:
             self.attr = attr
         elif self.attr != attr:
             raise AssertionError("Non constant attribute %s --> %s" % (self.attr, attr))
@@ -198,7 +198,7 @@ class StratRemove(Strat):
         pass
 
     def finalize(self, nc_out):
-        return ""
+        return None
 
 
 class StratWithConfig(Strat):
@@ -232,7 +232,7 @@ class StratTimeCoverageStart(StratWithConfig):
         udim = next((d for d in self.config.dims.values() if d["min"] is not None), None)
         if udim is None:
             # bail early if udim is None, ie. no unlimited dim configured
-            return ""
+            return None
         min = udim["min"]
         if isinstance(min, datetime):
             return datetime_format(min)
@@ -252,7 +252,7 @@ class StratTimeCoverageEnd(StratWithConfig):
         udim = next((d for d in self.config.dims.values() if d["max"] is not None), None)
         if udim is None:
             # bail early if udim is None, ie. no unlimited dim configured
-            return ""
+            return None
         max = udim["max"]
         if isinstance(max, datetime):
             return datetime_format(max)
@@ -265,6 +265,7 @@ class StratTimeCoverageEnd(StratWithConfig):
 class StratOutputFilename(Strat):
     # noinspection PyMissingConstructor
     def __init__(self, *args, **kwargs):
+        super(StratOutputFilename, self).__init__(*args, **kwargs)
         self.attr = kwargs.get("filename", "")
 
     def process(self, attr, nc_obj=None):
@@ -344,7 +345,7 @@ class AttributeHandler(object):
             if handler is not None and handler[1] is not None:
                 try:
                     attr_val = handler[1](nc_out)
-                    if attr_val != "":
+                    if attr_val is not None and attr_val != "":
                         nc_out.setncattr(attr["name"], attr_val)
                 except Exception as e:
                     logger.error("Error setting global attribute %s: %s" % (attr["name"], repr(e)))
