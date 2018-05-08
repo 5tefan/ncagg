@@ -175,7 +175,16 @@ class InputFileNode(AbstractNode):
         # 2. go through file internal aggregation list, start and stop according to self.dim_slices
         self.sort_unlim = {}  # argsort along each unlim dim
         self.file_internal_aggregation_list = {}  # will be one aggregation list per dim
+        # dim_sizes are the underlying size of each dimension.... Accounting for
+        # file_internal_aggregation_list if applicable. Below, self.get_coverage() should
+        # only be called once, creating file_internal_aggregation list
         self.get_coverage()
+        # now with file_internal_aggregation_list created by get_coverage(),
+        # calculate and cache underlying dimension sizes once. Assumption: these
+        # and file_internal_aggregation_list do not change during the run of this program.
+        # The input files we're aggregating should be static!!
+        self.dim_sizes = {}
+        self.cache_dim_sizes()
 
 
     def get_coverage(self):
@@ -257,6 +266,22 @@ class InputFileNode(AbstractNode):
                 dim_agg_list.append(slice(slice_start, times.size))
 
             self.file_internal_aggregation_list[udim["name"]] = dim_agg_list
+
+    def cache_dim_sizes(self):
+        """
+        Idea: cache underlying dim sizes so that get_data doesn't need to call relatively
+        expensive get_file_internal_aggregation_size every time.
+
+        Optimization: instead of having to calculate get_file_internal_aggregation_list per dimension
+        every time that get_data is called, we should (re)calculate it only when a function that could
+        have possibly changed it is called. These modifications will happen only during during the
+        generate_aggregation_list phase, and then for the evaluate phase, simply use the cached result.
+
+        :return: None
+        """
+        self.dim_sizes = {}
+        for dim in self.config.dims.values():
+            self.dim_sizes[dim["name"]] = self.get_file_internal_aggregation_size(dim)
 
     def get_first_of_index_by(self, udim):
         """ Get the first value along udim. """
@@ -398,7 +423,7 @@ class InputFileNode(AbstractNode):
 
         # so first, lets figure out the size of the dimension from the file and try to convert everything
         # to real indicies so we can just return (start - end)
-        dim_length = self.get_file_internal_aggregation_size(dim)
+        dim_length = self.dim_sizes[dim["name"]]  # use the "cached" info
 
         # find numeric start index
         if dim_slice.start is not None and dim_slice.start < 0:
