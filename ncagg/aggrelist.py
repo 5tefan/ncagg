@@ -165,7 +165,6 @@ class InputFileNode(AbstractNode):
     def __init__(self, config, filename):
         super(InputFileNode, self).__init__(config)
         self.filename = filename
-        self.nc_in = nc.Dataset(self.filename, mode="r")
         # along the unlimited dimensions of the file, we'll need to potentially trim, so keep a lookup dict
         # with "dim name": [None: None] -> slice(*[None, None]) -> [:], or "dim name": [3:None] -> [3:], or
         # even "dim name": [None, -3] -> slice(*[None, 3]) -> [:-3]
@@ -187,8 +186,6 @@ class InputFileNode(AbstractNode):
         self.dim_sizes = {}
         self.cache_dim_sizes()
 
-    def __del__(self):
-        self.nc_in.close()
 
     def get_coverage(self):
         """
@@ -310,25 +307,26 @@ class InputFileNode(AbstractNode):
         :rtype: np.array
         :return: values requested from variable that indexes udim
         """
-        index_by = self.nc_in.variables[udim["index_by"]]  # type: nc.Variable
-        # The index argument is the desired index from the _external_ view. Internally, since the records have
-        #  been sorted, it may actually be a different index internally. To find out, try to retrieve the
-        # _internal_ index from sorted.
-        internal_index = self.sort_unlim[udim["name"]][index] if udim["name"] in self.sort_unlim.keys() else index
+        with nc.Dataset(self.filename) as nc_in:  # type: nc.Dataset
+            index_by = nc_in.variables[udim["index_by"]]  # type: nc.Variable
+            # The index argument is the desired index from the _external_ view. Internally, since the records have
+            #  been sorted, it may actually be a different index internally. To find out, try to retrieve the
+            # _internal_ index from sorted.
+            internal_index = self.sort_unlim[udim["name"]][index] if udim["name"] in self.sort_unlim.keys() else index
 
-        # If the index_by variable has multiple dimensions and an index isn't specified in other_dim_inds,
-        # then default to 0
-        slices = tuple([internal_index if d == udim["name"] else udim["other_dim_inds"].get(d, 0)
-                        for d in index_by.dimensions ])
+            # If the index_by variable has multiple dimensions and an index isn't specified in other_dim_inds,
+            # then default to 0
+            slices = tuple([internal_index if d == udim["name"] else udim["other_dim_inds"].get(d, 0)
+                            for d in index_by.dimensions ])
 
-        try:
-            # Safer to do np.nan, but this block could be simplified to always make the fill value 0.
-            return np.ma.filled(index_by[slices], fill_value=np.nan)
-        except ValueError:
-            # Trying to fill with np.nan for an interger type will raise ValueError, so fill with 0 instead.
-            # Filling with 0 is fine since 0's will be taken out by the slices. IMPORTANT: some major changes
-            # needed throughout if this is ever used for data that's regularly indexed at 0
-            return np.ma.filled(index_by[slices], fill_value=0)
+            try:
+                # Safer to do np.nan, but this block could be simplified to always make the fill value 0.
+                return np.ma.filled(index_by[slices], fill_value=np.nan)
+            except ValueError:
+                # Trying to fill with np.nan for an interger type will raise ValueError, so fill with 0 instead.
+                # Filling with 0 is fine since 0's will be taken out by the slices. IMPORTANT: some major changes
+                # needed throughout if this is ever used for data that's regularly indexed at 0
+                return np.ma.filled(index_by[slices], fill_value=0)
 
     def __str__(self):
         dim_strs = []
@@ -387,13 +385,14 @@ class InputFileNode(AbstractNode):
         internal_aggregation_list = self.file_internal_aggregation_list.get(dim["name"], None)
         if internal_aggregation_list is None:
             if dim["size"] is None:
-                if dim["name"] in self.nc_in.dimensions.keys():
-                    return self.nc_in.dimensions[dim["name"]].size
-                else:
-                    # CASE: new dim... handle a new dimension in output that doesn't
-                    # exist in the input. It will always have size one, since it implicitly
-                    # depends on file, and inside this InputFileNode, we're representing 1 file.
-                    return 1
+                with nc.Dataset(self.filename) as nc_in:
+                    if dim["name"] in nc_in.dimensions.keys():
+                        return nc_in.dimensions[dim["name"]].size
+                    else:
+                        # CASE: new dim... handle a new dimension in output that doesn't
+                        # exist in the input. It will always have size one, since it implicitly
+                        # depends on file, and inside this InputFileNode, we're representing 1 file.
+                        return 1
             else:
                 return dim["size"]
 
@@ -448,74 +447,75 @@ class InputFileNode(AbstractNode):
         :param variable: a dict specification of the variable to get
         :return: array of data for variable
         """
-        fill_value = get_fill_for(var)
-        dims = [self.config.dims[d] for d in var["dimensions"]
-                if d in self.nc_in.variables[var["name"]].dimensions]
+        with nc.Dataset(self.filename) as nc_in:  # type: nc.Dataset
+            fill_value = get_fill_for(var)
+            dims = [self.config.dims[d] for d in var["dimensions"]
+                    if d in nc_in.variables[var["name"]].dimensions]
 
-        # step 1: get the sorted data
-        dim_slices = tuple([self.sort_unlim.get(d["name"], slice(None)) for d in dims]) or slice(None)
-        self.nc_in.variables[var["name"]].set_auto_mask(False)
-        prelim_data = self.nc_in.variables[var["name"]][dim_slices]
-        if hasattr(self.nc_in.variables[var["name"]], "_FillValue"):
-            where_to_fill = (prelim_data == self.nc_in.variables[var["name"]]._FillValue)
-            prelim_data[where_to_fill] = fill_value
-        # prelim_data = np.ma.filled(self.nc_in.variables[var["name"]][dim_slices], fill_value=fill_value)
+            # step 1: get the sorted data
+            dim_slices = tuple([self.sort_unlim.get(d["name"], slice(None)) for d in dims]) or slice(None)
+            nc_in.variables[var["name"]].set_auto_mask(False)
+            prelim_data = nc_in.variables[var["name"]][dim_slices]
+            if hasattr(nc_in.variables[var["name"]], "_FillValue"):
+                where_to_fill = (prelim_data == nc_in.variables[var["name"]]._FillValue)
+                prelim_data[where_to_fill] = fill_value
+            # prelim_data = np.ma.filled(nc_in.variables[var["name"]][dim_slices], fill_value=fill_value)
 
-        if len(dims) == 0:
-            # if this is just a scalar value, return
-            return prelim_data
+            if len(dims) == 0:
+                # if this is just a scalar value, return
+                return prelim_data
 
-        # step 2: if there's an aggregation list for it, transform prelim_data according to it
-        internal_agg_dims = [d["name"] for d in dims if d["name"] in self.file_internal_aggregation_list.keys()]
-        if len(internal_agg_dims) > 0:
-            out_shape = tuple([self.get_file_internal_aggregation_size(d) for d in dims])
-            transformed_data = np.full(out_shape, fill_value, dtype=prelim_data.dtype)
-            dim_along = internal_agg_dims[0]
-            loc_along_dim = 0
-            dim_i = next((i for i in range(len(dims)) if dims[i]["name"] == dim_along))
-            for agg_seg in self.file_internal_aggregation_list[dim_along]:
-                if isinstance(agg_seg, FillNode):
-                    data_in_transit = agg_seg.data_for(var)
-                else:
-                    assert isinstance(agg_seg, slice), "Found %s" % agg_seg
-                    data_in_transit = prelim_data[[agg_seg if d["name"] == dim_along else slice(None)
-                                                   for d in dims]]
+            # step 2: if there's an aggregation list for it, transform prelim_data according to it
+            internal_agg_dims = [d["name"] for d in dims if d["name"] in self.file_internal_aggregation_list.keys()]
+            if len(internal_agg_dims) > 0:
+                out_shape = tuple([self.get_file_internal_aggregation_size(d) for d in dims])
+                transformed_data = np.full(out_shape, fill_value, dtype=prelim_data.dtype)
+                dim_along = internal_agg_dims[0]
+                loc_along_dim = 0
+                dim_i = next((i for i in range(len(dims)) if dims[i]["name"] == dim_along))
+                for agg_seg in self.file_internal_aggregation_list[dim_along]:
+                    if isinstance(agg_seg, FillNode):
+                        data_in_transit = agg_seg.data_for(var)
+                    else:
+                        assert isinstance(agg_seg, slice), "Found %s" % agg_seg
+                        data_in_transit = prelim_data[[agg_seg if d["name"] == dim_along else slice(None)
+                                                       for d in dims]]
 
-                size_along_dim = np.shape(data_in_transit)[dim_i]
-                transformed_data[[slice(loc_along_dim, loc_along_dim + size_along_dim) if i == dim_i else slice(None)
-                                  for i in range(len(dims))]] = data_in_transit
+                    size_along_dim = np.shape(data_in_transit)[dim_i]
+                    transformed_data[[slice(loc_along_dim, loc_along_dim + size_along_dim) if i == dim_i else slice(None)
+                                      for i in range(len(dims))]] = data_in_transit
 
-                loc_along_dim += size_along_dim
+                    loc_along_dim += size_along_dim
 
-            # this doesn't work, but was a first attempt at how to solve internal agg lists for a variable
-            # that depended on multiple unliited dimensions
-            # for i, d in enumerate(dims):
-            #     # loop over dimensions, outter to inner, gradually replacing them according to the internal
-            #     # agg list if one exists for the dimension.
-            #     dst_slices = [slice(None) for _ in range(i)] or [slice(None)]
-            #     src_slices = [slice(None) for _ in range(i)] or [slice(None)]
-            #     if d["name"] in internal_agg_dims:
-            #         loc_along_dim = 0
-            #         for agg_seg in self.file_internal_aggregation_list[d["name"]]:
-            #             if isinstance(agg_seg, FillNode):
-            #                 data_in_transit = agg_seg.data_for(var)
-            #             else:
-            #                 assert isinstance(agg_seg, slice), "Found %s" % agg_seg
-            #                 src_slices[-1] = agg_seg  # here's the slice we'll get
-            #                 data_in_transit = prelim_data[src_slices]  # pull it from prelim, get the shape
-            #
-            #             size_along_dim = np.shape(data_in_transit)[i]
-            #             dst_slices[-1] = slice(loc_along_dim, loc_along_dim + size_along_dim)
-            #             src_slices[-1] = slice(size_along_dim)
-            #             transformed_data[dst_slices] = data_in_transit[src_slices]
-            #             loc_along_dim += size_along_dim
-            #
-            #     else:  # just copy across
-            #         transformed_data[dst_slices] = prelim_data[src_slices]
-            prelim_data = transformed_data
+                # this doesn't work, but was a first attempt at how to solve internal agg lists for a variable
+                # that depended on multiple unliited dimensions
+                # for i, d in enumerate(dims):
+                #     # loop over dimensions, outter to inner, gradually replacing them according to the internal
+                #     # agg list if one exists for the dimension.
+                #     dst_slices = [slice(None) for _ in range(i)] or [slice(None)]
+                #     src_slices = [slice(None) for _ in range(i)] or [slice(None)]
+                #     if d["name"] in internal_agg_dims:
+                #         loc_along_dim = 0
+                #         for agg_seg in self.file_internal_aggregation_list[d["name"]]:
+                #             if isinstance(agg_seg, FillNode):
+                #                 data_in_transit = agg_seg.data_for(var)
+                #             else:
+                #                 assert isinstance(agg_seg, slice), "Found %s" % agg_seg
+                #                 src_slices[-1] = agg_seg  # here's the slice we'll get
+                #                 data_in_transit = prelim_data[src_slices]  # pull it from prelim, get the shape
+                #
+                #             size_along_dim = np.shape(data_in_transit)[i]
+                #             dst_slices[-1] = slice(loc_along_dim, loc_along_dim + size_along_dim)
+                #             src_slices[-1] = slice(size_along_dim)
+                #             transformed_data[dst_slices] = data_in_transit[src_slices]
+                #             loc_along_dim += size_along_dim
+                #
+                #     else:  # just copy across
+                #         transformed_data[dst_slices] = prelim_data[src_slices]
+                prelim_data = transformed_data
 
-        # step 3: slice to external view
-        return prelim_data[[self.get_dim_slice(d) for d in dims]]
+            # step 3: slice to external view
+            return prelim_data[[self.get_dim_slice(d) for d in dims]]
 
     def callback_with_file(self, callback=None):
         """
@@ -526,5 +526,6 @@ class InputFileNode(AbstractNode):
         :return: None
         """
         if callback is not None:
-            callback(self.nc_in)
+            with nc.Dataset(self.filename) as nc_in:
+                callback(nc_in)
 
