@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 import click
 import pkg_resources
 
-from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
-from ncagg.config import Config
+from .aggregator import generate_aggregation_list, evaluate_aggregation_list
+from .config import Config
 
 try:
     version = pkg_resources.require("ncagg")[0].version

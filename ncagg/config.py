@@ -4,7 +4,7 @@ import cerberus
 import netCDF4 as nc
 import numpy as np
 
-from ncagg.attributes import AttributeHandler
+from .attributes import AttributeHandler
 
 """
 This file contains functions that take some configuration, generally as the first parameter, and any other necessary

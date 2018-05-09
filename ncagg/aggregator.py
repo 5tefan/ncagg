@@ -6,9 +6,9 @@ from datetime import datetime
 import netCDF4 as nc
 import numpy as np
 
-from ncagg.aggrelist import FillNode, InputFileNode
-from ncagg.attributes import AttributeHandler
-from ncagg.config import Config
+from .aggrelist import AbstractNode, FillNode, InputFileNode
+from .attributes import AttributeHandler
+from .config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -234,54 +234,52 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
         # InputFileNode to copy from so we don't get fill values. Otherwise, if none exists, which shouldn't
         # happen, but oh well, use a fill node.
         vars_once_src = next((i for i in aggregation_list if isinstance(i, InputFileNode)), aggregation_list[0])
-        for var in vars_once:   # case: do once, only for first input file node
-            try:
-                nc_out.variables[var["name"]][:] = vars_once_src.data_for(var)
-            except Exception as e:
-                logger.error("Error copying component: %s, one time variable: %s" % (vars_once_src, var))
-                logger.error(traceback.format_exc())
-
-        for component in aggregation_list:
-            
-            unlim_starts = {k: nc_out.dimensions[k].size for k, v in config.dims.items() if v["size"] is None}
-
-            for var in vars_unlim:
-                write_slices = []
-                for dim in [config.dims[d] for d in var["dimensions"]]:
-                    if dim["size"] is None and not dim["flatten"]:
-                        # case: regular concat var along unlim dim
-                        d_start = unlim_starts[dim["name"]]
-                        write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
-                    elif dim["size"] is None and dim["flatten"] and dim["index_by"] is None:
-                        # case: simple flatten unlim
-                        write_slices.append(slice(0, component.get_size_along(dim)))
-                    elif dim["size"] is None and dim["flatten"] and dim["index_by"] is not None:
-                        # case: flattening according to an index
-                        index_by = dim["index_by"]
-                        index_by_incoming_values = component.data_for(config.vars[index_by])
-                        index_by_existing_values = nc_out.variables[index_by][:]
-                        # TODO: finish this
-                        write_slices.append(slice(0, component.get_size_along(dim)))
-                    else:
-                        write_slices.append(slice(None))
+        with vars_once_src.get_evaluation_functions() as (data_for, _):
+            for var in vars_once:   # case: do once, only for first input file node
                 try:
-                    output_data = component.data_for(var)
-                    nc_out.variables[var["name"]][write_slices] = np.ma.masked_where(np.isnan(output_data), output_data)
+                    nc_out.variables[var["name"]][:] = data_for(var)
                 except Exception as e:
-                    logger.error("Error copying component: %s, unlim variable: %s" % (component, var))
+                    logger.error("Error copying component: %s, one time variable: %s" % (vars_once_src, var))
                     logger.error(traceback.format_exc())
 
-            # do once per component
-            component.callback_with_file(attribute_handler.process_file)
+        for component in aggregation_list:  # type: AbstractNode
+            with component.get_evaluation_functions() as (data_for, callback_with_file):
+                unlim_starts = {k: nc_out.dimensions[k].size for k, v in config.dims.items() if v["size"] is None}
+                for var in vars_unlim:
+                    write_slices = []
+                    for dim in [config.dims[d] for d in var["dimensions"]]:
+                        if dim["size"] is None and not dim["flatten"]:
+                            # case: regular concat var along unlim dim
+                            d_start = unlim_starts[dim["name"]]
+                            write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
+                        elif dim["size"] is None and dim["flatten"] and dim["index_by"] is None:
+                            # case: simple flatten unlim
+                            write_slices.append(slice(0, component.get_size_along(dim)))
+                        elif dim["size"] is None and dim["flatten"] and dim["index_by"] is not None:
+                            # case: flattening according to an index
+                            index_by = dim["index_by"]
+                            index_by_incoming_values = component.data_for(config.vars[index_by])
+                            index_by_existing_values = nc_out.variables[index_by][:]
+                            # TODO: finish this
+                            write_slices.append(slice(0, component.get_size_along(dim)))
+                        else:
+                            write_slices.append(slice(None))
+                    try:
+                        output_data = data_for(var)
+                        nc_out.variables[var["name"]][write_slices] = np.ma.masked_where(np.isnan(output_data), output_data)
+                    except Exception as e:
+                        logger.error("Error copying component: %s, unlim variable: %s" % (component, var))
+                        logger.error(traceback.format_exc())
 
-            if callback is not None:
-                callback()
+                # do once per component
+                callback_with_file(attribute_handler.process_file)
 
-        # write buffered data to disk
-        nc_out.sync()
+                if callback is not None:
+                    callback()
 
-        # after aggregation finished, finalize the global attributes
-        attribute_handler.finalize_file(nc_out)
+        nc_out.sync()  # write buffered data to disk
+
+        attribute_handler.finalize_file(nc_out)  # after aggregation finished, finalize the global attributes
 
 
 def initialize_aggregation_file(config, fullpath):
