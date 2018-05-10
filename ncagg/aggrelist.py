@@ -382,26 +382,33 @@ class InputFileNode(AbstractNode):
         """
         This size is the size of the file_internal_aggregation_list (including fill) or falling back on true size.
         """
+        if dim["size"] is not None:
+            # return as early as possible if size is known, ie. dimension no unlimited.
+            return dim["size"]
+
         internal_aggregation_list = self.file_internal_aggregation_list.get(dim["name"], None)
         if internal_aggregation_list is None:
-            if dim["size"] is None:
-                with nc.Dataset(self.filename) as nc_in:
-                    if dim["name"] in nc_in.dimensions.keys():
-                        return nc_in.dimensions[dim["name"]].size
-                    else:
-                        # CASE: new dim... handle a new dimension in output that doesn't
-                        # exist in the input. It will always have size one, since it implicitly
-                        # depends on file, and inside this InputFileNode, we're representing 1 file.
-                        return 1
-            else:
-                return dim["size"]
+            with nc.Dataset(self.filename) as nc_in:
+                if dim["name"] in nc_in.dimensions.keys():
+                    # No size for an existing dimension indicates this is an unlimited dimension,
+                    # so if it exists in the file, size of dimension corresponds to what is in file.
+                    return nc_in.dimensions[dim["name"]].size
+                else:
+                    # CASE: new dim... handle a new dimension in output that doesn't
+                    # exist in the input. It will always have size one, since it implicitly
+                    # depends on file, and inside this InputFileNode, we're representing 1 file.
+                    return 1
 
-        # Otherwise we'll need to go through and sum:
+        # Otherwise we'll need to go through the internal_aggregation_list and sum
+        # to find the size of this dimension.
         dim_length = 0
         for each in internal_aggregation_list:
             if isinstance(each, FillNode):
+                # if component of internal_aggregation_list is a fill node, it has an associated size,
+                # so just add that size.
                 dim_length += each.get_size_along(dim)
             else:
+                # otherwise, if component is a slice, must compute the span of that slice, then sum that
                 assert isinstance(each, slice) and each.start is not None and each.stop is not None
                 dim_length += (each.stop - each.start)
 
