@@ -1,3 +1,10 @@
+# v0.6.4 - 2018-05-10
+
+Changes:
+ - Some optimizations: users should see faster aggregations.
+    I expect the improvement to scale relative to the number
+    of variables per file being aggregated. 
+
 # v0.6.3 - 2018-03-30
 
 Changes:
