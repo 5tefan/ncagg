@@ -478,7 +478,7 @@ class InputFileNode(AbstractNode):
         # step 2: if there's an aggregation list for it, transform prelim_data according to it
         internal_agg_dims = [d["name"] for d in dims if d["name"] in self.file_internal_aggregation_list.keys()]
         if len(internal_agg_dims) > 0:
-            out_shape = tuple([self.get_file_internal_aggregation_size(d) for d in dims])
+            out_shape = tuple([self.dim_sizes[d["name"]] for d in dims])
             transformed_data = np.full(out_shape, fill_value, dtype=prelim_data.dtype)
             dim_along = internal_agg_dims[0]
             loc_along_dim = 0
