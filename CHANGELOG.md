@@ -1,3 +1,15 @@
+# v0.7.0 - 2018-05-25
+
+When configured with an expected cadence, ncagg allows
+some wiggle room (instruments may not have perfect time
+steps). Previously, for the start of aggregation boundary
+ncagg used (boundary - minimum expected timestep), this 
+resulted in frequently excluding the first time step. Now
+at beginning bound, subtract nominal time step.
+
+A full minor increment because this will have significant
+impact on our datasets. 
+
 # v0.6.4 - 2018-05-10
 
 Changes:

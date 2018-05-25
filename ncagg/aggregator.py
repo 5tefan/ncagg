@@ -112,6 +112,9 @@ def generate_aggregation_list(config, files_to_aggregate):
     dt_nom = (1.0 / cadence_hz)  # nominal expected time step
     dt_max = (1.0 / (timing_certainty * cadence_hz))  # largest expected time step
 
+    # final list of components to aggregate, containing InputFileNodes and possibly
+    # FillValueNodes. Built below going through priliminary list, adding one by one
+    # while examining spacing between files and the bounds at the beginning and end.
     final = []
     while len(preliminary) > 0:
         next_f = preliminary.pop(0)  # type: InputFileNode
@@ -122,7 +125,7 @@ def generate_aggregation_list(config, files_to_aggregate):
         if ((first_along_primary is not None and first_along_primary > next_end) or
                 (last_along_primary is not None and last_along_primary < next_start)):
             logger.info("File not in bounds: %s" % next_f)
-            # out of bounds, doesn't get included
+            # out of bounds, doesn't get included. Continue without adding this next_f to final.
             continue
 
         # if we get here, but have no cadence_hz, nothing more to do, just add file to final and continue.
@@ -139,7 +142,14 @@ def generate_aggregation_list(config, files_to_aggregate):
             final.append(next_f)
             continue
         else:
-            prev_end = first_along_primary - dt_min
+            # CASE: first file, take the bound and subtract a nominal time step so that
+            # the first time step greater than or equal* to the bound will be included.
+            # Previously subtracting dt_min here would result in very frequently chopping
+            # the first record.
+            # *caveat: since we're subtracting dt_nom here, but inherently allow for some
+            # wiggle (between dt_min and dt_max), possible statement could result
+            # in the first record unfortunately occuring slightly before the beginning bound.
+            prev_end = first_along_primary - dt_nom
 
         # the size of the gap between the previous file and the next, nominally time gap
         gap_between = next_start - prev_end
