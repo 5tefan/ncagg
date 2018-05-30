@@ -191,7 +191,7 @@ def generate_aggregation_list(config, files_to_aggregate):
 
     # after looping over the input files given, check if we haven't quite reached the end point and need
     # to add a FillNode to get the final way there.
-    if not isinstance(final[-1], FillNode):
+    if len(final) > 0 and not isinstance(final[-1], FillNode):
         prev_end = final[-1].get_last_of_index_by(primary_index_by)
         # add dt_min to last_along_primary again since last_along_primary isn't a real data point
         gap_to_end = last_along_primary + dt_min - prev_end
