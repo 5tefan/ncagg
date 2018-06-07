@@ -163,8 +163,8 @@ class DimensionConfig(ConfigDict):
             "size": {"type": "integer", "nullable": True, "min": 1},
             "flatten": {"type": "boolean", "default": False},
             "index_by": {"type": "string", "default": None, "nullable": True},
-            "min": {"oneof_type": ["number", "datetime"], "default": None, "nullable": True},  # lower bound via index_by
-            "max": {"oneof_type": ["number", "datetime"], "default": None, "nullable": True},  # upper bound via index_by
+            "min": {"type": ["number", "datetime"], "default": None, "nullable": True},  # lower bound via index_by
+            "max": {"type": ["number", "datetime"], "default": None, "nullable": True},  # upper bound via index_by
             "other_dim_inds": {"type": "dict", "valueschema": {"type": "integer"}, "default": dict()},
             "expected_cadence": {"type": "dict", "valueschema": {"type": "float"}, "default": dict()}
         })
@@ -254,7 +254,7 @@ class GlobalAttributeConfig(ConfigDict):
         default = super(GlobalAttributeConfig, self).get_item_schema()
         default.update({
             "strategy": {"type": "string", "allowed": list(AttributeHandler.strategy_handlers.keys())},
-            "value": {"oneof_type": ["string", "float", "integer"], "nullable": True, "default": None}
+            "value": {"type": ["string", "float", "integer"], "nullable": True, "default": None}
         })
         return default
 
