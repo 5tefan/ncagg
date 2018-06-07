@@ -1,3 +1,9 @@
+# v0.7.1 - 2018-06-07
+
+Fixes 2 issues:
+ - Occasional non-fatal FutureWarning in attributes handling.
+ - Error initializing config from netcdf file.
+
 # v0.7.0 - 2018-05-25
 
 When configured with an expected cadence, ncagg allows
