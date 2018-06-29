@@ -192,7 +192,6 @@ class DimensionConfig(ConfigDict):
             } for dim in nc_in.dimensions.values()])
 
 
-
 class VariableConfig(ConfigDict):
     def get_item_schema(self):
         default = super(VariableConfig, self).get_item_schema()
@@ -248,6 +247,7 @@ class VariableConfig(ConfigDict):
                         v["attributes"][k] = a.item()
 
         return cls(vars)
+
 
 class GlobalAttributeConfig(ConfigDict):
     def get_item_schema(self):

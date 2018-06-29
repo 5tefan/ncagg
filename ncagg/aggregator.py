@@ -172,8 +172,8 @@ def generate_aggregation_list(config, files_to_aggregate):
 
         # if the gap is too small, chop some off this next file to make it fit...
         if gap_between < dt_min:  # <----------- CASE: gap-too-small
-            num_overlap = np.abs(gap_between * cadence_hz)
-            num_overlap = np.ceil(num_overlap)
+            # tbh, getting num_overlap correct has been mostly trial and error...
+            num_overlap = np.ceil(np.abs((gap_between - dt_nom) * cadence_hz))
             next_f.set_dim_slice_start(primary_index_by, num_overlap)
             # note: setting dim_slice_start effectively invalidates the previously set next_start variable
 

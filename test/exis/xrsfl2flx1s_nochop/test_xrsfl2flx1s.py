@@ -43,6 +43,7 @@ class TestAggregate(unittest.TestCase):
         agg_list = generate_aggregation_list(self.config, self.files)
         evaluate_aggregation_list(self.config, agg_list, self.file)
         with nc.Dataset(self.file) as nc_out:
+            start_time_num, end_time_num = nc.date2num([start_time, end_time], nc_out["time"].units)
             time = nc_out.variables["time"][:]
             out_start, out_end = nc.num2date(time[[0, -1]], nc_out.variables["time"].units)
             self.assertEqual(len(time), 86400)
@@ -51,5 +52,7 @@ class TestAggregate(unittest.TestCase):
             self.assertAlmostEqual(np.mean(np.diff(time)), 1, delta=0.001)
             self.assertAlmostEqual(np.max(np.diff(time)), 1, delta=0.001)
             self.assertAlmostEqual(np.min(np.diff(time)), 1, delta=0.001)
+            self.assertGreaterEqual(time[0], start_time_num)
+            self.assertLess(time[-1], end_time_num)
 
 

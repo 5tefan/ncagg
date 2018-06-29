@@ -26,19 +26,11 @@ class TestExis(unittest.TestCase):
     def tearDown(self):
         os.remove(self.nc_out_filename)
 
-    def test_exis_instantiation(self):
-        """Create just the most basic aggregation list for EXIS."""
-        aggregation_list = generate_aggregation_list(self.config, self.files[:2])
-        self.assertEqual(len(aggregation_list), 2)
-        evaluate_aggregation_list(self.config, aggregation_list, self.nc_out_filename)
-        with nc.Dataset(self.nc_out_filename) as nc_out:  # type: nc.Dataset
-            self.assertGreater(list(nc_out.variables.values())[0].size, 0)
 
     def test_exis_with_config(self):
         """Test an EXIS-L1b-SFXR aggregation with dimensions specified."""
-        # March 5th 00:30 through 00:35
-        start_time = datetime(2017, 3, 5, 0, 30)
-        end_time = datetime(2017, 3, 5, 0, 35)
+        start_time = datetime(2018, 6, 21, 0, 0)
+        end_time = datetime(2018, 6, 21, 0, 5)
 
         self.config.dims["report_number"].update({
             "index_by": "time",
@@ -57,4 +49,3 @@ class TestExis(unittest.TestCase):
             self.assertAlmostEqual(np.mean(np.diff(time)), 1., delta=0.001)
             self.assertGreaterEqual(time[0], start_time_num)
             self.assertLess(time[-1], end_time_num)
-

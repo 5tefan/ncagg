@@ -288,14 +288,14 @@ class InputFileNode(AbstractNode):
         first_slice = self.file_internal_aggregation_list[udim["name"]][0]
         assert isinstance(first_slice, slice), "Must be a slice!"
         assert isinstance(first_slice.start, int), "Must be an int!"
-        return self.get_index_of_index_by(first_slice.start, udim)
+        return self.get_index_of_index_by(first_slice.start, udim).item(0)
 
     def get_last_of_index_by(self, udim):
         """ Get the last value along udim. """
         last_slice = self.file_internal_aggregation_list[udim["name"]][-1]
         assert isinstance(last_slice, slice), "Must be a slice!"
         assert isinstance(last_slice.start, int), "Must be an int!"
-        return self.get_index_of_index_by(last_slice.stop - 1, udim)
+        return self.get_index_of_index_by(last_slice.stop - 1, udim).item(0)
 
     def get_index_of_index_by(self, index, udim):
         """
