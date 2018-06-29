@@ -1,3 +1,8 @@
+# 0.8.0 - 2018-06-29
+
+Fixes issue causing record immediately before unlim
+dim start boundary would be included. 
+
 # v0.7.1 - 2018-06-07
 
 Fixes 2 issues:
