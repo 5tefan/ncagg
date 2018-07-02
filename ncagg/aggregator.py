@@ -142,13 +142,8 @@ def generate_aggregation_list(config, files_to_aggregate):
             final.append(next_f)
             continue
         else:
-            # CASE: first file, take the bound and subtract a nominal time step so that
-            # the first time step greater than or equal* to the bound will be included.
-            # Previously subtracting dt_min here would result in very frequently chopping
-            # the first record.
-            # *caveat: since we're subtracting dt_nom here, but inherently allow for some
-            # wiggle (between dt_min and dt_max), possible statement could result
-            # in the first record unfortunately occuring slightly before the beginning bound.
+            # CASE: first file, take the bound and subtract a min time step so that
+            # the first time step greater than or equal to the bound will be included.
             prev_end = first_along_primary - dt_min
 
         # the size of the gap between the previous file and the next, nominally time gap
