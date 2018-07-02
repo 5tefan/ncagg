@@ -6,7 +6,7 @@ from datetime import datetime
 import netCDF4 as nc
 import numpy as np
 
-from .aggrelist import AbstractNode, FillNode, InputFileNode
+from .aggrelist import AbstractNode, FillNode, InputFileNode, VariableNotFoundException
 from .attributes import AttributeHandler
 from .config import Config
 
@@ -149,7 +149,7 @@ def generate_aggregation_list(config, files_to_aggregate):
             # *caveat: since we're subtracting dt_nom here, but inherently allow for some
             # wiggle (between dt_min and dt_max), possible statement could result
             # in the first record unfortunately occuring slightly before the beginning bound.
-            prev_end = first_along_primary - dt_nom
+            prev_end = first_along_primary - dt_min
 
         # the size of the gap between the previous file and the next, nominally time gap
         gap_between = next_start - prev_end
@@ -173,7 +173,7 @@ def generate_aggregation_list(config, files_to_aggregate):
         # if the gap is too small, chop some off this next file to make it fit...
         if gap_between < dt_min:  # <----------- CASE: gap-too-small
             # tbh, getting num_overlap correct has been mostly trial and error...
-            num_overlap = np.ceil(np.abs((gap_between - dt_nom) * cadence_hz))
+            num_overlap = np.ceil(np.abs((gap_between - dt_min) * cadence_hz))
             next_f.set_dim_slice_start(primary_index_by, num_overlap)
             # note: setting dim_slice_start effectively invalidates the previously set next_start variable
 
@@ -277,7 +277,12 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                     try:
                         output_data = data_for(var)
                         nc_out.variables[var["name"]][write_slices] = np.ma.masked_where(np.isnan(output_data), output_data)
+                    except VariableNotFoundException:
+                        # this error is fine and expected. The template may contain variables that don't
+                        # exist in the inputs, just pass over them and they will come out as fill values.
+                        pass
                     except Exception as e:
+                        # something else... unexpected
                         logger.error("Error copying component: %s, unlim variable: %s" % (component, var))
                         logger.error(traceback.format_exc())
 

@@ -29,6 +29,15 @@ def get_fill_for(variable):
         return datatype.type(variable["attributes"].get("_FillValue", nc_default_fill))
 
 
+class VariableNotFoundException(Exception):
+    """
+    A custom exception raised when a variable is not found in the aggregation input.
+
+    TODO: usually ignored, but crash in strict mode?
+    """
+    pass
+
+
 class AbstractNode(object):
     """
     Abstract template for an AggreList node.
@@ -317,7 +326,7 @@ class InputFileNode(AbstractNode):
             # If the index_by variable has multiple dimensions and an index isn't specified in other_dim_inds,
             # then default to 0
             slices = tuple([internal_index if d == udim["name"] else udim["other_dim_inds"].get(d, 0)
-                            for d in index_by.dimensions ])
+                            for d in index_by.dimensions])
 
             try:
                 # Safer to do np.nan, but this block could be simplified to always make the fill value 0.
@@ -459,12 +468,17 @@ class InputFileNode(AbstractNode):
             yield data_for, callback_with_file
 
     def data_for_netcdf(self, var, nc_in):
+        # type: (dict, nc.Dataset) -> np.array
         """
         Get the data configured by this Node for the variable given.
         :type var: dict
         :param variable: a dict specification of the variable to get
         :return: array of data for variable
         """
+        if var["name"] not in nc_in.variables.keys():
+            # raise early if variable not found in input... this could be acted on in strict mode. TODO.
+            raise VariableNotFoundException("Var %s not found input %s" % (var, self.__str__()))
+
         fill_value = get_fill_for(var)
         dims = [self.config.dims[d] for d in var["dimensions"]
                 if d in nc_in.variables[var["name"]].dimensions]

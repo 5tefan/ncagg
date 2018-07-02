@@ -1,3 +1,13 @@
+# 0.8.1 - 2018-07-02
+
+- Suppress Error logging for missing variable in input file.
+    This scenario is supported and anticipated that files do 
+    not have some variable contained within the template. Just
+    move along. Considering adding more sophisticated handling
+    of this with "strict" mode.
+- Previous gap_between and num_overlap calculation was not tight
+    enough, see new test case. Calculation on bound tightened.
+    
 # 0.8.0 - 2018-06-29
 
 Fixes issue causing record immediately before unlim
