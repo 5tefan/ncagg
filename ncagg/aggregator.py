@@ -33,15 +33,13 @@ timing_certainty = 0.9
 
 
 def aggregate(files_to_aggregate, output_filename, config=None):
+    # type: (list[str], str, None | Config) -> None
     """
     Aggregate files_to_aggregate into output_filename, with optional conifg.
     Convenience function intended to be primary external interface to aggregation.
 
-    :type files_to_aggregate: list[str]
     :param files_to_aggregate: List of NetCDF filenames to aggregate.
-    :type output_filename: str
     :param output_filename: Filename to create and write output to.
-    :type config: Config
     :param config: Optional configuration, default generated from first file if not given.
     :return: None
     """
@@ -53,15 +51,12 @@ def aggregate(files_to_aggregate, output_filename, config=None):
 
 
 def generate_aggregation_list(config, files_to_aggregate):
-    # type: (Config, list) -> list
+    # type: (Config, list[str]) -> list[AbstractNode]
     """
     Generate an aggregation list from a list of input files.
 
     :param config: Aggregation configuration
-    :type config: Config
     :param files_to_aggregate: a list of filenames to aggregate.
-    :type files_to_aggregate: list[str]
-    :rtype: list
     :return: a list containing objects inheriting from AbstractNode describing aggregation
     """
     preliminary = []
@@ -90,9 +85,8 @@ def generate_aggregation_list(config, files_to_aggregate):
     preliminary = sorted(preliminary, key=lambda p: p.get_first_of_index_by(primary_index_by))
 
     def cast_bound(bound):
-        """ Cast a bound to a numerical type for use. Will not be working directly with datetime objects. 
-        :rtype: float
-        """
+        # type: (float | datetime) -> float
+        """ Cast a bound to a numerical type for use. Will not be working directly with datetime objects. """
         if isinstance(bound, datetime):
             units = config.vars[primary_index_by["index_by"]]["attributes"]["units"]
             return nc.date2num(bound, units)
@@ -200,15 +194,14 @@ def generate_aggregation_list(config, files_to_aggregate):
 
 
 def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=None):
+    # type: (Config, list[AbstractNode], str, None | function) -> None
     """
     Evaluate an aggregation list to a file.... ie. actually do the aggregation.
 
     :param config: Aggregation configuration
-    :type config: Config
     :param aggregation_list: AggList specifying how to create aggregation.
     :param to_fullpath: Filename for output.
     :param callback: called every time an aggregation_list element is processed.
-    :type callback: None | function
     :return: None
     """
     if aggregation_list is None or len(aggregation_list) == 0:
@@ -293,15 +286,14 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
 
 
 def initialize_aggregation_file(config, fullpath):
+    # type: (Config, str) -> None
     """
     Based on the configuration, initialize a file in which to write the aggregated output. 
     
     In other words, resurrect a netcdf file that would result in config.
 
     :param config: Aggregation configuration
-    :type config: Config
     :param fullpath: filename of output to initialize.
-    :type fullpath: basestring
     :return: None
     """
     with nc.Dataset(fullpath, 'w') as nc_out:

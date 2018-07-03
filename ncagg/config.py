@@ -85,10 +85,16 @@ class Config(object):
                     raise ValueError("dim %s's other_dim_inds %s for %s too big for size %s"
                                      % (d, ov, od, self.dims[od]["size"]))
 
-
     @classmethod
     def from_dict(cls, config):
         # type: (dict) -> Config
+        """
+        Instantiate an aggregation Config object from a dict. The dict is expected to be in the
+        same format as `to_dict` produces.
+
+        :param config: A dict representation of a Config.
+        :return: instantiated Config.
+        """
         dims = DimensionConfig(config.get("dimensions", []))
         vars = VariableConfig(config.get("variables", []))
         attrs = GlobalAttributeConfig(config.get("attributes", []))
@@ -96,6 +102,11 @@ class Config(object):
 
     def to_dict(self):
         # type: () -> dict
+        """
+        Turn a Config instance into a portable dict representation.
+
+        :return: Config in dict form.
+        """
         return {
             "dimensions": self.dims.to_list(),
             "variables": self.vars.to_list(),
@@ -105,6 +116,12 @@ class Config(object):
     @classmethod
     def from_nc(cls, nc_filename):
         # type: (str) -> Config
+        """
+        Generate a Config from an example nc_filename path.
+
+        :param nc_filename: string filepath to a sample netcdf.
+        :return: Config template based on the sample netcdf.
+        """
         dims = DimensionConfig.from_nc(nc_filename)  # Configure Dimensions
         vars = VariableConfig.from_nc(nc_filename)  # Configure Variables
         attrs = GlobalAttributeConfig.from_nc(nc_filename)  # Configure Global Attributes
@@ -113,6 +130,14 @@ class Config(object):
 
 
 class ConfigDict(OrderedDict):
+    """
+    A NetCDF file is composed of Attributes, Variables, and Dimensions. These components are all
+    ordered within the file. We will use an OrderedDict supplemented with some validation abilities
+    to implement configuration elements for each of these components to a NetCDF file.
+
+    This "Abstract" ConfigDict implements the base infrastructure on which the specifics of
+    the Attribute, Variable, and Dimensions configurations are built on.
+    """
     def __init__(self, a_list):
         # type: (list) -> None
         # Expecting a list because that's the only way to preserve ordering serializing to/from json.
@@ -126,18 +151,31 @@ class ConfigDict(OrderedDict):
     def get_item_schema(self):
         # type: () -> dict
         """
-        Each config item must have at least a name. Add more in subclass.
+        Get the Cerberus config schema to which every ConfigDict value must adhere to.
+
+        Each config item must have at least a name. Add more in subclass...
+
         :return: common schema, containing name field.
         """
         return {"name": {"type": "string", "required": True}}
 
     def __setitem__(self, key, value):
         # type: (str, dict) -> None
+        """
+        Validate and set a config dict value.
+
+        Note: raises ValueError and item is not inserted if validation fails.
+
+        :param key: string name of configuration key
+        :param value: value to attach to key
+        :return: None
+        """
         value.update({"name": key})
         value = validate(self.schema, value)
         super(ConfigDict, self).__setitem__(value["name"], value)
 
     def update(self, *args, **kwargs):
+        """ Update the ConfigDict, using __setitem__ in order to validate every entry. """
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
 
@@ -145,7 +183,11 @@ class ConfigDict(OrderedDict):
         # type: () -> list
         """
         Convert the ConfigDict to a list representation... json serializable.
-        :return:
+
+        Note: ConfigDicts are serialized as lists to preserve ordering.
+        Note: Variables, Attributes, and Dimensions in NetCDF file are ordered.
+
+        :return: List representation of Configuration.
         """
         res = []
         for k, v in self.items():
@@ -155,7 +197,6 @@ class ConfigDict(OrderedDict):
         return res
 
 
-# DimensionConfig, VariableConfig, AttributeConfig, ...
 class DimensionConfig(ConfigDict):
     def get_item_schema(self):
         default = super(DimensionConfig, self).get_item_schema()

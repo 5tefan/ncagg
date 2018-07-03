@@ -11,8 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 def datetime_format(dt):
+    # type: (datetime) -> str
     """
     Consistent format for timestamps throughout global attirbutes.
+
     :type dt: datetime
     :param dt: a datetime object
     :return: dt to string
@@ -104,6 +106,7 @@ class StratCountInputFiles(Strat):
     def process(self, attr, nc_obj=None):
         self.attr += 1
 
+
 class StratUniqueList(Strat):
     """
     Finalize to a comma separated list of unique values detected
@@ -121,6 +124,7 @@ class StratUniqueList(Strat):
     def finalize(self, nc_out):
         return ", ".join(self.attr)
 
+
 class StratNcaggVersion(Strat):
     """
     Include an attribute indicating what version of ncagg was used.
@@ -130,7 +134,6 @@ class StratNcaggVersion(Strat):
 
     def finalize(self, nc_out):
         return pkg_resources.require("ncagg")[0].version
-    
 
 
 class StratIntSum(Strat):

@@ -18,6 +18,7 @@ except pkg_resources.DistributionNotFound:
 def parse_time(dt_str):
     """
     Parse a YYYYMMDD[HH[MM]] type string. HH and MM are optional.
+
     :param dt_str: datetime string to parse
     :return: interpreted datetime
     """
@@ -29,11 +30,14 @@ def parse_time(dt_str):
     return datetime(year, month, day, hour, minute)
 
 def parse_bound_arg(b):
+    # type: (str) -> (datetime, datetime)
     """
-    Parse a -b argument specifying bounds of aggregation. Bounds are min:max or Tstart[:[T]stop].
-    start and stop are of the form YYYY[MM[DD[HH[MM]]]]
-    :param b:
-    :return:
+    Parse a "-b" argument specifying bounds of aggregation. Bounds are min:max or Tstart[:[T]stop].
+    start and stop are of the form YYYY[MM[DD[HH[MM]]]]. If only Tstart is provided, the end (Tstop)
+    is assumed to be an increment of the least significant portion specified.
+    
+    :param b: String bound specifier to parse into start and end time.
+    :return: tuple of parsed (start datetime, end datetime)
     """
     b_split = b.split(":")
     if b_split[0].startswith("T"):
@@ -79,6 +83,15 @@ def parse_bound_arg(b):
 
 
 def print_config(ctx, param, sample_netcdf):
+    # type: (click.Context, str, str) -> None
+    """
+    Click callback to print a json config generated from the sample_netcdf and exit.
+
+    :param ctx: click.Context
+    :param param: name of the parameter, irrelevant here.
+    :param sample_netcdf: string path to sample_netcdf
+    :return: None
+    """
     if not sample_netcdf or ctx.resilient_parsing:
         return
     the_config = Config.from_nc(click.format_filename(sample_netcdf)).to_dict()
@@ -89,6 +102,15 @@ def print_config(ctx, param, sample_netcdf):
 src_path_type = click.Path(exists=True, dir_okay=False)
 
 def get_src_from_stdin(ctx, param, value):
+    # type: (click.Context, str, object) -> list[str]
+    """
+    Click callback to parse standard input (stdin) as a whitespace separated list of files.
+
+    :param ctx: click.Context
+    :param param: name of the parameter to parse
+    :param value: the command line argument value of the parameter
+    :return: a list of files parsed from stdin
+    """
     stdin = click.get_text_stream("stdin")
     if not value and not stdin.isatty():
         f = lambda should_be_file: src_path_type.convert(should_be_file, param, ctx)
@@ -117,6 +139,7 @@ def get_src_from_stdin(ctx, param, value):
               default="WARNING")
 @click.option("-t", help="Specify a configuration template", type=click.File("r"))
 def cli(dst, src, u=None, b=None, l="WARNING", t=None):
+    """ Aggregate NetCDF files. """
     logging.getLogger().setLevel(l)
     if t is not None:  # if given a template...
         config = Config.from_dict(json.load(t))
