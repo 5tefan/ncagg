@@ -40,6 +40,10 @@ ncagg\.cli module
     :members:
     :undoc-members:
     :show-inheritance:
+    :exclude-members: ncagg.cli.cli
+
+.. click:: ncagg.cli:cli
+    :prog: ncagg
 
 ncagg\.config module
 --------------------
