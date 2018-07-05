@@ -218,6 +218,11 @@ class InputFileNode(AbstractNode):
             self.sort_unlim[udim["name"]] = aggsort = np.argsort(times)
             cadence_uncert = 0.9
 
+            # Note: argsort moves nan values to the end, so if the first value is a nan, they're all nan.
+            # if this happens, raise a RuntimeError to cause this file to be excluded from aggregation list.
+            if np.isnan(times[aggsort[0]]):
+                raise RuntimeError("File contains only fill values for var indexing unlim dim.")
+
             # find the first good value, ie value is not zero
             slice_start = 0
             while times[aggsort[slice_start]] <= 0 and slice_start < times.size:
