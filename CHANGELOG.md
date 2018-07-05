@@ -1,3 +1,7 @@
+# 0.8.2 - 2018-07-05
+
+- Fixes an issue caused by aggregating over all fill value files.
+
 # 0.8.1 - 2018-07-02
 
 - Suppress Error logging for missing variable in input file.
