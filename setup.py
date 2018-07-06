@@ -33,5 +33,9 @@ setup(
         "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-    ]
+    ],
+    project_urls={
+        "Documentation": "http://ncagg.readthedocs.io/en/latest/",
+        "Github": "https://github.com/5tefan/ncagg"
+    }
 )
