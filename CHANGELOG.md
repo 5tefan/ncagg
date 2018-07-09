@@ -1,3 +1,10 @@
+# 0.8.3 - 2018-07-09
+
+- Setup Sphinx documentation
+- Fix numerical issue in calculating start bound affecting
+    aggregations where granule starts exactly on aggregation
+    start bound.
+
 # 0.8.2 - 2018-07-05
 
 - Fixes an issue caused by aggregating over all fill value files.

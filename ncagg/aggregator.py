@@ -131,6 +131,8 @@ def generate_aggregation_list(config, files_to_aggregate):
         # that CASE: gap-too-small isn't triggered for first point, causing first point to get chopped off.
         if len(final) > 0:
             prev_end = final[-1].get_last_of_index_by(primary_index_by)
+            # the size of the gap between the previous file and the next, nominally time gap
+            gap_between = next_start - prev_end
         elif first_along_primary is None:
             # don't have a bound to compare against, so just have to start by adding first file we get
             final.append(next_f)
@@ -138,10 +140,17 @@ def generate_aggregation_list(config, files_to_aggregate):
         else:
             # CASE: first file, take the bound and subtract a min time step so that
             # the first time step greater than or equal to the bound will be included.
-            prev_end = first_along_primary - dt_min
-
-        # the size of the gap between the previous file and the next, nominally time gap
-        gap_between = next_start - prev_end
+            if 0.0 <= (next_start - first_along_primary) < (1e-3 * cadence_hz):
+                # encountered numerical issues here previously when next_start == first_along_primary.
+                # the calculation for gap_between ended up being
+                # next_start - (first_along_primary - dt_min) != (next_start - first_along_primary) + dt_min
+                # The expression should be == dt_min, however, the LHS experiences some numerical error.
+                # To resolve, I've introduced an extra check for next_start and first_along_primary being
+                # sufficiently close together, but still starting after to avoid the numerical issue.
+                gap_between = dt_min
+            else:
+                prev_end = first_along_primary - dt_min
+                gap_between = next_start - prev_end
 
         # gap too big if skips 1.5 of the largest possible expected dt...
         if gap_between > dt_max:  # <----------- CASE: gap-too-big
