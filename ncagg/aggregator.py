@@ -140,17 +140,13 @@ def generate_aggregation_list(config, files_to_aggregate):
         else:
             # CASE: first file, take the bound and subtract a min time step so that
             # the first time step greater than or equal to the bound will be included.
-            if 0.0 <= (next_start - first_along_primary) < (1e-3 * cadence_hz):
-                # encountered numerical issues here previously when next_start == first_along_primary.
-                # the calculation for gap_between ended up being
-                # next_start - (first_along_primary - dt_min) != (next_start - first_along_primary) + dt_min
-                # The expression should be == dt_min, however, the LHS experiences some numerical error.
-                # To resolve, I've introduced an extra check for next_start and first_along_primary being
-                # sufficiently close together, but still starting after to avoid the numerical issue.
-                gap_between = dt_min
-            else:
-                prev_end = first_along_primary - dt_min
-                gap_between = next_start - prev_end
+
+            # Note: encountered numerical issues here previously when next_start == first_along_primary.
+            # the calculation for gap_between ended up being
+            # next_start - (first_along_primary - dt_min) != (next_start - first_along_primary) + dt_min
+            # The expression should be == dt_min, however, the LHS experiences some numerical error.
+            prev_end = first_along_primary - dt_min
+            gap_between = (next_start - first_along_primary) + dt_min
 
         # gap too big if skips 1.5 of the largest possible expected dt...
         if gap_between > dt_max:  # <----------- CASE: gap-too-big
@@ -163,7 +159,7 @@ def generate_aggregation_list(config, files_to_aggregate):
                 start_from = prev_end
             else:  # <------------- CASE: no-previous-file
                 # otherwise look at the next timestamp, and go backward _size_ from there to get the start_from.
-                start_from = next_start - (size * dt_nom) - dt_nom
+                start_from = (next_start - dt_nom) - (size * dt_nom)
 
             fill_node.set_udim(primary_index_by, size, start_from)
             final.append(fill_node)
@@ -192,7 +188,8 @@ def generate_aggregation_list(config, files_to_aggregate):
     if len(final) > 0 and not isinstance(final[-1], FillNode):
         prev_end = final[-1].get_last_of_index_by(primary_index_by)
         # add dt_min to last_along_primary again since last_along_primary isn't a real data point
-        gap_to_end = last_along_primary + dt_min - prev_end
+        # again, gap_to_end must consider numerical issues. last and prev large magnitude, dt_min is small
+        gap_to_end = (last_along_primary - prev_end) + dt_min
         if gap_to_end > dt_max:
             fill_node = FillNode(config)
             size = np.floor((gap_to_end-dt_min) * cadence_hz)

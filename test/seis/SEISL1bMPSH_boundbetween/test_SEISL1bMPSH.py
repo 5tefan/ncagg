@@ -27,8 +27,10 @@ class TestMpsh(unittest.TestCase):
         os.remove(self.nc_out_filename)
 
     def test_mpsh_with_config(self):
-        start_time = datetime(2017, 7, 20, 0, 0)
-        end_time = datetime(2017, 7, 20, 0, 1) - timedelta(microseconds=1)
+        # first minute of Jan 9, 2017,
+        # note that first 5 seconds of the 9th are in the last file from the 8th
+        start_time = datetime(2017, 1, 9, 0, 0)
+        end_time = datetime(2017, 1, 9, 0, 1) - timedelta(microseconds=1)
 
         self.config.dims["report_number"].update({
             "index_by": "L1a_SciData_TimeStamp",
@@ -57,8 +59,8 @@ class TestMpsh(unittest.TestCase):
             self.assertLessEqual((end_time_num-time[-1]), 1)
 
     def test_mpsh_with_start_fill(self):
-        start_time = datetime(2017, 7, 20, 0, 0)
-        end_time = datetime(2017, 7, 20, 0, 1) - timedelta(microseconds=1)
+        start_time = datetime(2017, 1, 9, 0, 0)
+        end_time = datetime(2017, 1, 9, 0, 1) - timedelta(microseconds=1)
 
         self.config.dims["report_number"].update({
             "index_by": "L1a_SciData_TimeStamp",

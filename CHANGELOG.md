@@ -1,3 +1,7 @@
+# 0.8.4 - 2018-07-18
+
+- Further addressing numerical stability issues.
+
 # 0.8.3 - 2018-07-09
 
 - Setup Sphinx documentation
