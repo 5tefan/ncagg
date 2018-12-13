@@ -24,11 +24,20 @@ class TestMultiUnlimDims(unittest.TestCase):
                 nc_in.createVariable("b", str, ("b",))
                 nc_in.createVariable("c", np.int32, ("a", "b"))
 
+                # the variable a just [0, 1, 2] * i * 3 such that when aggregated,
+                # we can verify that in the dimension "a", the aggregated variable a
+                # contains a = 0, 1, 2 ... (3*3)
                 nc_in.variables["a"][:] = np.arange(3) + (i*3)
-                # for j, b in enumerate(["a", "b", "c"][:i+1]):
-                #     nc_in.variables["b"][j] = b
-                #     nc_in.variables["c"][:, j] = np.arange(3) + (i*3)
-                for j, b in enumerate(sorted(["a", "b", "c"], key=lambda x: np.random.rand())[:i+1]):
+
+                # recall i is the ith input file we're creating...
+                # then variable b has i elements, being some random selection of "a", "b", and "c"
+                # I.e. the first file has only one element, next has two, etc. impl by the [:i+1]
+                # the variable c also has i _columns_.
+                # for j, b in enumerate(sorted(["a", "b", "c"], key=lambda x: np.random.rand())[:i+1]):
+
+                # actually, since we don't have the flatten with index_by working yet,
+                # instead keep in order...
+                for j, b in enumerate(["a", "b", "c"][:i+1]):
                     nc_in.variables["b"][j] = b
                     nc_in.variables["c"][:, j] = np.arange(3) + (i*3)
 
@@ -41,7 +50,11 @@ class TestMultiUnlimDims(unittest.TestCase):
         l = generate_aggregation_list(config, self.inputs)
         evaluate_aggregation_list(config, l, self.filename)
         with nc.Dataset(self.filename) as nc_out:  # type: nc.Dataset
-            # this is the default way of aggregating
+            # this is the default aggregation produced by aggregation
+            # along both unlimited dimensions. This isn't really practically
+            # useful, but, by our "basic" definition of aggregation along unlitimed
+            # dimensions is correct. Need to make sure we get what's expected.
+
             # [[0 -- -- -- -- --]
             #  [1 -- -- -- -- --]
             #  [2 -- -- -- -- --]
@@ -58,11 +71,21 @@ class TestMultiUnlimDims(unittest.TestCase):
 
     def test_collapse_second_dim(self):
         config = Config.from_nc(self.inputs[0])
-        config.dims["b"].update({"flatten": True})
+        config.dims["b"].update({
+            "flatten": True,
+            "index_by": "b"
+        })
         l = generate_aggregation_list(config, self.inputs)
         evaluate_aggregation_list(config, l, self.filename)
         with nc.Dataset(self.filename) as nc_out:  # type: nc.Dataset
+            # This is the more practically useful method of aggregation,
+            # where, for example, the dimension "a" might represent time
+            # and dim "b" is maybe satellite, or event, etc. (something that,
+            # at any point in time, there could be an arbitrary number of).
+
+
             # flatten b dimension, should turn out like:
+
             # [[0 -- --]
             #  [1 -- --]
             #  [2 -- --]

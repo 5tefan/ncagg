@@ -261,16 +261,21 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                             write_slices.append(slice(0, component.get_size_along(dim)))
                         elif dim["size"] is None and dim["flatten"] and dim["index_by"] is not None:
                             # case: flattening according to an index
-                            index_by = dim["index_by"]
-                            index_by_incoming_values = component.data_for(config.vars[index_by])
-                            index_by_existing_values = nc_out.variables[index_by][:]
-                            # TODO: finish this
+                            # TODO: finish this...
+                            # implementation will probably include ensuring that
+                            # the InputFileNode and generate_aggregation_list
+                            # work on multidims. Should just be copying the data here.
                             write_slices.append(slice(0, component.get_size_along(dim)))
                         else:
                             write_slices.append(slice(None))
                     try:
-                        output_data = data_for(var)
-                        nc_out.variables[var["name"]][write_slices] = np.ma.masked_where(np.isnan(output_data), output_data)
+                        output_data = data_for(var)  # type: np.array
+                        if np.issubdtype(output_data.dtype, np.floating):
+                            # numpy ufunc isnan only defined for floating types.
+                            nc_out.variables[var["name"]][write_slices] = np.ma.masked_where(np.isnan(output_data), output_data)
+                        else:
+                            nc_out.variables[var["name"]][write_slices] = output_data
+
                     except VariableNotFoundException:
                         # this error is fine and expected. The template may contain variables that don't
                         # exist in the inputs, just pass over them and they will come out as fill values.
@@ -304,17 +309,28 @@ def initialize_aggregation_file(config, fullpath):
     """
     with nc.Dataset(fullpath, 'w') as nc_out:
         for dim in config.dims.values():
+            # note: dim["size"] will be None for unlimited dimensions.
             nc_out.createDimension(dim["name"], dim["size"])
         for var in config.vars.values():
             var_name = var.get("map_to", var["name"])
             var_type = np.dtype(var["datatype"])
+            fill_value = var["attributes"].pop("_FillValue", None)
+            if fill_value is not None:
+                # fill_value is None by default, but if there is a value specified,
+                # explicitly cast it to the same type as the data.
+                fill_value = var_type.type(fill_value)
             var_out = nc_out.createVariable(var_name, var_type, var["dimensions"],
                                             chunksizes=var["chunksizes"], zlib=True,
-                                            complevel=7)
+                                            complevel=7, fill_value=fill_value)
             for k, v in var["attributes"].items():
-                if k in ["_FillValue", "valid_min", "valid_max"]:
+                if k in ["valid_min", "valid_max"]:
+                    # cast scalar attributes to datatype of variable
+                    # smc@20181206: moved hanldling of _FillValue to createVariable, seems
+                    # to matter for netcdf vlen datatypes (eg. string types)
                     var["attributes"][k] = var_type.type(v)
                 if k in ["valid_range", "flag_masks", "flag_values"]:
+                    # cast array attributes to datatype of variable
+                    # Note: two ways to specify an array attribute in Config, either CSV or as actual array.
                     if isinstance(v, str):
                         var["attributes"][k] = np.array(map(var_type.type, v.split(", ")), dtype=var_type)
                     else:

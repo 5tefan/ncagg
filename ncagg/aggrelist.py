@@ -509,24 +509,33 @@ class InputFileNode(AbstractNode):
             dim_along = internal_agg_dims[0]
             loc_along_dim = 0
             dim_i = next((i for i in range(len(dims)) if dims[i]["name"] == dim_along))
+            # TODO: ugh, sorry, this needs some more commenting.
             for agg_seg in self.file_internal_aggregation_list[dim_along]:
                 if isinstance(agg_seg, FillNode):
                     data_in_transit = agg_seg.data_for(var)
                 else:
                     assert isinstance(agg_seg, slice), "Found %s" % agg_seg
-                    data_in_transit = prelim_data[[agg_seg if d["name"] == dim_along else slice(None)
-                                                   for d in dims]]
+                    data_in_transit = prelim_data[tuple(
+                        # smc@20181206: fix FutureWarning by wrapping in tuple for Numpy > 1.15:
+                        # FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use
+                        # `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array
+                        #  index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+                        [agg_seg if d["name"] == dim_along else slice(None) for d in dims]
+                    )]
 
                 size_along_dim = np.shape(data_in_transit)[dim_i]
-                transformed_data[[slice(loc_along_dim, loc_along_dim + size_along_dim) if i == dim_i else slice(None)
-                                  for i in range(len(dims))]] = data_in_transit
+                transformed_data[tuple(
+                    # smc@20181206: again, fix FutureWarning w/ tuple wrap for Numpy > 1.15. See more info above.
+                    [slice(loc_along_dim, loc_along_dim + size_along_dim) if i == dim_i else slice(None)
+                                  for i in range(len(dims))]
+                )] = data_in_transit
 
                 loc_along_dim += size_along_dim
 
             prelim_data = transformed_data
 
         # step 3: slice to external view
-        return prelim_data[[self.get_dim_slice(d) for d in dims]]
+        return prelim_data[tuple([self.get_dim_slice(d) for d in dims])]
 
     def callback_with_netcdf(self, callback, nc_in):
         """

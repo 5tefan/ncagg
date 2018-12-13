@@ -417,7 +417,12 @@ Tests are in the `test` subdirectory. Run all tests with
 python -m unittest discover 
 ```
 
-The code is compatible with Python2 (2.7) and Python3, so unittests should be run with both.
+The code is compatible with Python2 (2.7) and Python3, so unittests should be run with both. One interesting
+thing I've noticed is the test suite appears to be about 20% faster in Python3 than in Python2. 
+
+Note: currently it is expected that 1 test(s) fail.
+ - test.seis.SEISL1bSGPSEAST_5min.test_SEISL1bSGPS fails because dimension subsetting has not
+been reimplemented after a refactor that removed the feature.
 
 
 ## Development
