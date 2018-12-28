@@ -114,7 +114,7 @@ def get_src_from_stdin(ctx, param, value):
     stdin = click.get_text_stream("stdin")
     if not value and not stdin.isatty():
         f = lambda should_be_file: src_path_type.convert(should_be_file, param, ctx)
-        value = map(f, stdin.read().strip().split())
+        value = list(map(f, stdin.read().strip().split()))
         if not value:
             # otherwise, nothing found
             raise click.BadParameter("No files provided as argument or via stdin.", ctx=ctx, param=param)
