@@ -1,3 +1,9 @@
+# 0.8.5 - 2018-12-27
+
+ - Fix handling of vlen (string) netcdf datatypes
+ - Fix Python3 compatibility in cli and attribute handling
+ - Resolves FutureWarning that was appearing with numpy 1.15.1
+
 # 0.8.4 - 2018-07-18
 
 - Further addressing numerical stability issues.

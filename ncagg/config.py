@@ -6,13 +6,6 @@ import numpy as np
 
 from .attributes import AttributeHandler
 
-"""
-This file contains functions that take some configuration, generally as the first parameter, and any other necessary
-argument and confirms that the configuration is understood and sensible. Each function returns a configuration which
-should be used after validation. The validator may make changes to the configuration, eg. inserting inferred values
-that should be explicit, for example.
-"""
-
 
 def validate(schema, config):
     # type: (dict, dict) -> dict
@@ -47,7 +40,7 @@ class Config(object):
         """
         self.dims = dims  # type: DimensionConfig
         self.vars = vars  # type: VariableConfig
-        self.attrs = attrs  # type: GlobalConfig
+        self.attrs = attrs  # type: GlobalAttributeConfig
 
         # At the moment, anything else, we'll let fall through and error out at evaluation time.
         self.inter_validate()
