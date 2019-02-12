@@ -78,7 +78,7 @@ def generate_aggregation_list(config, files_to_aggregate):
         return preliminary
 
     # Find the primary index_by dim. First is_primary found, otherwise first index_by dim.
-    primary_index_by = next((d for d in config.dims.values() if d.get("is_primary", False) == True), index_by_dims[0])
+    primary_index_by = next((d for d in config.dims.values() if d.get("is_primary", False)), index_by_dims[0])
 
     # Transfer items from perlimiary to final. According to primary index_by dim,
     # adding fill nodes and correcting overlap.
@@ -172,15 +172,20 @@ def generate_aggregation_list(config, files_to_aggregate):
             # note: setting dim_slice_start effectively invalidates the previously set next_start variable
 
         # make sure the end of the next_f isn't sticking out after the max boundary
-        if last_along_primary is not None and last_along_primary < next_end:
+        if last_along_primary is not None and last_along_primary < next_end:  # <---------- CASE: hanging-over-edge
             gap_between_end = next_end - last_along_primary
             num_overlap = np.abs(np.ceil(gap_between_end * cadence_hz))
             # note: set stop to negative of overlap, ie. backwards from end since
             # there will be no following file.
             next_f.set_dim_slice_stop(primary_index_by, -num_overlap)
 
-        # and finally, if there's anything left of this next_f, add it to the final
-        if next_f.get_size_along(primary_index_by) > 0:
+        # And finally, if there's anything left of this next_f, add it to the final.
+        # Note: strict=False allows get_size_along to return a negative number.
+        # This negative number may arise if both CASE: gap-too-small and CASE: hanging-over-edge are triggered above.
+        # Example: a file with 10 records: gap-to-small sets start to 8 and hanging-over-edge sets # stop to -5,
+        # then get_size_along with strict=False will return -3. Up to this point, that's fine, that means don't
+        # include the file since none of it belongs!
+        if next_f.get_size_along(primary_index_by, strict=False) > 0:
             final.append(next_f)
 
     # after looping over the input files given, check if we haven't quite reached the end point and need

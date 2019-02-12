@@ -1,3 +1,9 @@
+# 0.8.6 - 2019-02-12
+
+ - Fixes issue with chopping at end boundary where negative size
+    is fine while building preliminary aggregation list as long as
+    it does not end up in the final.
+
 # 0.8.5 - 2018-12-27
 
  - Fix handling of vlen (string) netcdf datatypes

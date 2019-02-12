@@ -428,11 +428,21 @@ class InputFileNode(AbstractNode):
 
         return dim_length
 
-    def get_size_along(self, dim):
+    def get_size_along(self, dim, strict=True):
         """
-        For an InputFileNode instance, the unlimited_dim arguemnt doesn't actually have to be an unlimited dimension,
-        the correct value will be returned for any valid dimension in the input file.
+        For an InputFileNode instance, the unlimited_dim argument doesn't actually have to be an unlimited dimension,
+        the correct value will be returned for any valid dimension in the input file. If strict is True, negative
+        sizes cannot be returned and will result in a RuntimeExcpetion instead.
 
+        History: Most usages of get_size_along operate under the assumption that the size is non-negative.
+        There used to be an assert of this, however, smc@20190212 we're running into a bug where the aggregation
+        list chops the front and end of a dimension resulting in negative size. The assert was causing a failure here,
+        but, in building the aggregation list, we're only finalizing if size > 0, implying there is data in the file
+        that needs to be used... so it's ok to return the negative size there. This is happening in the context
+        of interleaved file steams coming in L1b.
+
+        :param dim: the dimension to get the size along.
+        :param strict: Boolean: don't allow returned size to be negative.
         :return: The size of the dim
         """
         dim_slice = self.get_dim_slice(dim)  # check if it's overridden in self.dim_slices
@@ -458,7 +468,10 @@ class InputFileNode(AbstractNode):
         else:
             dim_end_i = dim_length if dim_slice.stop is None else dim_slice.stop
 
-        assert dim_start_i <= dim_end_i, "dim size can't be neg, got [%s:%s] for %s" % (dim_start_i, dim_end_i, self)
+        if strict and dim_start_i > dim_end_i:
+            # Only if strict mode, do the assertion...
+            raise RuntimeError("dim size can't be neg, got [%s:%s] for %s" % (dim_start_i, dim_end_i, self))
+
         return dim_end_i - dim_start_i
 
     @contextmanager
