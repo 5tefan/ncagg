@@ -46,11 +46,15 @@ class TestEvaluateAggregationList(unittest.TestCase):
         self.assertAlmostEqual(np.min(np.diff(numeric_times)), 299, delta=0.01)
         self.assertAlmostEqual(np.max(np.diff(numeric_times)), 299, delta=0.01)
 
-        """ These numbers are pretty relazed, but appears to be best effort given the
-        input files and cadence. """
-        self.assertAlmostEqual(np.mean(np.diff(numeric_times[:, 0])), 326, delta=1)
-        self.assertAlmostEqual(np.min(np.diff(numeric_times[:, 0])), 300, delta=0.01)
-        self.assertAlmostEqual(np.max(np.diff(numeric_times[:, 0])), 540, delta=0.01)
+        # Previously, when we were flooring the FillNode size, there would be no
+        # fill node inserted here and we would have a gap of size 540. The mean
+        # diff was 326ish. I've decided that it's better to turn the 540 step into
+        # a 300 and a 240 second step. The "evidence" I'm using to say this is better is
+        # that this bring the mean time diff to 294, which is much closer to
+        # the nominal 300 than the previous 326 was.
+        self.assertAlmostEqual(np.mean(np.diff(numeric_times[:, 0])), 294, delta=1)
+        self.assertAlmostEqual(np.min(np.diff(numeric_times[:, 0])), 240, delta=0.01)
+        self.assertAlmostEqual(np.max(np.diff(numeric_times[:, 0])), 300, delta=0.01)
 
         datetimes = nc.num2date(numeric_times, self.output.variables["ELF_StartStopTime"].units)
 

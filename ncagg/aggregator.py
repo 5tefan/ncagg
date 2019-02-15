@@ -140,27 +140,25 @@ def generate_aggregation_list(config, files_to_aggregate):
         else:
             # CASE: first file, take the bound and subtract a min time step so that
             # the first time step greater than or equal to the bound will be included.
-
-            # Note: encountered numerical issues here previously when next_start == first_along_primary.
-            # the calculation for gap_between ended up being
-            # next_start - (first_along_primary - dt_min) != (next_start - first_along_primary) + dt_min
-            # The expression should be == dt_min, however, the LHS experiences some numerical error.
+            # Historical: numerical issues here? What happened... was I mistaken? .. probably.
             prev_end = first_along_primary - dt_min
-            gap_between = (next_start - first_along_primary) + dt_min
+            gap_between = next_start - prev_end
 
         # gap too big if skips 1.5 of the largest possible expected dt...
-        if gap_between > dt_max:  # <----------- CASE: gap-too-big
+        if gap_between > 1.5 * dt_max:  # <----------- CASE: gap-too-big
             # if the gap is too big, insert an appropriate fill value.
-            fill_node = FillNode(config)
-            size = np.floor((gap_between-dt_min) * cadence_hz)
-
             if len(final) > 0:  # <-------------- CASE: exists-previous-file
+                size = int(max(1, np.round((gap_between-dt_nom) * cadence_hz)))  # probably correct
                 # when there is a previous file, make timestamps even from end of that one
                 start_from = prev_end
             else:  # <------------- CASE: no-previous-file
+                size = int(max(1, np.floor((gap_between-dt_nom) * cadence_hz)))  # probably correct
                 # otherwise look at the next timestamp, and go backward _size_ from there to get the start_from.
-                start_from = (next_start - dt_nom) - (size * dt_nom)
+                start_from = next_start - ((size+1) * dt_nom)
+                # note: start_from must be greater than first_along_primary
+                assert start_from + dt_nom >= first_along_primary
 
+            fill_node = FillNode(config)
             fill_node.set_udim(primary_index_by, size, start_from)
             final.append(fill_node)
 

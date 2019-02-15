@@ -264,7 +264,7 @@ class InputFileNode(AbstractNode):
                     # too big a time step, cutoff slice and insert fill
                     dim_agg_list.append(slice(slice_start, i))
 
-                    num_missing = int(np.abs(np.floor(stepdiff * cadence_hz)))-1
+                    num_missing = max(1, int(np.abs(np.floor(stepdiff * cadence_hz)))-1)
                     f = FillNode(self.config)
                     f.set_udim(udim, num_missing, times[aggsort[i-1]])
                     dim_agg_list.append(f)

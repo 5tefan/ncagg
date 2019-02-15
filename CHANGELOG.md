@@ -1,3 +1,8 @@
+# 0.8.7 - 2019-02-15
+
+ - Perfects calculation of filling between and inside
+    files. 
+
 # 0.8.6 - 2019-02-12
 
  - Fixes issue with chopping at end boundary where negative size
