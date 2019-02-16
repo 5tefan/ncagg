@@ -1,7 +1,7 @@
-# 0.8.7 - 2019-02-15
+# 0.8.8 - 2019-02-15
 
- - Perfects calculation of filling between and inside
-    files. 
+ - Perfects calculation of filling between files.
+ - Perfects calculation of filling inside files. 
 
 # 0.8.6 - 2019-02-12
 
