@@ -144,8 +144,9 @@ def generate_aggregation_list(config, files_to_aggregate):
             prev_end = first_along_primary - dt_min
             gap_between = next_start - prev_end
 
-        # gap too big if skips 1.5 of the largest possible expected dt...
-        if gap_between > 1.5 * dt_max:  # <----------- CASE: gap-too-big
+        # gap too big if skips 1.62 of the largest possible expected dt...
+        # The value 1.62 is picked somewhat artfully... just make sure all the tests pass.
+        if gap_between > 1.6 * dt_max and next_start - dt_nom > first_along_primary:  # <----------- CASE: gap-too-big
             # if the gap is too big, insert an appropriate fill value.
             if len(final) > 0:  # <-------------- CASE: exists-previous-file
                 size = int(max(1, np.round((gap_between-dt_nom) * cadence_hz)))  # probably correct
@@ -156,7 +157,11 @@ def generate_aggregation_list(config, files_to_aggregate):
                 # otherwise look at the next timestamp, and go backward _size_ from there to get the start_from.
                 start_from = next_start - ((size+1) * dt_nom)
                 # note: start_from must be greater than first_along_primary
-                assert start_from + dt_nom >= first_along_primary
+                try:
+                    assert start_from + dt_nom >= first_along_primary, "{} + {}, {}".format(start_from,
+                            dt_nom, first_along_primary)
+                except Exception:
+                    import ipdb; ipdb.set_trace()
 
             fill_node = FillNode(config)
             fill_node.set_udim(primary_index_by, size, start_from)

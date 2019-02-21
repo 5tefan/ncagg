@@ -1,3 +1,8 @@
+# 0.8.9 - 2019-02-21
+
+ - Improve robustness of condition detecting gap at beginning
+    of an aggregation.
+
 # 0.8.8 - 2019-02-15
 
  - Perfects calculation of filling between files.
