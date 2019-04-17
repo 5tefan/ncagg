@@ -1,3 +1,7 @@
+# 0.8.10 - 2019-04-17
+
+ - Fixes compatibility with Click version 7.0, now tested with Click version 6.7 and 7.
+
 # 0.8.9 - 2019-02-21
 
  - Improve robustness of condition detecting gap at beginning

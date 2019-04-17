@@ -1,3 +1,4 @@
+import sys
 import json
 import logging
 from datetime import datetime, timedelta
@@ -170,13 +171,19 @@ def cli(dst, src, u=None, b=None, l="WARNING", t=None):
     # Step 3: evaluate the aggregation list
     click.echo("Evaluating aggregation list...")
     with click.progressbar(label="Aggregating...", length=len(aggregation_list)) as bar:
-        evaluate_aggregation_list(config, aggregation_list, dst, lambda: next(bar))
+        evaluate_aggregation_list(config, aggregation_list, dst, lambda: bar.update(1))
     click.echo("Finished: %s" % dst)
 
 
+# set logging handler to lowest level: DEBUG to catch everything,
+# on the fly set of log level in CLI happens on root logger, everything should
+# flow through the root logger anyway. Also, code use of ncagg shouldn't import
+# anything from CLI, so I don't expect this to be a problem setting up a handler
+# in this scope.
+console = logging.StreamHandler(sys.stdout)
+console.setLevel(logging.DEBUG)
+logging.getLogger().addHandler(console)
+
 if __name__ == "__main__":
-
-    console = logging.StreamHandler()
-    logging.getLogger().addHandler(console)
-
     cli()
+
