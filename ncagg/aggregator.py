@@ -157,11 +157,9 @@ def generate_aggregation_list(config, files_to_aggregate):
                 # otherwise look at the next timestamp, and go backward _size_ from there to get the start_from.
                 start_from = next_start - ((size+1) * dt_nom)
                 # note: start_from must be greater than first_along_primary
-                try:
-                    assert start_from + dt_nom >= first_along_primary, "{} + {}, {}".format(start_from,
-                            dt_nom, first_along_primary)
-                except Exception:
-                    import ipdb; ipdb.set_trace()
+                assert start_from + dt_nom >= first_along_primary, "{} + {}, {}".format(start_from,
+                                                                                        dt_nom,
+                                                                                        first_along_primary)
 
             fill_node = FillNode(config)
             fill_node.set_udim(primary_index_by, size, start_from)
