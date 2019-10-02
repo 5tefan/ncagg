@@ -5,6 +5,7 @@ from datetime import datetime
 
 import netCDF4 as nc
 import numpy as np
+from typing import Callable
 
 from .aggrelist import AbstractNode, FillNode, InputFileNode, VariableNotFoundException
 from .attributes import AttributeHandler
@@ -206,7 +207,7 @@ def generate_aggregation_list(config, files_to_aggregate):
 
 
 def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=None):
-    # type: (Config, list[AbstractNode], str, None | function) -> None
+    # type: (Config, list[AbstractNode], str, None | Callable) -> None
     """
     Evaluate an aggregation list to a file.... ie. actually do the aggregation.
 
