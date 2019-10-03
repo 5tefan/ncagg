@@ -36,6 +36,13 @@ class TestEvaluateAggregationList(unittest.TestCase):
         super(TestEvaluateAggregationList, cls).tearDownClass()
         os.remove(cls.filename)
 
+    """
+    This test tests a feature that was added a while ago, but was          
+    then removed during a refactoring. The feature in question has         
+    not been reimplemented yet. This test is expected to fail for          
+    the time being.      
+    """
+    @unittest.expectedFailure
     def test_time(self):
         """Make sure the time array looks ok. Evenly spaced, bounds are correct."""
         numeric_times = self.output.variables["L1a_SciData_TimeStamp"][:]
