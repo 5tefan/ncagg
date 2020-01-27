@@ -1,3 +1,8 @@
+# 0.8.11 - 2020-01-27
+
+ - Removes test file that was causing issues with netCDF4-Python versions 1.5.{2,3}. Fixes #3.
+ - Adjust calculation for number of fill values at beginning of interval.
+
 # 0.8.10 - 2019-04-17
 
  - Fixes compatibility with Click version 7.0, now tested with Click version 6.7 and 7.

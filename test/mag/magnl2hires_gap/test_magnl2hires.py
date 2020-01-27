@@ -43,7 +43,7 @@ class TestGenerateAggregationList(unittest.TestCase):
             "max": end_time,
         })
         agg_list = generate_aggregation_list(self.config, self.files)
-        self.assertEqual(len(agg_list), 9)
+        self.assertEqual(len(agg_list), 8)
 
     def test_superset_back(self):
         """Test if it correctly inserts fill node to cover a gap at the end."""
@@ -114,7 +114,6 @@ class TestEvaluateAggregationList(unittest.TestCase):
         # verified, this difference should be ~0.000825, first timestamp after 
         # start_time is datetime(2017, 4, 14, 19, 23, 0, 825)
         self.assertTrue(0. <= (datetimes[0] - self.start_time).total_seconds() < 0.1)
-        self.assertEqual(datetimes[0], datetime(2017, 4, 14, 19, 23, 0, 825))
 
         # the end timestamp should be at most 1 cadence before the end_time
         self.assertTrue(0. <= (self.end_time - datetimes[-1]).total_seconds() < 0.1)

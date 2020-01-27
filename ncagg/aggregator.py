@@ -141,9 +141,7 @@ def generate_aggregation_list(config, files_to_aggregate):
         else:
             # CASE: first file, take the bound and subtract a min time step so that
             # the first time step greater than or equal to the bound will be included.
-            # Historical: numerical issues here? What happened... was I mistaken? .. probably.
-            prev_end = first_along_primary - dt_min
-            gap_between = next_start - prev_end
+            gap_between = next_start - first_along_primary + dt_min
 
         # gap too big if skips 1.62 of the largest possible expected dt...
         # The value 1.62 is picked somewhat artfully... just make sure all the tests pass.
@@ -154,11 +152,19 @@ def generate_aggregation_list(config, files_to_aggregate):
                 # when there is a previous file, make timestamps even from end of that one
                 start_from = prev_end
             else:  # <------------- CASE: no-previous-file
-                size = int(max(1, np.floor((gap_between-dt_nom) * cadence_hz)))  # probably correct
+                size = int(np.round(gap_between * cadence_hz)) - 1
                 # otherwise look at the next timestamp, and go backward _size_ from there to get the start_from.
-                start_from = next_start - ((size+1) * dt_nom)
+                start_from = next_start - ((size + 1) * dt_nom)
                 # note: start_from must be greater than first_along_primary
-                assert start_from + dt_nom >= first_along_primary, "{} + {}, {}".format(start_from,
+                if start_from + dt_nom < first_along_primary:
+                    # ... the calculated start_from is just a bit too short, so bump it up.
+                    #
+                    # Have not been able to find an expression yeilding correct results everywhere. A conditional
+                    # in this situation appears to be necessary.
+                    start_from += dt_nom
+                    size -= 1
+
+                assert start_from + dt_nom >= first_along_primary, "{} + {} not gt {}".format(start_from,
                                                                                         dt_nom,
                                                                                         first_along_primary)
 
