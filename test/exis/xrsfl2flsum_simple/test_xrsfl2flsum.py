@@ -6,6 +6,7 @@ import glob
 import os
 import netCDF4 as nc
 
+
 class TestAggregate(unittest.TestCase):
     def setUp(self):
         _, self.file = tempfile.mkstemp()
@@ -26,11 +27,9 @@ class TestAggregate(unittest.TestCase):
         """
         agg_list = generate_aggregation_list(self.config, self.files)
         evaluate_aggregation_list(self.config, agg_list, self.file)
-        
+
         with nc.Dataset(self.file) as nc_in:
             status = nc_in.variables["status"]
             # there should be no fill values...
             # before ncagg v0.8.5 vlen types like string incorrectly aggregated to all fill values.
             self.assertFalse(any(status[:] == status._FillValue))
-
-

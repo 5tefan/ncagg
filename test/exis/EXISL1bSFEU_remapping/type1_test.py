@@ -35,5 +35,3 @@ class TestEuvs(unittest.TestCase):
             self.assertEqual(len(time), 3)
             self.assertTrue(nc_out.dimensions["report_number"].isunlimited())
             # perffffect
-
-

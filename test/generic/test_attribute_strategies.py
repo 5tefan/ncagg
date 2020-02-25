@@ -4,15 +4,34 @@ import tempfile
 import netCDF4 as nc
 import os
 
-from ncagg.attributes import StratFirst, StratLast,StratUniqueList, StratIntSum, StratFloatSum, StratAssertConst
-from ncagg.attributes import StratDateCreated, StratStatic, StratTimeCoverageStart, StratTimeCoverageEnd
-from ncagg.attributes import StartFirstInputFilename, StartLastInputFilename, StratCountInputFiles
+from ncagg.attributes import (
+    StratFirst,
+    StratLast,
+    StratUniqueList,
+    StratIntSum,
+    StratFloatSum,
+    StratAssertConst,
+)
+from ncagg.attributes import (
+    StratDateCreated,
+    StratStatic,
+    StratTimeCoverageStart,
+    StratTimeCoverageEnd,
+)
+from ncagg.attributes import (
+    StartFirstInputFilename,
+    StartLastInputFilename,
+    StratCountInputFiles,
+)
 
 from ncagg import Config
 from ncagg.attributes import datetime_format
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
-test_input_file = os.path.join(test_dir, "data/OR_MAG-L1b-GEOF_G16_s20170431500000_e20170431500599_c20170431501005.nc")
+test_input_file = os.path.join(
+    test_dir,
+    "data/OR_MAG-L1b-GEOF_G16_s20170431500000_e20170431500599_c20170431501005.nc",
+)
 
 
 class TestAttributeStrategies(unittest.TestCase):
@@ -22,9 +41,7 @@ class TestAttributeStrategies(unittest.TestCase):
         self.mock_int_attributes = [1, 2, 2, 3]
         self.mock_float_attributes = [1.1, 2.2, 2.3, 3.3]
         self.test_nc = nc.Dataset(test_input_file)
-        self.handler_kwargs = {
-            "config": Config.from_nc(test_input_file),  # type: Config
-        }
+        self.handler_kwargs = {"config": Config.from_nc(test_input_file)}
 
     def test_strat_first_gives_first(self):
         process, finalize = StratFirst.setup_handler(**self.handler_kwargs)
@@ -76,7 +93,9 @@ class TestAttributeStrategies(unittest.TestCase):
         # since both of these date time strings may not be created exactly at the same time,
         # only check to make sure they are mostly the same, it's ok if there is some difference
         # in the last milliseconds piece.
-        self.assertEqual(finalize(self.test_nc)[:-3], datetime_format(datetime.now())[:-3])
+        self.assertEqual(
+            finalize(self.test_nc)[:-3], datetime_format(datetime.now())[:-3]
+        )
 
     def test_strat_first_filename(self):
         process, finalize = StartFirstInputFilename.setup_handler(**self.handler_kwargs)
@@ -90,9 +109,10 @@ class TestAttributeStrategies(unittest.TestCase):
         self.handler_kwargs["config"].attrs["license"] = {
             "name": "license",
             "strategy": "static",
-            "value": value
+            "value": value,
         }
-        process, finalize = StratStatic.setup_handler(name="license", **self.handler_kwargs)
+        process, finalize = StratStatic.setup_handler(
+            name="license", **self.handler_kwargs
+        )
         process("test", self.test_nc)
         self.assertEqual(value, finalize(self.test_nc))
-

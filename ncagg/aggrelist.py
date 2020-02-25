@@ -35,6 +35,7 @@ class VariableNotFoundException(Exception):
 
     TODO: usually ignored, but crash in strict mode?
     """
+
     pass
 
 
@@ -112,7 +113,11 @@ class FillNode(AbstractNode):
         self.unlimited_dim_index_start = {}
 
         # reverse index to easily check if a variable indexes a dimension.
-        self._reverse_index = {d["index_by"]: d for d in config.dims.values() if d.get("index_by", None) is not None}
+        self._reverse_index = {
+            d["index_by"]: d
+            for d in config.dims.values()
+            if d.get("index_by", None) is not None
+        }
 
     def __str__(self):
         return "FillNode(%s)" % self.unlimited_dim_sizes
@@ -135,10 +140,17 @@ class FillNode(AbstractNode):
         # check if this var indexes an unlimited dimension...
         var_indexes = self._reverse_index.get(var["name"], None)
         unlimited_dim = var_indexes["name"] if var_indexes is not None else None
-        have_cadences = all((d in var_indexes["expected_cadence"].keys() for d in var["dimensions"])) \
-            if var_indexes is not None else None
+        have_cadences = (
+            all(
+                (d in var_indexes["expected_cadence"].keys() for d in var["dimensions"])
+            )
+            if var_indexes is not None
+            else None
+        )
 
-        linspaces = []  # these will construct the values if we return anything besides fill values.
+        linspaces = (
+            []
+        )  # these will construct the values if we return anything besides fill values.
         result_shape = []
 
         for index, dim in enumerate(var["dimensions"]):
@@ -155,20 +167,26 @@ class FillNode(AbstractNode):
             if var_indexes is not None and have_cadences:
                 expected_cadence = var_indexes["expected_cadence"][dim]
                 start = 0
-                stop = float(dim_size -1) / expected_cadence if expected_cadence != 0 else start
+                stop = (
+                    float(dim_size - 1) / expected_cadence
+                    if expected_cadence != 0
+                    else start
+                )
                 linspaces.append(
                     np.linspace(start, stop, dim_size).reshape(
                         [1 if index != i else -1 for i in range(len(var["dimensions"]))]
                     )
                 )
                 if dim_unlim:
-                    linspaces[-1] += 1. / expected_cadence
+                    linspaces[-1] += 1.0 / expected_cadence
 
         if var_indexes is not None and have_cadences:
             initial_value = self.unlimited_dim_index_start.get(unlimited_dim, 0)
             return reduce(lambda x, y: x + y, linspaces) + initial_value
         else:
-            return np.full(result_shape, get_fill_for(var), dtype=np.dtype(var["datatype"]))
+            return np.full(
+                result_shape, get_fill_for(var), dtype=np.dtype(var["datatype"])
+            )
 
 
 class InputFileNode(AbstractNode):
@@ -204,24 +222,34 @@ class InputFileNode(AbstractNode):
 
         :return: None
         """
-        index_by = [d for d in self.config.dims.values() if d["index_by"] is not None and not d["flatten"]]
+        index_by = [
+            d
+            for d in self.config.dims.values()
+            if d["index_by"] is not None and not d["flatten"]
+        ]
         for udim in index_by:
 
             # cadence_hz may be None in which case we'll simply look for fill or invalid values in the index_by
             # variable. At the moment, this is hard coded to seek 0's since our main use case is index_by time
             # and we don't expect our spacecraft to teleport back to the epoch value :)
-            cadence_hz = udim["expected_cadence"].get(udim["name"], None)  # what to do if None?
+            cadence_hz = udim["expected_cadence"].get(
+                udim["name"], None
+            )  # what to do if None?
 
             # big picture, if cadence_hz is None, then we'll go through np.where(times==0) and put slices in
             # the gaps. If we DO have a cadence, then go through and look at the spacing between each.
-            times = self.get_index_of_index_by(slice(None), udim)  # ok if time is multidim -> see fn for usage of
+            times = self.get_index_of_index_by(
+                slice(None), udim
+            )  # ok if time is multidim -> see fn for usage of
             self.sort_unlim[udim["name"]] = aggsort = np.argsort(times)
             cadence_uncert = 0.9
 
             # Note: argsort moves nan values to the end, so if the first value is a nan, they're all nan.
             # if this happens, raise a RuntimeError to cause this file to be excluded from aggregation list.
             if np.isnan(times[aggsort[0]]):
-                raise RuntimeError("File contains only fill values for var indexing unlim dim.")
+                raise RuntimeError(
+                    "File contains only fill values for var indexing unlim dim."
+                )
 
             # find the first good value, ie value is not zero
             slice_start = 0
@@ -231,7 +259,11 @@ class InputFileNode(AbstractNode):
             dim_agg_list = []
             in_slice = True
 
-            to_iter = range(slice_start + 1, times.size) if cadence_hz else np.where(times <= 0)[0]
+            to_iter = (
+                range(slice_start + 1, times.size)
+                if cadence_hz
+                else np.where(times <= 0)[0]
+            )
 
             for i in to_iter:
                 # cut off conditions first,
@@ -264,9 +296,11 @@ class InputFileNode(AbstractNode):
                     # too big a time step, cutoff slice and insert fill
                     dim_agg_list.append(slice(slice_start, i))
 
-                    num_missing = max(1, int(np.abs(np.round(stepdiff * cadence_hz)))-1)
+                    num_missing = max(
+                        1, int(np.abs(np.round(stepdiff * cadence_hz))) - 1
+                    )
                     f = FillNode(self.config)
-                    f.set_udim(udim, num_missing, times[aggsort[i-1]])
+                    f.set_udim(udim, num_missing, times[aggsort[i - 1]])
                     dim_agg_list.append(f)
 
                     # jump right back into a slice.
@@ -326,12 +360,22 @@ class InputFileNode(AbstractNode):
             # The index argument is the desired index from the _external_ view. Internally, since the records have
             #  been sorted, it may actually be a different index internally. To find out, try to retrieve the
             # _internal_ index from sorted.
-            internal_index = self.sort_unlim[udim["name"]][index] if udim["name"] in self.sort_unlim.keys() else index
+            internal_index = (
+                self.sort_unlim[udim["name"]][index]
+                if udim["name"] in self.sort_unlim.keys()
+                else index
+            )
 
             # If the index_by variable has multiple dimensions and an index isn't specified in other_dim_inds,
             # then default to 0
-            slices = tuple([internal_index if d == udim["name"] else udim["other_dim_inds"].get(d, 0)
-                            for d in index_by.dimensions])
+            slices = tuple(
+                [
+                    internal_index
+                    if d == udim["name"]
+                    else udim["other_dim_inds"].get(d, 0)
+                    for d in index_by.dimensions
+                ]
+            )
 
             try:
                 # Safer to do np.nan, but this block could be simplified to always make the fill value 0.
@@ -345,8 +389,8 @@ class InputFileNode(AbstractNode):
     def __str__(self):
         dim_strs = []
         for dim, val in self.dim_slices.items():
-            slice_first = val.start if val.start is not None else ''
-            slice_last = val.stop if val.stop is not None else ''
+            slice_first = val.start if val.start is not None else ""
+            slice_last = val.stop if val.stop is not None else ""
             dim_strs.append("%s[%s:%s]" % (dim, slice_first, slice_last))
         return "%s[%s]" % (os.path.basename(self.filename), ",".join(dim_strs))
 
@@ -400,7 +444,9 @@ class InputFileNode(AbstractNode):
             # return as early as possible if size is known, ie. dimension no unlimited.
             return dim["size"]
 
-        internal_aggregation_list = self.file_internal_aggregation_list.get(dim["name"], None)
+        internal_aggregation_list = self.file_internal_aggregation_list.get(
+            dim["name"], None
+        )
         if internal_aggregation_list is None:
             with nc.Dataset(self.filename) as nc_in:
                 if dim["name"] in nc_in.dimensions.keys():
@@ -423,8 +469,12 @@ class InputFileNode(AbstractNode):
                 dim_length += each.get_size_along(dim)
             else:
                 # otherwise, if component is a slice, must compute the span of that slice, then sum that
-                assert isinstance(each, slice) and each.start is not None and each.stop is not None
-                dim_length += (each.stop - each.start)
+                assert (
+                    isinstance(each, slice)
+                    and each.start is not None
+                    and each.stop is not None
+                )
+                dim_length += each.stop - each.start
 
         return dim_length
 
@@ -445,7 +495,9 @@ class InputFileNode(AbstractNode):
         :param strict: Boolean: don't allow returned size to be negative.
         :return: The size of the dim
         """
-        dim_slice = self.get_dim_slice(dim)  # check if it's overridden in self.dim_slices
+        dim_slice = self.get_dim_slice(
+            dim
+        )  # check if it's overridden in self.dim_slices
         if isinstance(dim_slice, int):
             return 1  # if the dim_slice is just an integer index, then it's length will just be 1
 
@@ -458,7 +510,9 @@ class InputFileNode(AbstractNode):
 
         # find numeric start index
         if dim_slice.start is not None and dim_slice.start < 0:
-            dim_start_i = dim_length + dim_slice.start  # start negative indicates indexing from end
+            dim_start_i = (
+                dim_length + dim_slice.start
+            )  # start negative indicates indexing from end
         else:
             dim_start_i = 0 if dim_slice.start is None else dim_slice.start
 
@@ -470,13 +524,17 @@ class InputFileNode(AbstractNode):
 
         if strict and dim_start_i > dim_end_i:
             # Only if strict mode, do the assertion...
-            raise RuntimeError("dim size can't be neg, got [%s:%s] for %s" % (dim_start_i, dim_end_i, self))
+            raise RuntimeError(
+                "dim size can't be neg, got [%s:%s] for %s"
+                % (dim_start_i, dim_end_i, self)
+            )
 
         return dim_end_i - dim_start_i
 
     @contextmanager
     def get_evaluation_functions(self):
         with nc.Dataset(self.filename, mode="r") as nc_in:
+
             def data_for(var):
                 return self.data_for_netcdf(var, nc_in)
 
@@ -495,18 +553,25 @@ class InputFileNode(AbstractNode):
         """
         if var["name"] not in nc_in.variables.keys():
             # raise early if variable not found in input... this could be acted on in strict mode. TODO.
-            raise VariableNotFoundException("Var %s not found input %s" % (var, self.__str__()))
+            raise VariableNotFoundException(
+                "Var %s not found input %s" % (var, self.__str__())
+            )
 
         fill_value = get_fill_for(var)
-        dims = [self.config.dims[d] for d in var["dimensions"]
-                if d in nc_in.variables[var["name"]].dimensions]
+        dims = [
+            self.config.dims[d]
+            for d in var["dimensions"]
+            if d in nc_in.variables[var["name"]].dimensions
+        ]
 
         # step 1: get the sorted data
-        dim_slices = tuple([self.sort_unlim.get(d["name"], slice(None)) for d in dims]) or slice(None)
+        dim_slices = tuple(
+            [self.sort_unlim.get(d["name"], slice(None)) for d in dims]
+        ) or slice(None)
         nc_in.variables[var["name"]].set_auto_mask(False)
         prelim_data = nc_in.variables[var["name"]][dim_slices]
         if hasattr(nc_in.variables[var["name"]], "_FillValue"):
-            where_to_fill = (prelim_data == nc_in.variables[var["name"]]._FillValue)
+            where_to_fill = prelim_data == nc_in.variables[var["name"]]._FillValue
             prelim_data[where_to_fill] = fill_value
         # prelim_data = np.ma.filled(nc_in.variables[var["name"]][dim_slices], fill_value=fill_value)
 
@@ -515,7 +580,11 @@ class InputFileNode(AbstractNode):
             return prelim_data
 
         # step 2: if there's an aggregation list for it, transform prelim_data according to it
-        internal_agg_dims = [d["name"] for d in dims if d["name"] in self.file_internal_aggregation_list.keys()]
+        internal_agg_dims = [
+            d["name"]
+            for d in dims
+            if d["name"] in self.file_internal_aggregation_list.keys()
+        ]
         if len(internal_agg_dims) > 0:
             out_shape = tuple([self.dim_sizes[d["name"]] for d in dims])
             transformed_data = np.full(out_shape, fill_value, dtype=prelim_data.dtype)
@@ -528,20 +597,31 @@ class InputFileNode(AbstractNode):
                     data_in_transit = agg_seg.data_for(var)
                 else:
                     assert isinstance(agg_seg, slice), "Found %s" % agg_seg
-                    data_in_transit = prelim_data[tuple(
-                        # smc@20181206: fix FutureWarning by wrapping in tuple for Numpy > 1.15:
-                        # FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use
-                        # `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array
-                        #  index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-                        [agg_seg if d["name"] == dim_along else slice(None) for d in dims]
-                    )]
+                    data_in_transit = prelim_data[
+                        tuple(
+                            # smc@20181206: fix FutureWarning by wrapping in tuple for Numpy > 1.15:
+                            # FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use
+                            # `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array
+                            #  index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+                            [
+                                agg_seg if d["name"] == dim_along else slice(None)
+                                for d in dims
+                            ]
+                        )
+                    ]
 
                 size_along_dim = np.shape(data_in_transit)[dim_i]
-                transformed_data[tuple(
-                    # smc@20181206: again, fix FutureWarning w/ tuple wrap for Numpy > 1.15. See more info above.
-                    [slice(loc_along_dim, loc_along_dim + size_along_dim) if i == dim_i else slice(None)
-                                  for i in range(len(dims))]
-                )] = data_in_transit
+                transformed_data[
+                    tuple(
+                        # smc@20181206: again, fix FutureWarning w/ tuple wrap for Numpy > 1.15. See more info above.
+                        [
+                            slice(loc_along_dim, loc_along_dim + size_along_dim)
+                            if i == dim_i
+                            else slice(None)
+                            for i in range(len(dims))
+                        ]
+                    )
+                ] = data_in_transit
 
                 loc_along_dim += size_along_dim
 
@@ -560,4 +640,3 @@ class InputFileNode(AbstractNode):
         """
         if callback is not None:
             callback(nc_in)
-

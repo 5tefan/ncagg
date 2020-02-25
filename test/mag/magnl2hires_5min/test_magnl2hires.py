@@ -16,10 +16,9 @@ class TestGenerateAggregationList(unittest.TestCase):
         pwd = os.path.dirname(__file__)
         self.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         self.config = Config.from_nc(self.files[0])
-        self.config.dims["time"].update({
-            "index_by": "time",
-            "expected_cadence": {"time": 10},
-        })
+        self.config.dims["time"].update(
+            {"index_by": "time", "expected_cadence": {"time": 10},}
+        )
 
     def tearDown(self):
         os.remove(self.file)
@@ -28,10 +27,12 @@ class TestGenerateAggregationList(unittest.TestCase):
         # March 5, 2017. 02:10:00 through 02:15:00
         start_time = datetime(2017, 3, 5, 2, 10)
         end_time = datetime(2017, 3, 5, 2, 15)
-        self.config.dims["time"].update({
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-        })
+        self.config.dims["time"].update(
+            {
+                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": end_time,
+            }
+        )
         agg_list = generate_aggregation_list(self.config, self.files)
         self.assertEqual(len(agg_list), 6)
 
@@ -40,10 +41,12 @@ class TestGenerateAggregationList(unittest.TestCase):
         # March 5, 2017. 02:10:00 through 02:15:00
         start_time = datetime(2017, 3, 5, 2, 5)
         end_time = datetime(2017, 3, 5, 2, 15)
-        self.config.dims["time"].update({
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-        })
+        self.config.dims["time"].update(
+            {
+                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": end_time,
+            }
+        )
         agg_list = generate_aggregation_list(self.config, self.files)
         # with the fill Node in front... this becomes 8 elements
         self.assertEqual(len(agg_list), 8)
@@ -53,10 +56,12 @@ class TestGenerateAggregationList(unittest.TestCase):
         # March 5, 2017. 02:10:00 through 02:15:00
         start_time = datetime(2017, 3, 5, 2, 10)
         end_time = datetime(2017, 3, 5, 2, 20)
-        self.config.dims["time"].update({
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-        })
+        self.config.dims["time"].update(
+            {
+                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": end_time,
+            }
+        )
         agg_list = generate_aggregation_list(self.config, self.files)
         self.assertTrue(isinstance(agg_list[-1], FillNode))
 
@@ -65,10 +70,12 @@ class TestGenerateAggregationList(unittest.TestCase):
         # March 5, 2017. 02:10:00 through 02:15:00
         start_time = datetime(2017, 3, 5, 2, 12, 30)
         end_time = datetime(2017, 3, 5, 2, 13, 22)
-        self.config.dims["time"].update({
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-        })
+        self.config.dims["time"].update(
+            {
+                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": end_time,
+            }
+        )
         agg_list = generate_aggregation_list(self.config, self.files)
         self.assertEqual(len(agg_list), 2)
 
@@ -83,12 +90,14 @@ class TestEvaluateAggregationList(unittest.TestCase):
         cls.end_time = datetime(2017, 3, 5, 2, 15)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         cls.config = Config.from_nc(cls.files[0])
-        cls.config.dims["time"].update({
-            "index_by": "time",
-            "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": cls.end_time,
-            "expected_cadence": {"time": 10},
-        })
+        cls.config.dims["time"].update(
+            {
+                "index_by": "time",
+                "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": cls.end_time,
+                "expected_cadence": {"time": 10},
+            }
+        )
         _, cls.filename = tempfile.mkstemp()
         agg_list = generate_aggregation_list(cls.config, cls.files)
         evaluate_aggregation_list(cls.config, agg_list, cls.filename)
@@ -116,4 +125,3 @@ class TestEvaluateAggregationList(unittest.TestCase):
 
         self.assertLess(abs((datetimes[0] - self.start_time).total_seconds()), 0.1)
         self.assertLess(abs((datetimes[-1] - self.end_time).total_seconds()), 0.1)
-

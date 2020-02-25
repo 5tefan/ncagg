@@ -66,24 +66,35 @@ def generate_aggregation_list(config, files_to_aggregate):
         try:
             preliminary.append(InputFileNode(config, f))
         except Exception as e:
-            logger.warning("Error initializing InputFileNode for %s, skipping: %s" % (f, repr(e)))
+            logger.warning(
+                "Error initializing InputFileNode for %s, skipping: %s" % (f, repr(e))
+            )
             logger.debug(traceback.format_exc())
 
     if len(preliminary) == 0:
         # no files in aggregation list... abort
         return preliminary
 
-    index_by_dims = [d for d in config.dims.values() if d["index_by"] is not None and not d["flatten"]]
+    index_by_dims = [
+        d
+        for d in config.dims.values()
+        if d["index_by"] is not None and not d["flatten"]
+    ]
     if len(index_by_dims) == 0:
         # no indexing dimensions found... nothing further to do here...
         return preliminary
 
     # Find the primary index_by dim. First is_primary found, otherwise first index_by dim.
-    primary_index_by = next((d for d in config.dims.values() if d.get("is_primary", False)), index_by_dims[0])
+    primary_index_by = next(
+        (d for d in config.dims.values() if d.get("is_primary", False)),
+        index_by_dims[0],
+    )
 
     # Transfer items from perlimiary to final. According to primary index_by dim,
     # adding fill nodes and correcting overlap.
-    preliminary = sorted(preliminary, key=lambda p: p.get_first_of_index_by(primary_index_by))
+    preliminary = sorted(
+        preliminary, key=lambda p: p.get_first_of_index_by(primary_index_by)
+    )
 
     def cast_bound(bound):
         # type: (float | datetime) -> float
@@ -95,17 +106,25 @@ def generate_aggregation_list(config, files_to_aggregate):
 
     first_along_primary = cast_bound(primary_index_by["min"])
     last_along_primary = cast_bound(primary_index_by["max"])
-    cadence_hz = primary_index_by["expected_cadence"].get(primary_index_by["name"], None)
+    cadence_hz = primary_index_by["expected_cadence"].get(
+        primary_index_by["name"], None
+    )
 
     # Can continue into the correction loop as long as we have at least cadence_hz, or min and max.
-    if cadence_hz is None and first_along_primary is None and last_along_primary is None:
+    if (
+        cadence_hz is None
+        and first_along_primary is None
+        and last_along_primary is None
+    ):
         return preliminary
 
     # dt_min is minimum time between files given timing_certainty. Inflate cadence (higher hz) -> smaller time step
     # similarly, lower cadence (lower hz) -> larger time step
-    dt_min = (1.0 / ((2.0 - timing_certainty) * cadence_hz))  # smallest expected time step
-    dt_nom = (1.0 / cadence_hz)  # nominal expected time step
-    dt_max = (1.0 / (timing_certainty * cadence_hz))  # largest expected time step
+    dt_min = 1.0 / (
+        (2.0 - timing_certainty) * cadence_hz
+    )  # smallest expected time step
+    dt_nom = 1.0 / cadence_hz  # nominal expected time step
+    dt_max = 1.0 / (timing_certainty * cadence_hz)  # largest expected time step
 
     # final list of components to aggregate, containing InputFileNodes and possibly
     # FillValueNodes. Built below going through priliminary list, adding one by one
@@ -117,8 +136,9 @@ def generate_aggregation_list(config, files_to_aggregate):
         next_end = next_f.get_last_of_index_by(primary_index_by)
 
         # check if this potential next file is completely outside of the time bounds...
-        if ((first_along_primary is not None and first_along_primary > next_end) or
-                (last_along_primary is not None and last_along_primary < next_start)):
+        if (first_along_primary is not None and first_along_primary > next_end) or (
+            last_along_primary is not None and last_along_primary < next_start
+        ):
             logger.info("File not in bounds: %s" % next_f)
             # out of bounds, doesn't get included. Continue without adding this next_f to final.
             continue
@@ -145,10 +165,14 @@ def generate_aggregation_list(config, files_to_aggregate):
 
         # gap too big if skips 1.62 of the largest possible expected dt...
         # The value 1.62 is picked somewhat artfully... just make sure all the tests pass.
-        if gap_between > 1.6 * dt_max and next_start - dt_nom > first_along_primary:  # <----------- CASE: gap-too-big
+        if (
+            gap_between > 1.6 * dt_max and next_start - dt_nom > first_along_primary
+        ):  # <----------- CASE: gap-too-big
             # if the gap is too big, insert an appropriate fill value.
             if len(final) > 0:  # <-------------- CASE: exists-previous-file
-                size = int(max(1, np.round((gap_between-dt_nom) * cadence_hz)))  # probably correct
+                size = int(
+                    max(1, np.round((gap_between - dt_nom) * cadence_hz))
+                )  # probably correct
                 # when there is a previous file, make timestamps even from end of that one
                 start_from = prev_end
             else:  # <------------- CASE: no-previous-file
@@ -164,9 +188,9 @@ def generate_aggregation_list(config, files_to_aggregate):
                     start_from += dt_nom
                     size -= 1
 
-                assert start_from + dt_nom >= first_along_primary, "{} + {} not gt {}".format(start_from,
-                                                                                        dt_nom,
-                                                                                        first_along_primary)
+                assert (
+                    start_from + dt_nom >= first_along_primary
+                ), "{} + {} not gt {}".format(start_from, dt_nom, first_along_primary)
 
             fill_node = FillNode(config)
             fill_node.set_udim(primary_index_by, size, start_from)
@@ -180,7 +204,9 @@ def generate_aggregation_list(config, files_to_aggregate):
             # note: setting dim_slice_start effectively invalidates the previously set next_start variable
 
         # make sure the end of the next_f isn't sticking out after the max boundary
-        if last_along_primary is not None and last_along_primary < next_end:  # <---------- CASE: hanging-over-edge
+        if (
+            last_along_primary is not None and last_along_primary < next_end
+        ):  # <---------- CASE: hanging-over-edge
             gap_between_end = next_end - last_along_primary
             num_overlap = np.abs(np.ceil(gap_between_end * cadence_hz))
             # note: set stop to negative of overlap, ie. backwards from end since
@@ -205,7 +231,7 @@ def generate_aggregation_list(config, files_to_aggregate):
         gap_to_end = (last_along_primary - prev_end) + dt_min
         if gap_to_end > dt_max:
             fill_node = FillNode(config)
-            size = np.floor((gap_to_end-dt_min) * cadence_hz)
+            size = np.floor((gap_to_end - dt_min) * cadence_hz)
             fill_node.set_udim(primary_index_by, size, prev_end)
             final.append(fill_node)
 
@@ -245,34 +271,54 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
         else:
             vars_unlim.append(v)
 
-    with nc.Dataset(to_fullpath, 'r+') as nc_out:  # type: nc.Dataset
+    with nc.Dataset(to_fullpath, "r+") as nc_out:  # type: nc.Dataset
 
         # the vars once don't depend on an unlimited dim so only need to be copied once. Find the first
         # InputFileNode to copy from so we don't get fill values. Otherwise, if none exists, which shouldn't
         # happen, but oh well, use a fill node.
-        vars_once_src = next((i for i in aggregation_list if isinstance(i, InputFileNode)), aggregation_list[0])
+        vars_once_src = next(
+            (i for i in aggregation_list if isinstance(i, InputFileNode)),
+            aggregation_list[0],
+        )
         with vars_once_src.get_evaluation_functions() as (data_for, _):
-            for var in vars_once:   # case: do once, only for first input file node
+            for var in vars_once:  # case: do once, only for first input file node
                 try:
                     nc_out.variables[var["name"]][:] = data_for(var)
                 except Exception as e:
-                    logger.error("Error copying component: %s, one time variable: %s" % (vars_once_src, var))
+                    logger.error(
+                        "Error copying component: %s, one time variable: %s"
+                        % (vars_once_src, var)
+                    )
                     logger.error(traceback.format_exc())
 
         for component in aggregation_list:  # type: AbstractNode
             with component.get_evaluation_functions() as (data_for, callback_with_file):
-                unlim_starts = {k: nc_out.dimensions[k].size for k, v in config.dims.items() if v["size"] is None}
+                unlim_starts = {
+                    k: nc_out.dimensions[k].size
+                    for k, v in config.dims.items()
+                    if v["size"] is None
+                }
                 for var in vars_unlim:
                     write_slices = []
                     for dim in [config.dims[d] for d in var["dimensions"]]:
                         if dim["size"] is None and not dim["flatten"]:
                             # case: regular concat var along unlim dim
                             d_start = unlim_starts[dim["name"]]
-                            write_slices.append(slice(d_start, d_start + component.get_size_along(dim)))
-                        elif dim["size"] is None and dim["flatten"] and dim["index_by"] is None:
+                            write_slices.append(
+                                slice(d_start, d_start + component.get_size_along(dim))
+                            )
+                        elif (
+                            dim["size"] is None
+                            and dim["flatten"]
+                            and dim["index_by"] is None
+                        ):
                             # case: simple flatten unlim
                             write_slices.append(slice(0, component.get_size_along(dim)))
-                        elif dim["size"] is None and dim["flatten"] and dim["index_by"] is not None:
+                        elif (
+                            dim["size"] is None
+                            and dim["flatten"]
+                            and dim["index_by"] is not None
+                        ):
                             # case: flattening according to an index
                             # TODO: finish this...
                             # implementation will probably include ensuring that
@@ -285,7 +331,9 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                         output_data = data_for(var)  # type: np.array
                         if np.issubdtype(output_data.dtype, np.floating):
                             # numpy ufunc isnan only defined for floating types.
-                            nc_out.variables[var["name"]][write_slices] = np.ma.masked_where(np.isnan(output_data), output_data)
+                            nc_out.variables[var["name"]][
+                                write_slices
+                            ] = np.ma.masked_where(np.isnan(output_data), output_data)
                         else:
                             nc_out.variables[var["name"]][write_slices] = output_data
 
@@ -295,7 +343,10 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                         pass
                     except Exception as e:
                         # something else... unexpected
-                        logger.error("Error copying component: %s, unlim variable: %s" % (component, var))
+                        logger.error(
+                            "Error copying component: %s, unlim variable: %s"
+                            % (component, var)
+                        )
                         logger.error(traceback.format_exc())
 
                 # do once per component
@@ -306,7 +357,9 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
 
         nc_out.sync()  # write buffered data to disk
 
-        attribute_handler.finalize_file(nc_out)  # after aggregation finished, finalize the global attributes
+        attribute_handler.finalize_file(
+            nc_out
+        )  # after aggregation finished, finalize the global attributes
 
 
 def initialize_aggregation_file(config, fullpath):
@@ -320,7 +373,7 @@ def initialize_aggregation_file(config, fullpath):
     :param fullpath: filename of output to initialize.
     :return: None
     """
-    with nc.Dataset(fullpath, 'w') as nc_out:
+    with nc.Dataset(fullpath, "w") as nc_out:
         for dim in config.dims.values():
             # note: dim["size"] will be None for unlimited dimensions.
             nc_out.createDimension(dim["name"], dim["size"])
@@ -332,9 +385,15 @@ def initialize_aggregation_file(config, fullpath):
                 # fill_value is None by default, but if there is a value specified,
                 # explicitly cast it to the same type as the data.
                 fill_value = var_type.type(fill_value)
-            var_out = nc_out.createVariable(var_name, var_type, var["dimensions"],
-                                            chunksizes=var["chunksizes"], zlib=True,
-                                            complevel=7, fill_value=fill_value)
+            var_out = nc_out.createVariable(
+                var_name,
+                var_type,
+                var["dimensions"],
+                chunksizes=var["chunksizes"],
+                zlib=True,
+                complevel=7,
+                fill_value=fill_value,
+            )
             for k, v in var["attributes"].items():
                 if k in ["valid_min", "valid_max"]:
                     # cast scalar attributes to datatype of variable
@@ -345,9 +404,10 @@ def initialize_aggregation_file(config, fullpath):
                     # cast array attributes to datatype of variable
                     # Note: two ways to specify an array attribute in Config, either CSV or as actual array.
                     if isinstance(v, str):
-                        var["attributes"][k] = np.array(map(var_type.type, v.split(", ")), dtype=var_type)
+                        var["attributes"][k] = np.array(
+                            map(var_type.type, v.split(", ")), dtype=var_type
+                        )
                     else:
                         var["attributes"][k] = np.array(v, dtype=var_type)
 
             var_out.setncatts(var["attributes"])
-

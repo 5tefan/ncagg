@@ -9,25 +9,28 @@ import glob
 import os
 
 
-
 class TestEvaluateAggregationList(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestEvaluateAggregationList, cls).setUpClass()
         pwd = os.path.dirname(__file__)
 
-
         cls.start_time = datetime(2018, 1, 17, 15, 5)
         cls.end_time = datetime(2018, 1, 17, 15, 56)
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         cls.config = Config.from_nc(cls.files[0])
-        cls.config.dims["report_number"].update({
-            "index_by": "ELF_StartStopTime",
-            "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": cls.end_time,
-            "expected_cadence": {"report_number": 1. / (5. * 60.), "number_of_time_bounds": 1. / ((5. * 60.)-1) },
-            "size": None
-        })
+        cls.config.dims["report_number"].update(
+            {
+                "index_by": "ELF_StartStopTime",
+                "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": cls.end_time,
+                "expected_cadence": {
+                    "report_number": 1.0 / (5.0 * 60.0),
+                    "number_of_time_bounds": 1.0 / ((5.0 * 60.0) - 1),
+                },
+                "size": None,
+            }
+        )
         _, cls.filename = tempfile.mkstemp()
         agg_list = generate_aggregation_list(cls.config, cls.files)
         evaluate_aggregation_list(cls.config, agg_list, cls.filename)
@@ -56,9 +59,9 @@ class TestEvaluateAggregationList(unittest.TestCase):
         self.assertAlmostEqual(np.min(np.diff(numeric_times[:, 0])), 240, delta=0.01)
         self.assertAlmostEqual(np.max(np.diff(numeric_times[:, 0])), 300, delta=0.01)
 
-        datetimes = nc.num2date(numeric_times, self.output.variables["ELF_StartStopTime"].units)
+        datetimes = nc.num2date(
+            numeric_times, self.output.variables["ELF_StartStopTime"].units
+        )
 
         self.assertGreaterEqual(datetimes[0, 0], self.start_time)
         self.assertLessEqual(datetimes[-1, 0], self.end_time)
-
-

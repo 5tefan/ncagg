@@ -8,9 +8,10 @@ import tempfile
 
 
 class TestMultiUnlimDims(unittest.TestCase):
-
     def setUp(self):
-        np.random.seed(2)  # don't want test results to potentially change based on random
+        np.random.seed(
+            2
+        )  # don't want test results to potentially change based on random
         _, self.filename = tempfile.mkstemp()
         # since files sorted by name with no UDC, prefix tmp file so ordering
         # will be deterministic
@@ -27,7 +28,7 @@ class TestMultiUnlimDims(unittest.TestCase):
                 # the variable a just [0, 1, 2] * i * 3 such that when aggregated,
                 # we can verify that in the dimension "a", the aggregated variable a
                 # contains a = 0, 1, 2 ... (3*3)
-                nc_in.variables["a"][:] = np.arange(3) + (i*3)
+                nc_in.variables["a"][:] = np.arange(3) + (i * 3)
 
                 # recall i is the ith input file we're creating...
                 # then variable b has i elements, being some random selection of "a", "b", and "c"
@@ -37,9 +38,9 @@ class TestMultiUnlimDims(unittest.TestCase):
 
                 # actually, since we don't have the flatten with index_by working yet,
                 # instead keep in order...
-                for j, b in enumerate(["a", "b", "c"][:i+1]):
+                for j, b in enumerate(["a", "b", "c"][: i + 1]):
                     nc_in.variables["b"][j] = b
-                    nc_in.variables["c"][:, j] = np.arange(3) + (i*3)
+                    nc_in.variables["c"][:, j] = np.arange(3) + (i * 3)
 
     def tearDown(self):
         os.remove(self.filename)
@@ -71,10 +72,7 @@ class TestMultiUnlimDims(unittest.TestCase):
 
     def test_collapse_second_dim(self):
         config = Config.from_nc(self.inputs[0])
-        config.dims["b"].update({
-            "flatten": True,
-            "index_by": "b"
-        })
+        config.dims["b"].update({"flatten": True, "index_by": "b"})
         l = generate_aggregation_list(config, self.inputs)
         evaluate_aggregation_list(config, l, self.filename)
         with nc.Dataset(self.filename) as nc_out:  # type: nc.Dataset
@@ -82,7 +80,6 @@ class TestMultiUnlimDims(unittest.TestCase):
             # where, for example, the dimension "a" might represent time
             # and dim "b" is maybe satellite, or event, etc. (something that,
             # at any point in time, there could be an arbitrary number of).
-
 
             # flatten b dimension, should turn out like:
 
@@ -101,5 +98,3 @@ class TestMultiUnlimDims(unittest.TestCase):
             self.assertEqual(np.ma.count_masked(c), 9)
             for i, a in enumerate(["a", "b", "c"]):
                 self.assertEqual(nc_out.variables["b"][i], a)
-
-

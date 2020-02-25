@@ -44,5 +44,3 @@ class TestEuvs(unittest.TestCase):
             # increasing.
             self.assertGreater(np.mean(np.diff(crota_time)), 0)
             # perffffect
-
-

@@ -20,7 +20,7 @@ def datetime_format(dt):
     :param dt: a datetime object
     :return: dt to string
     """
-    return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + "Z"
+    return dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
 
 class Strat(object):
@@ -34,6 +34,7 @@ class Strat(object):
     expected that a nonempty string is returned if the attribute should be set
     to the value returned.
     """
+
     def __init__(self, *args, **kwargs):
         super(Strat, self).__init__()
         self.attr = None
@@ -71,6 +72,7 @@ class StratFirst(Strat):
     """
     Strategy processes to the first attribute value processed.
     """
+
     def process(self, attr, nc_obj=None):
         if self.attr is None:
             self.attr = attr
@@ -84,6 +86,7 @@ class StratLast(Strat):
     Note, this is included for semantics as the base Strat class
     already implements StratLast.
     """
+
     pass
 
 
@@ -113,6 +116,7 @@ class StratUniqueList(Strat):
     Finalize to a comma separated list of unique values detected
     during processing.
     """
+
     def __init__(self, *args, **kwargs):
         super(StratUniqueList, self).__init__(*args, **kwargs)
         self.attr = []
@@ -130,6 +134,7 @@ class StratNcaggVersion(Strat):
     """
     Include an attribute indicating what version of ncagg was used.
     """
+
     def process(self, attr, nc_obj=None):
         pass  # do nothing
 
@@ -141,6 +146,7 @@ class StratIntSum(Strat):
     """
     Process attributes as integer values and finalize to their sum.
     """
+
     def __init__(self, *args, **kwargs):
         super(StratIntSum, self).__init__(*args, **kwargs)
         self.attr = 0
@@ -153,6 +159,7 @@ class StratFloatSum(Strat):
     """
     Process attributes as float values and finalize to their sum.
     """
+
     def __init__(self, *args, **kwargs):
         super(StratFloatSum, self).__init__(*args, **kwargs)
         self.attr = 0.0
@@ -166,6 +173,7 @@ class StratAssertConst(Strat):
     Strategy raises an exception if any subsequent attributes processed
     do not match the first one seen.
     """
+
     def process(self, attr, nc_obj=None):
         if self.attr is None:
             self.attr = attr
@@ -177,6 +185,7 @@ class StratDateCreated(Strat):
     """
     Strategy returns a timestamp indicating when finalize was called.
     """
+
     # noinspection PyMissingConstructor
     def __init__(self, *args, **kwargs):
         pass
@@ -194,6 +203,7 @@ class StratRemove(Strat):
     this strategy is assigned to will not be included in the aggregated
     output.
     """
+
     # noinspection PyMissingConstructor
     def __init__(self, *args, **kwargs):
         pass
@@ -209,6 +219,7 @@ class StratWithConfig(Strat):
     """
     The previous strategies were blind to world politics.
     """
+
     def __init__(self, config, *args, **kwargs):
         super(StratWithConfig, self).__init__()
         self.config = config
@@ -233,7 +244,9 @@ class StratTimeCoverageStart(StratWithConfig):
     def finalize(self, nc_out):
         # Yes, there are so many ways this can raise an exception. That's intentional.
         # find the first unlimited dimension minimum value
-        udim = next((d for d in self.config.dims.values() if d["min"] is not None), None)
+        udim = next(
+            (d for d in self.config.dims.values() if d["min"] is not None), None
+        )
         if udim is None:
             # bail early if udim is None, ie. no unlimited dim configured
             return None
@@ -242,7 +255,9 @@ class StratTimeCoverageStart(StratWithConfig):
             return datetime_format(min)
         else:
             udim_indexed_by = udim["index_by"]
-            dt = nc.num2date(min, self.config.vars[udim_indexed_by]["attributes"]["units"])
+            dt = nc.num2date(
+                min, self.config.vars[udim_indexed_by]["attributes"]["units"]
+            )
             return datetime_format(dt)
 
 
@@ -253,7 +268,9 @@ class StratTimeCoverageEnd(StratWithConfig):
     def finalize(self, nc_out):
         # TODO: when primary is implemented, make sure to use primary min and max
         # actually, do raise exceptions here, handle higher up
-        udim = next((d for d in self.config.dims.values() if d["max"] is not None), None)
+        udim = next(
+            (d for d in self.config.dims.values() if d["max"] is not None), None
+        )
         if udim is None:
             # bail early if udim is None, ie. no unlimited dim configured
             return None
@@ -262,7 +279,9 @@ class StratTimeCoverageEnd(StratWithConfig):
             return datetime_format(max)
         else:
             udim_indexed_by = udim["index_by"]
-            dt = nc.num2date(max, self.config.vars[udim_indexed_by]["attributes"]["units"])
+            dt = nc.num2date(
+                max, self.config.vars[udim_indexed_by]["attributes"]["units"]
+            )
             return datetime_format(dt)
 
 
@@ -300,7 +319,7 @@ class AttributeHandler(object):
         "first_input": StartFirstInputFilename,
         "last_input": StartLastInputFilename,
         "input_count": StratCountInputFiles,
-        "ncagg_version": StratNcaggVersion
+        "ncagg_version": StratNcaggVersion,
     }
 
     def __init__(self, config, *args, **kwargs):
@@ -308,9 +327,14 @@ class AttributeHandler(object):
         self.config = config
 
         self.attr_handlers = {
-            attr["name"]: self.strategy_handlers.get(attr.get("strategy", "first"), StratFirst).setup_handler(
+            attr["name"]: self.strategy_handlers.get(
+                attr.get("strategy", "first"), StratFirst
+            ).setup_handler(
                 # expecting in kwargs at least runtime_config and filename
-                config=config, name=attr.get("name", None), *args, **kwargs
+                config=config,
+                name=attr.get("name", None),
+                *args,
+                **kwargs
             )
             for attr in self.config.attrs.values()
         }
@@ -350,9 +374,13 @@ class AttributeHandler(object):
                 try:
                     attr_val = handler[1](nc_out)
                     # condition: don't set attribute if value is None, but also don't set attribute for empty strings.
-                    if attr_val is not None and (not isinstance(attr_val, string_types) or attr_val.strip() != ""):
+                    if attr_val is not None and (
+                        not isinstance(attr_val, string_types) or attr_val.strip() != ""
+                    ):
                         nc_out.setncattr(attr["name"], attr_val)
                 except Exception as e:
-                    logger.error("Error setting global attribute %s: %s" % (attr["name"], repr(e)))
+                    logger.error(
+                        "Error setting global attribute %s: %s"
+                        % (attr["name"], repr(e))
+                    )
                     logger.error(traceback.format_exc())
-

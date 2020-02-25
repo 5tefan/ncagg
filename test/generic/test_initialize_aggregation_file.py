@@ -8,7 +8,6 @@ from ncagg.config import Config
 
 
 class TestFileInitialization(unittest.TestCase):
-
     def setUp(self):
         _, self.filename = tempfile.mkstemp()
 
@@ -17,16 +16,15 @@ class TestFileInitialization(unittest.TestCase):
 
     def test_initialize_basic(self):
         """Ensure aggregation file is created with proper dimensions according to the config."""
-        config = Config.from_dict({
-            "dimensions": [
-                {"name": "x", "size": None},
-                {"name": "y", "size": 10}
-            ],
-            "variables": [
-                {"name": "x", "dimensions": ["x", "y"], "datatype": "int8"}
-            ],
-            "global attributes": []
-        })
+        config = Config.from_dict(
+            {
+                "dimensions": [{"name": "x", "size": None}, {"name": "y", "size": 10}],
+                "variables": [
+                    {"name": "x", "dimensions": ["x", "y"], "datatype": "int8"}
+                ],
+                "global attributes": [],
+            }
+        )
         initialize_aggregation_file(config, self.filename)
         with nc.Dataset(self.filename) as nc_check:
             self.assertEqual(len(nc_check.dimensions), 2)
@@ -36,27 +34,26 @@ class TestFileInitialization(unittest.TestCase):
 
     def test_initialize_several_variables(self):
         """Ensure aggregation file is created correctly according to the variable config."""
-        config = Config.from_dict({
-            "dimensions": [
-                {"name": "x", "size": None},
-                {"name": "y", "size": 10}
-            ],
-            "variables": [
-                {
-                    "name": "foo",
-                    "dimensions": ["x", "y"],
-                    "datatype": "float32",
-                    "attributes": {"units": "seconds"}
-                }, {
-                    "name": "foo_x",
-                    "dimensions": ["x"],
-                    "datatype": "float64",
-                    "attributes": {"units": "floops",
-                                   "created_by": "the flooper"}
-                },
-            ],
-            "global attributes": []
-        })
+        config = Config.from_dict(
+            {
+                "dimensions": [{"name": "x", "size": None}, {"name": "y", "size": 10}],
+                "variables": [
+                    {
+                        "name": "foo",
+                        "dimensions": ["x", "y"],
+                        "datatype": "float32",
+                        "attributes": {"units": "seconds"},
+                    },
+                    {
+                        "name": "foo_x",
+                        "dimensions": ["x"],
+                        "datatype": "float64",
+                        "attributes": {"units": "floops", "created_by": "the flooper"},
+                    },
+                ],
+                "global attributes": [],
+            }
+        )
         initialize_aggregation_file(config, self.filename)
         with nc.Dataset(self.filename) as nc_check:
             self.assertEqual(len(nc_check.variables), 2)
@@ -66,21 +63,26 @@ class TestFileInitialization(unittest.TestCase):
             self.assertEqual(nc_check.variables["foo_x"].dimensions, ("x",))
             self.assertEqual(nc_check.variables["foo_x"].datatype, np.dtype(np.float64))
             self.assertEqual(nc_check.variables["foo_x"].units, "floops")
-            self.assertEqual(nc_check.variables["foo_x"].getncattr("created_by"), "the flooper")
+            self.assertEqual(
+                nc_check.variables["foo_x"].getncattr("created_by"), "the flooper"
+            )
 
     def test_initialize_with_list_attribute(self):
         """Ensure aggregation file is created with proper dimensions according to the config."""
-        config = Config.from_dict({
-            "dimensions": [
-                {"name": "x", "size": None},
-                {"name": "y", "size": 10}
-            ],
-            "variables": [
-                {"name": "x", "dimensions": ["x", "y"], "datatype": "int8",
-                 "attributes": {"valid_range": [0,10]}}
-            ],
-            "global attributes": []
-        })
+        config = Config.from_dict(
+            {
+                "dimensions": [{"name": "x", "size": None}, {"name": "y", "size": 10}],
+                "variables": [
+                    {
+                        "name": "x",
+                        "dimensions": ["x", "y"],
+                        "datatype": "int8",
+                        "attributes": {"valid_range": [0, 10]},
+                    }
+                ],
+                "global attributes": [],
+            }
+        )
         initialize_aggregation_file(config, self.filename)
         with nc.Dataset(self.filename) as nc_check:
             self.assertEqual(len(nc_check.dimensions), 2)

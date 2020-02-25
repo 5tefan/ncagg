@@ -13,8 +13,6 @@ class TestFlattenIndexBy(unittest.TestCase):
         self.assertTrue(a[overlap_a] == b[overlap_b])
 
         new = np.where(~np.in1d(b, a))
-        new_i = np.linspace(len(a), len(a)+len(new), 1, dtype=np.int)
+        new_i = np.linspace(len(a), len(a) + len(new), 1, dtype=np.int)
 
         target = np.array(["g16", "g17", "g18", "g19"])
-
-

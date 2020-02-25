@@ -27,15 +27,17 @@ class TestEuvs(unittest.TestCase):
         """ Ok, so the files in data/type3/ don't have an unlimited report_number dimension.
         Also, euvsCQualityFlags is missing a report_number dimension, can we create an explicit
         dependence on this? """
-        start_time = datetime(2017, 8, 25, 0, 3, 30)  #2017-08-25T00:03:29.6Z
-        end_time = datetime(2017, 8, 25, 0, 5, 0)  #2017-08-25T00:04:29.6Z
+        start_time = datetime(2017, 8, 25, 0, 3, 30)  # 2017-08-25T00:03:29.6Z
+        end_time = datetime(2017, 8, 25, 0, 5, 0)  # 2017-08-25T00:04:29.6Z
 
-        self.config.dims["report_number"].update({
-            "index_by": "time",
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-            "expected_cadence": {"report_number": 1./30.},
-        })
+        self.config.dims["report_number"].update(
+            {
+                "index_by": "time",
+                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": end_time,
+                "expected_cadence": {"report_number": 1.0 / 30.0},
+            }
+        )
         self.config.inter_validate()
         aggregation_list = generate_aggregation_list(self.config, self.files)
         self.assertGreater(len(aggregation_list), 2)
@@ -45,5 +47,5 @@ class TestEuvs(unittest.TestCase):
 
             time = nc_out.variables["time"][:]
 
-            self.assertAlmostEqual(np.min(np.diff(time)), 30., delta=0.001)
-            self.assertAlmostEqual(np.max(np.diff(time)), 30., delta=0.001)
+            self.assertAlmostEqual(np.min(np.diff(time)), 30.0, delta=0.001)
+            self.assertAlmostEqual(np.max(np.diff(time)), 30.0, delta=0.001)

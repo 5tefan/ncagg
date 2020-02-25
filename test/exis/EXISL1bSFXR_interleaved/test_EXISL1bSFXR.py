@@ -45,25 +45,27 @@ class TestExis(unittest.TestCase):
         start_time = datetime(2019, 2, 5, 0)
         end_time = datetime(2019, 2, 6, 0) - timedelta(microseconds=1)
 
-        self.config.dims["report_number"].update({
-            "index_by": "time",
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-            "expected_cadence": {"report_number": 1},
-        })
+        self.config.dims["report_number"].update(
+            {
+                "index_by": "time",
+                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": end_time,
+                "expected_cadence": {"report_number": 1},
+            }
+        )
 
         self.config.inter_validate()
         aggregation_list = generate_aggregation_list(self.config, self.files)
         evaluate_aggregation_list(self.config, aggregation_list, self.nc_out_filename)
 
         with nc.Dataset(self.nc_out_filename) as nc_out:  # type: nc.Dataset
-            start_time_num, end_time_num = nc.date2num([start_time, end_time], nc_out["time"].units)
+            start_time_num, end_time_num = nc.date2num(
+                [start_time, end_time], nc_out["time"].units
+            )
             time = nc_out.variables["time"][:]
             # have not been able to satisfy this: self.assertEquals(time.size, 86400)
             self.assertAlmostEqual(np.min(np.diff(time)), 0.854, delta=0.001)
-            self.assertAlmostEqual(np.max(np.diff(time)), 1., delta=0.001)
-            self.assertAlmostEqual(np.mean(np.diff(time)), 1., delta=0.001)
+            self.assertAlmostEqual(np.max(np.diff(time)), 1.0, delta=0.001)
+            self.assertAlmostEqual(np.mean(np.diff(time)), 1.0, delta=0.001)
             self.assertGreaterEqual(time[0], start_time_num)
             self.assertLess(time[-1], end_time_num)
-
-

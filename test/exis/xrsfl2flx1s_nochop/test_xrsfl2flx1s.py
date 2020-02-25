@@ -10,6 +10,7 @@ import os
 import netCDF4 as nc
 import numpy as np
 
+
 class TestAggregate(unittest.TestCase):
     def setUp(self):
         _, self.file = tempfile.mkstemp()
@@ -34,18 +35,24 @@ class TestAggregate(unittest.TestCase):
         """
         start_time = datetime(2018, 2, 20, 0, 0)
         end_time = start_time + timedelta(days=1) - timedelta(milliseconds=1)
-        self.config.dims["time"].update({
-            "index_by": "time",
-            "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": end_time,
-            "expected_cadence": {"time": 1},
-        })
+        self.config.dims["time"].update(
+            {
+                "index_by": "time",
+                "min": start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": end_time,
+                "expected_cadence": {"time": 1},
+            }
+        )
         agg_list = generate_aggregation_list(self.config, self.files)
         evaluate_aggregation_list(self.config, agg_list, self.file)
         with nc.Dataset(self.file) as nc_out:
-            start_time_num, end_time_num = nc.date2num([start_time, end_time], nc_out["time"].units)
+            start_time_num, end_time_num = nc.date2num(
+                [start_time, end_time], nc_out["time"].units
+            )
             time = nc_out.variables["time"][:]
-            out_start, out_end = nc.num2date(time[[0, -1]], nc_out.variables["time"].units)
+            out_start, out_end = nc.num2date(
+                time[[0, -1]], nc_out.variables["time"].units
+            )
             self.assertEqual(len(time), 86400)
             self.assertGreaterEqual(out_start, start_time)
             self.assertLessEqual(out_end, end_time)
@@ -54,5 +61,3 @@ class TestAggregate(unittest.TestCase):
             self.assertAlmostEqual(np.min(np.diff(time)), 1, delta=0.001)
             self.assertGreaterEqual(time[0], start_time_num)
             self.assertLess(time[-1], end_time_num)
-
-

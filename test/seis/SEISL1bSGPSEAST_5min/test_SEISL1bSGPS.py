@@ -20,12 +20,14 @@ class TestEvaluateAggregationList(unittest.TestCase):
         cls.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         with open(os.path.join(pwd, "seis-l1b-sgps-east.json")) as product_config_file:
             cls.config = Config.from_dict(json.load(product_config_file))
-        cls.config.dims["report_number"].update({
-            "index_by": "L1a_SciData_TimeStamp",
-            "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
-            "max": cls.end_time,
-            "expected_cadence": {"report_number": 1, "sensor_unit": 0},
-        })
+        cls.config.dims["report_number"].update(
+            {
+                "index_by": "L1a_SciData_TimeStamp",
+                "min": cls.start_time,  # for convenience, will convert according to index_by units if this is datetime
+                "max": cls.end_time,
+                "expected_cadence": {"report_number": 1, "sensor_unit": 0},
+            }
+        )
         _, cls.filename = tempfile.mkstemp()
         agg_list = generate_aggregation_list(cls.config, cls.files)
         evaluate_aggregation_list(cls.config, agg_list, cls.filename)
@@ -42,6 +44,7 @@ class TestEvaluateAggregationList(unittest.TestCase):
     not been reimplemented yet. This test is expected to fail for          
     the time being.      
     """
+
     @unittest.expectedFailure
     def test_time(self):
         """Make sure the time array looks ok. Evenly spaced, bounds are correct."""
@@ -50,8 +53,8 @@ class TestEvaluateAggregationList(unittest.TestCase):
         self.assertAlmostEqual(np.min(np.diff(numeric_times)), 1, delta=0.01)
         self.assertAlmostEqual(np.max(np.diff(numeric_times)), 1, delta=0.01)
 
-        datetimes = nc.num2date(numeric_times, self.output.variables["L1a_SciData_TimeStamp"].units)
-        self.assertLess(abs((datetimes[0]-self.start_time).total_seconds()), 0.1)
-        self.assertLess(abs((datetimes[-1]-self.end_time).total_seconds()), 0.1)
-
-
+        datetimes = nc.num2date(
+            numeric_times, self.output.variables["L1a_SciData_TimeStamp"].units
+        )
+        self.assertLess(abs((datetimes[0] - self.start_time).total_seconds()), 0.1)
+        self.assertLess(abs((datetimes[-1] - self.end_time).total_seconds()), 0.1)
