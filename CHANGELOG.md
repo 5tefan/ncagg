@@ -1,3 +1,8 @@
+# unreleased - TBD
+ - Fix corrupt test data files (?!). 
+ - Drop support for Python 2.7 and 3.6.
+ - Update requirements.
+
 # 0.8.11 - 2020-01-27
 
  - Removes test file that was causing issues with netCDF4-Python versions 1.5.{2,3}. Fixes #3.

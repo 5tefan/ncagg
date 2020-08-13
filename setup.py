@@ -2,7 +2,6 @@ from setuptools import setup
 
 try:
     from pypandoc import convert
-
     read_md = lambda f: convert(f, "rst")
 except ImportError:
     print("warning: pypandoc module not found, could not convert Markdown to RST")
@@ -24,10 +23,9 @@ setup(
     """,
     include_package_data=False,
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

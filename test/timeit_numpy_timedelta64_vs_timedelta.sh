@@ -1,4 +1,0 @@
-#python -m timeit -s "import numpy as np; from datetime import datetime, timedelta; a = [datetime(2017, 01, 01) + timedelta(seconds=x) for x in range(100)]"
-python -m timeit -s "import numpy as np; from datetime import datetime, timedelta; a = np.array([datetime(2017, 01, 01) + timedelta(seconds=x) for x in range(500)]); a = np.diff(a)" "a.astype(np.timedelta64) / np.timedelta64(1, 's')"
-python -m timeit -s "import numpy as np; from datetime import datetime, timedelta; a = np.array([datetime(2017, 01, 01) + timedelta(seconds=x) for x in range(500)]); a = np.diff(a).astype(np.timedelta64)" "a / np.timedelta64(1, 's')"
-python -m timeit -s "import numpy as np; from datetime import datetime, timedelta; a = np.array([datetime(2017, 01, 01) + timedelta(seconds=x) for x in range(500)]); a = np.diff(a)" "[x.total_seconds() for x in a]"
