@@ -3,7 +3,6 @@ import re
 import logging
 import traceback
 from datetime import datetime
-from six import string_types  # py 2 and 3 compat str check
 
 import netCDF4 as nc
 import pkg_resources
@@ -375,7 +374,7 @@ class AttributeHandler(object):
                     attr_val = handler[1](nc_out)
                     # condition: don't set attribute if value is None, but also don't set attribute for empty strings.
                     if attr_val is not None and (
-                        not isinstance(attr_val, string_types) or attr_val.strip() != ""
+                        not isinstance(attr_val, str) or attr_val.strip() != ""
                     ):
                         nc_out.setncattr(attr["name"], attr_val)
                 except Exception as e:

@@ -3,6 +3,7 @@ import unittest
 
 
 class TestFlattenIndexBy(unittest.TestCase):
+    @unittest.expectedFailure
     def test_first(self):
         a = np.array(["g16", "g17", "g18"])
         b = np.array(["g17", "g19"])
@@ -16,3 +17,4 @@ class TestFlattenIndexBy(unittest.TestCase):
         new_i = np.linspace(len(a), len(a) + len(new), 1, dtype=np.int)
 
         target = np.array(["g16", "g17", "g18", "g19"])
+        self.assertTrue(False)  # this is not implemented....
