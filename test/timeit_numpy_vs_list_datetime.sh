@@ -1,3 +1,0 @@
-#python -m timeit -s "import numpy as np; from datetime import datetime, timedelta; a = [datetime(2017, 01, 01) + timedelta(seconds=x) for x in range(100)]"
-python -m timeit -s "import numpy as np; from datetime import datetime, timedelta; a = [datetime(2017, 01, 01) + timedelta(seconds=x) for x in range(100)]; a = np.array(a)" "np.where(a > datetime(2017, 01, 01) + timedelta(seconds=60))"
-python -m timeit -s "import numpy as np; from datetime import datetime, timedelta; a = [datetime(2017, 01, 01) + timedelta(seconds=x) for x in range(100)]" "[i for i, x in enumerate(a) if x > (datetime(2017, 01, 01) + timedelta(seconds=60))]"
