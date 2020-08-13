@@ -226,12 +226,12 @@ class DimensionConfig(ConfigDict):
                 },  # upper bound via index_by
                 "other_dim_inds": {
                     "type": "dict",
-                    "valueschema": {"type": "integer"},
+                    "valuesrules": {"type": "integer"},
                     "default": dict(),
                 },
                 "expected_cadence": {
                     "type": "dict",
-                    "valueschema": {"type": "float"},
+                    "valuesrules": {"type": "float"},
                     "default": dict(),
                 },
             }
@@ -270,7 +270,7 @@ class VariableConfig(ConfigDict):
                 },  # "allowed": np.sctypeDict.keys()},  # TODO: how to validate this?
                 "attributes": {
                     "type": "dict",
-                    "valueschema": {"oneof_type": ["string", "number", "list"]},
+                    "valuesrules": {"oneof_type": ["string", "number", "list"]},
                     "default": {},
                 },
                 "chunksizes": {
