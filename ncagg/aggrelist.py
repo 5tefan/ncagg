@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def get_fill_for(variable):
     """
     Get an appropriate fill value for a NetCDF variable.
-    
+
     :param variable: A variable config dict.
     :return: A fill value for variable.
     """
@@ -46,7 +46,7 @@ class AbstractNode(object):
     At aggregation time, an AggreList expects to be able to call
     - size_along to get the size along the unlimited dimension that it will get from data_for
     - data_for to get the data corresponding to this Node
-    
+
     This is basically the public interface implemented by Nodes (currently FillNode and InputFileNode). Anything
     that is called externally should be templated here.
     """
@@ -551,29 +551,38 @@ class InputFileNode(AbstractNode):
         :param variable: a dict specification of the variable to get
         :return: array of data for variable
         """
-        if var["name"] not in nc_in.variables.keys():
-            # raise early if variable not found in input... this could be acted on in strict mode. TODO.
-            raise VariableNotFoundException(
-                "Var %s not found input %s" % (var, self.__str__())
-            )
+        name = var["name"]
+        if name not in nc_in.variables.keys():
+            # First, see if any of the secondary copy_from variables are available...
+            copy_from = var.get("copy_from_alt", [])
+            for secondary in copy_from:
+                if secondary in nc_in.variables.keys():
+                    name = secondary
+                    break
+
+            if name == var["name"]:
+                # CASE: still not found...
+                raise VariableNotFoundException(
+                    f"Var {name} not found input {self.__str__()}, nor alternate variables {copy_from}"
+                )
 
         fill_value = get_fill_for(var)
         dims = [
             self.config.dims[d]
             for d in var["dimensions"]
-            if d in nc_in.variables[var["name"]].dimensions
+            if d in nc_in.variables[name].dimensions
         ]
 
         # step 1: get the sorted data
         dim_slices = tuple(
             [self.sort_unlim.get(d["name"], slice(None)) for d in dims]
         ) or slice(None)
-        nc_in.variables[var["name"]].set_auto_mask(False)
-        prelim_data = nc_in.variables[var["name"]][dim_slices]
-        if hasattr(nc_in.variables[var["name"]], "_FillValue"):
-            where_to_fill = prelim_data == nc_in.variables[var["name"]]._FillValue
+        nc_in.variables[name].set_auto_mask(False)
+        prelim_data = nc_in.variables[name][dim_slices]
+        if hasattr(nc_in.variables[name], "_FillValue"):
+            where_to_fill = prelim_data == nc_in.variables[name]._FillValue
             prelim_data[where_to_fill] = fill_value
-        # prelim_data = np.ma.filled(nc_in.variables[var["name"]][dim_slices], fill_value=fill_value)
+        # prelim_data = np.ma.filled(nc_in.variables[name][dim_slices], fill_value=fill_value)
 
         if len(dims) == 0:
             # if this is just a scalar value, return
