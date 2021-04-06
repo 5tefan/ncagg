@@ -1,4 +1,5 @@
-# unreleased - TBD
+# 0.8.12 - 2020-04-05
+
  - Fix corrupt test data files (?!). 
  - Drop support for Python 2.7 and 3.6.
  - Update requirements.
