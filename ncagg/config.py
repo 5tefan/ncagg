@@ -279,6 +279,14 @@ class VariableConfig(ConfigDict):
                     "default": None,
                     "nullable": True,
                 },
+                # A list of other variables to fall back on copying
+                # if the primary name isn't available in the input.
+                "copy_from_alt": {
+                    "type": "list",
+                    "valuesrules": {"type": "string"},
+                    "default": [],
+                    "nullable": True,
+                },
             }
         )
         return default
