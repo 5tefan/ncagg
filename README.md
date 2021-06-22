@@ -15,12 +15,20 @@ On the command line, use `ncagg`:
 ```
 Usage: ncagg [OPTIONS] DST [SRC]...
 
+  Aggregate NetCDF files.
+
 Options:
   -v, --version                   Show the version and exit.
-  --generate_template PATH        Print the default template generated for
+  --generate_template FILE        Print the default template generated for
                                   PATH and exit.
+
   -u TEXT                         Give an Unlimited Dimension Configuration as
                                   udim:ivar[:hz[:hz]]
+
+  -c TEXT                         Give an Chunksize Configuration as
+                                  udim:chunksize to chunk the ulimited
+                                  dimension udim by chunksize
+
   -b TEXT                         If -u given, specify bounds for ivar as
                                   min:max or Tstart[:[T]stop]. min and max are
                                   numerical, otherwise T indicates start and
@@ -28,6 +36,7 @@ Options:
                                   form YYYY[MM[DD[HH[MM]]]] and of stop is
                                   omitted,it will be inferred to be the least
                                   significantly specified date + 1.
+
   -l [DEBUG|INFO|WARNING|ERROR|CRITICAL]
                                   log level
   -t FILENAME                     Specify a configuration template
@@ -38,38 +47,32 @@ Notes:
 
  - DST is the filename for the NetCDF output and should not already exist, or will be overwritten.
  - SRC is a list of input NetCDF files to aggregate, can be passed on the command line or piped to ncagg.
- - -u should specify an Unlimited Dimension Configuration. See below for details.
+ - `-u` can specify an Unlimited Dimension Configuration. See below for details.
  - Taking tens of minutes for a day is normal, a progress bar will indicate time remaining.
- - For fine grained control over the output, specify a configuration template (-t). See below for details.
+ - For fine grained control over the output, specify a configuration template (`-t`). See below for details.
+ - Set the ulimited dimension chunksize with `-c` for smaller output filesize. 
 
 Examples:
 
-```
-#     explicitly list files to aggregate
-ncagg output_filename.nc file_0.nc file_02.nc #...
+1. Explicitly list files to aggregate:
+	- `ncagg output_filename.nc file_0.nc file_02.nc #...`
+2. Aggregate by globbing files:
+	- `ncagg output_filename.nc path_to_files/*.nc`
+3. Sort the unlimited dimension record_number, according to the variable time:
+	- `ncagg -u record_number:time output_filename.nc path_to_files/*.nc`
+4. Sort the unlimited dimension record_number, according to the variable time, and insert or remove fill values to ensure time occurrs at 10hz:
+	- ` ncagg -u record_number:time:10 output_filename.nc path_to_files/*.nc`
+5. Only include time values between 2017-06-01 to 2017-06-02 (bounds), including sorting and filling, as above:
+	- `ncagg -u record_number:time:10 -b T20170601:T20170602 output_filename.nc path_to_files/*.nc`
+6. Or equivalently, if only one bound is specified, the end is inferred to be most significant + 1:
+	- `ncagg -u record_number:time:10 -b T20170601 output_filename.nc path_to_files/*.nc`
+7. Aggregate more files than fit on the command line... (in case of: Argument list too long):
+	- `find /path/to/files -type f -name "*.nc" | ncagg output.nc`
 
-#     aggregate by globbing all files in some directory
-ncagg output_filename.nc path_to_files/*.nc
-
-#     sort the unlimited dimension record_number, according to the variable time
-ncagg -u record_number:time output_filename.nc path_to_files/*.nc
-
-#     sort the unlimited dimension record_number, according to the variable time, and insert
-#     or remove fill values to ensure time occurrs at 10hz.
-ncagg -u record_number:time:10 output_filename.nc path_to_files/*.nc
-
-#     only include time values between 2017-06-01 to 2017-06-02 (bounds), including
-#     sorting and filling, as above
-ncagg -u record_number:time:10 -b T20170601:T20170602 output_filename.nc path_to_files/*.nc
-#     or equivalently, if only one bound is specified, the end is inferred to be most significant + 1
-ncagg -u record_number:time:10 -b T20170601 output_filename.nc path_to_files/*.nc
-
-#     aggregate more files than fit on the command line... (in case of: Argument list too long)
-find /path/to/files -type f -name "*.nc" | ncagg output.nc
-```
-
-For more information, see the Unlimited Dimension Configuration below. The `ncagg` Command Line Interface (CLI)
-builds a Config based on the arguments specified.
+For more information, see the Unlimited Dimension Configuration below. The
+`ncagg` Command Line Interface (CLI) builds a Config based on the arguments
+specified. Fine grained control over the config can be exercised by providing a
+config template.
 
 ## High level overview
 

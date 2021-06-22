@@ -16,6 +16,8 @@ except pkg_resources.DistributionNotFound:
     # if version is wrong - same as above, but you probably have an older version installed through setuputils
     version = "unknown"
 
+logger = logging.getLogger(__name__)
+
 
 def parse_time(dt_str):
     """
@@ -38,7 +40,7 @@ def parse_bound_arg(b):
     Parse a "-b" argument specifying bounds of aggregation. Bounds are min:max or Tstart[:[T]stop].
     start and stop are of the form YYYY[MM[DD[HH[MM]]]]. If only Tstart is provided, the end (Tstop)
     is assumed to be an increment of the least significant portion specified.
-    
+
     :param b: String bound specifier to parse into start and end time.
     :return: tuple of parsed (start datetime, end datetime)
     """
@@ -48,16 +50,12 @@ def parse_bound_arg(b):
         if len(b_split) == 2:
             b_split[0] = parse_time(b_split[0][1:])
             # friendly cli: for the second bound, ignore whether it starts with a T or not.
-            b_split[1] = parse_time(
-                b_split[1][1:] if b_split[1].startswith("T") else b_split[1]
-            )
+            b_split[1] = parse_time(b_split[1][1:] if b_split[1].startswith("T") else b_split[1])
         elif len(b_split) == 1:
             # if there's only one, infer dayfile, monthfile, or yearfile based on the length
             if len(b_split[0][1:]) == 4:  # infer -bTYYYY:TYYYY+1
                 b_split[0] = parse_time(b_split[0][1:])
-                b_split.append(
-                    datetime(b_split[0].year + 1, 1, 1) - timedelta(microseconds=1)
-                )
+                b_split.append(datetime(b_split[0].year + 1, 1, 1) - timedelta(microseconds=1))
             elif len(b_split[0][1:]) == 6:  # infer -bTYYYYMM:TYYYYMM+1
                 b_split[0] = parse_time(b_split[0][1:])
                 # datetime month must be in 1..12, so if month+1 == 13, increment year
@@ -68,24 +66,16 @@ def parse_bound_arg(b):
                     next_month = 1
                 else:
                     next_year = b_split[0].year
-                b_split.append(
-                    datetime(next_year, next_month, 1) - timedelta(microseconds=1)
-                )
+                b_split.append(datetime(next_year, next_month, 1) - timedelta(microseconds=1))
             elif len(b_split[0][1:]) == 8:  # infer -bTYYYYMMDD:TYYYYMMDD+1
                 b_split[0] = parse_time(b_split[0][1:])
-                b_split.append(
-                    b_split[0] + timedelta(days=1) - timedelta(microseconds=1)
-                )
+                b_split.append(b_split[0] + timedelta(days=1) - timedelta(microseconds=1))
             elif len(b_split[0][1:]) == 10:  # infer -bTYYYYMMDDHH:TYYYYMMDDHH+1
                 b_split[0] = parse_time(b_split[0][1:])
-                b_split.append(
-                    b_split[0] + timedelta(hours=1) - timedelta(microseconds=1)
-                )
+                b_split.append(b_split[0] + timedelta(hours=1) - timedelta(microseconds=1))
             elif len(b_split[0][1:]) == 12:  # infer -bTYYYYMMDDHHMM:TYYYYMMDDHHMM+1
                 b_split[0] = parse_time(b_split[0][1:])
-                b_split.append(
-                    b_split[0] + timedelta(minutes=1) - timedelta(microseconds=1)
-                )
+                b_split.append(b_split[0] + timedelta(minutes=1) - timedelta(microseconds=1))
         else:
             raise click.BadParameter("")
     else:
@@ -135,13 +125,13 @@ def get_src_from_stdin(ctx, param, value):
         if not value:
             # otherwise, nothing found
             raise click.BadParameter(
-                "No files provided as argument or via stdin.", ctx=ctx, param=param
+                "No files provided as argument or via stdin.",
+                ctx=ctx,
+                param=param,
             )
     elif not value:
         # otherwise, nothing found
-        raise click.BadParameter(
-            "No files provided as argument or via stdin.", ctx=ctx, param=param
-        )
+        raise click.BadParameter("No files provided as argument or via stdin.", ctx=ctx, param=param)
     return value
 
 
@@ -158,7 +148,12 @@ def get_src_from_stdin(ctx, param, value):
 @click.argument("dst", type=click.Path(exists=False, dir_okay=False))
 @click.argument("src", nargs=-1, callback=get_src_from_stdin, type=src_path_type)
 @click.option(
-    "-u", help="Give an Unlimited Dimension Configuration as udim:ivar[:hz[:hz]]"
+    "-u",
+    help="Give an Unlimited Dimension Configuration as udim:ivar[:hz[:hz]]",
+)
+@click.option(
+    "-c",
+    help="Give an Chunksize Configuration as udim:chunksize to chunk the ulimited dimension udim by chunksize",
 )
 @click.option(
     "-b",
@@ -174,7 +169,7 @@ def get_src_from_stdin(ctx, param, value):
     default="WARNING",
 )
 @click.option("-t", help="Specify a configuration template", type=click.File("r"))
-def cli(dst, src, u=None, b=None, l="WARNING", t=None):
+def cli(dst, src, u=None, c=None, b=None, l="WARNING", t=None):
     """ Aggregate NetCDF files. """
     logging.getLogger().setLevel(l)
     if t is not None:  # if given a template...
@@ -194,6 +189,19 @@ def cli(dst, src, u=None, b=None, l="WARNING", t=None):
         if b is not None:
             start, stop = parse_bound_arg(b)
             config.dims[dim_indexed].update({"min": start, "max": stop})
+
+    if c is not None:
+        # chunksize specified... apply to config
+        c_split = c.split(":")
+        udim = c_split[0]
+        chunksize = int(c_split[1])
+        if udim not in config.dims.keys():
+            logger.warning(f"Chunksize specified for non-existent dimension {udim}")
+        else:
+            for var in config.vars.values():
+                if udim in var["dimensions"]:
+                    udim_index = var["dimensions"].index(udim)
+                    var["chunksizes"][udim_index] = chunksize
 
     # Step 2: generate the aggregation list
     aggregation_list = generate_aggregation_list(config, src)

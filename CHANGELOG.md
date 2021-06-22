@@ -1,3 +1,7 @@
+# 0.8.13 - UNRELEASED
+
+ - New feature: Support cli chunksize specification with `-c udim:chunksize`.
+
 # 0.8.12 - 2020-04-05
 
  - Fix corrupt test data files (?!). 
