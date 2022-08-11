@@ -1,4 +1,4 @@
-# 0.8.13 - UNRELEASED
+# 0.8.13 - 2022-08-11
 
  - New feature: Support cli chunksize specification with `-c udim:chunksize`.
  - Fix: avoid TypeError crash if `index_by` given without an `expected_cadence` in UDC.
