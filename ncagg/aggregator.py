@@ -113,8 +113,7 @@ def generate_aggregation_list(config, files_to_aggregate):
     # Can continue into the correction loop as long as we have at least cadence_hz, or min and max.
     if (
         cadence_hz is None
-        and first_along_primary is None
-        and last_along_primary is None
+        or (first_along_primary is None and last_along_primary is None)
     ):
         return preliminary
 
