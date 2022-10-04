@@ -1,3 +1,8 @@
+# 0.8.14 - 2022-10-03
+
+- use long_description_content_type="text/markdown" in setup.py
+- unpin click dep, tested with latest 8.1.3
+
 # 0.8.13 - 2022-08-11
 
  - New feature: Support cli chunksize specification with `-c udim:chunksize`.
