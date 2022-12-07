@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="ncagg",
-    version="0.8.14",
+    version="0.8.15",
     description="Utility for aggregation of NetCDF data.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
