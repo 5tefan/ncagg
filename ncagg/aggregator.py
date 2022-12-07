@@ -379,7 +379,7 @@ def initialize_aggregation_file(config, fullpath):
         for var in config.vars.values():
             var_name = var.get("map_to", var["name"])
             var_type = np.dtype(var["datatype"])
-            fill_value = var["attributes"].pop("_FillValue", None)
+            fill_value = var["attributes"].get("_FillValue", None)
             if fill_value is not None:
                 # fill_value is None by default, but if there is a value specified,
                 # explicitly cast it to the same type as the data.
@@ -409,4 +409,5 @@ def initialize_aggregation_file(config, fullpath):
                     else:
                         var["attributes"][k] = np.array(v, dtype=var_type)
 
-            var_out.setncatts(var["attributes"])
+            ncatts = {k: v for k, v in var["attributes"].items() if k != "_FillValue"}
+            var_out.setncatts(ncatts)

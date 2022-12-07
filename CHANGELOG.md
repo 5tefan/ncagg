@@ -1,3 +1,7 @@
+# 0.8.15 - 2022-11-30
+
+- Fix bug: config fill value was ignored, reverting to netcdf default.
+
 # 0.8.14 - 2022-10-03
 
 - use long_description_content_type="text/markdown" in setup.py
