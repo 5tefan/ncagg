@@ -20,7 +20,14 @@ class TestFileInitialization(unittest.TestCase):
             {
                 "dimensions": [{"name": "x", "size": None}, {"name": "y", "size": 10}],
                 "variables": [
-                    {"name": "x", "dimensions": ["x", "y"], "datatype": "int8"}
+                    {
+                        "name": "x",
+                        "dimensions": ["x", "y"],
+                        "datatype": "int8",
+                        "attributes": {
+                            "_FillValue": 1,
+                        }
+                    }
                 ],
                 "global attributes": [],
             }
@@ -31,6 +38,7 @@ class TestFileInitialization(unittest.TestCase):
             self.assertEqual(nc_check.dimensions["y"].size, 10)
             self.assertFalse(nc_check.dimensions["y"].isunlimited())
             self.assertTrue(nc_check.dimensions["x"].isunlimited())
+            self.assertEqual(nc_check.variables["x"]._FillValue, 1)
 
     def test_initialize_several_variables(self):
         """Ensure aggregation file is created correctly according to the variable config."""
