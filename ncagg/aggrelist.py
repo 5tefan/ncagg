@@ -553,7 +553,7 @@ class InputFileNode(AbstractNode):
         """
         name = var["name"]
         if name not in nc_in.variables.keys():
-            # First, see if any of the secondary copy_from variables are available...
+            # See if any of the secondary copy_from variables are available...
             copy_from = var.get("copy_from_alt", [])
             for secondary in copy_from:
                 if secondary in nc_in.variables.keys():
