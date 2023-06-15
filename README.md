@@ -55,19 +55,24 @@ Notes:
 Examples:
 
 1. Explicitly list files to aggregate:
-	- `ncagg output_filename.nc file_0.nc file_02.nc #...`
+    - `ncagg output_filename.nc file_0.nc file_02.nc #...`
 2. Aggregate by globbing files:
-	- `ncagg output_filename.nc path_to_files/*.nc`
+    - `ncagg output_filename.nc path_to_files/*.nc`
 3. Sort the unlimited dimension record_number, according to the variable time:
-	- `ncagg -u record_number:time output_filename.nc path_to_files/*.nc`
-4. Sort the unlimited dimension record_number, according to the variable time, and insert or remove fill values to ensure time occurrs at 10hz:
-	- ` ncagg -u record_number:time:10 output_filename.nc path_to_files/*.nc`
-5. Only include time values between 2017-06-01 to 2017-06-02 (bounds), including sorting and filling, as above:
-	- `ncagg -u record_number:time:10 -b T20170601:T20170602 output_filename.nc path_to_files/*.nc`
+    - `ncagg -u record_number:time output_filename.nc path_to_files/*.nc`
+4. Sort the unlimited dimension record_number, according to the variable time, and insert or remove
+fill values to ensure time occurrs at 10hz:
+    - ` ncagg -u record_number:time:10 output_filename.nc path_to_files/*.nc`
+4. Sort the unlimited dimension record_number, according to the variable time, and insert or remove
+fill values to ensure time occurs every minute (note: 0.016666 ~ 1.0/60.0)
+    - ` ncagg -u record_number:time:0.0166666 output_filename.nc path_to_files/*.nc`
+5. Only include time values between 2017-06-01 to 2017-06-02 (bounds), including sorting and
+filling, as above:
+    - `ncagg -u record_number:time:10 -b T20170601:T20170602 output_filename.nc path_to_files/*.nc`
 6. Or equivalently, if only one bound is specified, the end is inferred to be most significant + 1:
-	- `ncagg -u record_number:time:10 -b T20170601 output_filename.nc path_to_files/*.nc`
+    - `ncagg -u record_number:time:10 -b T20170601 output_filename.nc path_to_files/*.nc`
 7. Aggregate more files than fit on the command line... (in case of: Argument list too long):
-	- `find /path/to/files -type f -name "*.nc" | ncagg output.nc`
+    - `find /path/to/files -type f -name "*.nc" | ncagg output.nc`
 
 For more information, see the Unlimited Dimension Configuration below. The
 `ncagg` Command Line Interface (CLI) builds a Config based on the arguments
@@ -351,7 +356,9 @@ corresponding to some variable to remove it from the output.
 Important notes:
 
 - The dimensions referenced must exist.
-- chunksizes must be the same number of elements as dimensions.
+- Chunksizes must be the same number of elements as dimensions.
+- Use `copy_from_alt` to specify a list of alternative variables to copy data from if a variable
+with `name` isn't found.
 
 Take care that everything is consistent when doing heavy modifications.
 

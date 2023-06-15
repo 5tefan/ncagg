@@ -1,3 +1,8 @@
+# 0.8.16 - 2023-06-14
+
+- New feature: support `copy_from_alt` list of alternative variable names to use if `name` variable
+isn't present.
+
 # 0.8.15 - 2022-11-30
 
 - Fix bug: config fill value was ignored, reverting to netcdf default.
