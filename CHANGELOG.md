@@ -1,7 +1,9 @@
-# 0.8.16 - 2023-06-14
+# 0.8.17 - 2023-07-05
 
 - New feature: support `copy_from_alt` list of alternative variable names to use if `name` variable
-isn't present.
+  isn't present.
+- Fix bug: avoid passing `zlib=True` on str datatypes to avoid RuntimeError from NetCDF library
+  Unidata/netcdf4-python#1205
 
 # 0.8.15 - 2022-11-30
 

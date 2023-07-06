@@ -384,13 +384,19 @@ def initialize_aggregation_file(config, fullpath):
                 # fill_value is None by default, but if there is a value specified,
                 # explicitly cast it to the same type as the data.
                 fill_value = var_type.type(fill_value)
+            zlib = True
+            if np.issubdtype(var_type, str):
+                # NetCDF started raising RuntimeError when passed compression args on 
+                # vlen datatypes. Detect vlens (str for now) and avoid compression.
+                # Ref: https://github.com/Unidata/netcdf4-python/issues/1205
+                zlib = False
             var_out = nc_out.createVariable(
                 var_name,
                 var_type,
                 var["dimensions"],
                 chunksizes=var["chunksizes"],
-                zlib=True,
-                complevel=7,
+                zlib=zlib,
+                complevel=7 if zlib else None,
                 fill_value=fill_value,
             )
             for k, v in var["attributes"].items():
