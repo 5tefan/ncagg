@@ -29,10 +29,9 @@ class TestAggregate(unittest.TestCase):
             status = nc_in.variables["status"][:]
             self.assertFalse(np.ma.is_masked(status))
 
-            # prior to ncagg v0.8.18, there was a bug that converted string fills 
+            # prior to ncagg v0.8.18, there was a bug that converted string fills
             # to the string "nan"
             flare_class = nc_in.variables["flare_class"][:]
             self.assertFalse("nan" in flare_class)
             self.assertTrue("" in flare_class)
             self.assertTrue("B1.0" in flare_class)
-

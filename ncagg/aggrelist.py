@@ -155,7 +155,6 @@ class FillNode(AbstractNode):
         result_shape = []
 
         for index, dim in enumerate(var["dimensions"]):
-
             dim_size = self.config.dims[dim]["size"]
             dim_unlim = dim_size is None  # save dim_unlim because we'll set the size
 
@@ -229,7 +228,6 @@ class InputFileNode(AbstractNode):
             if d["index_by"] is not None and not d["flatten"]
         ]
         for udim in index_by:
-
             # cadence_hz may be None in which case we'll simply look for fill or invalid values in the index_by
             # variable. At the moment, this is hard coded to seek 0's since our main use case is index_by time
             # and we don't expect our spacecraft to teleport back to the epoch value :)
@@ -333,14 +331,14 @@ class InputFileNode(AbstractNode):
             self.dim_sizes[dim["name"]] = self.get_file_internal_aggregation_size(dim)
 
     def get_first_of_index_by(self, udim):
-        """ Get the first value along udim. """
+        """Get the first value along udim."""
         first_slice = self.file_internal_aggregation_list[udim["name"]][0]
         assert isinstance(first_slice, slice), "Must be a slice!"
         assert isinstance(first_slice.start, int), "Must be an int!"
         return self.get_index_of_index_by(first_slice.start, udim).item(0)
 
     def get_last_of_index_by(self, udim):
-        """ Get the last value along udim. """
+        """Get the last value along udim."""
         last_slice = self.file_internal_aggregation_list[udim["name"]][-1]
         assert isinstance(last_slice, slice), "Must be a slice!"
         assert isinstance(last_slice.start, int), "Must be an int!"
@@ -570,9 +568,7 @@ class InputFileNode(AbstractNode):
         fill_value = get_fill_for(var)
         nc_var = nc_in.variables[name]
         dims = [
-            self.config.dims[d]
-            for d in var["dimensions"]
-            if d in nc_var.dimensions
+            self.config.dims[d] for d in var["dimensions"] if d in nc_var.dimensions
         ]
 
         # step 1: get the sorted data

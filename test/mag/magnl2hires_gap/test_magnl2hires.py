@@ -17,7 +17,10 @@ class TestGenerateAggregationList(unittest.TestCase):
         self.files = glob.glob(os.path.join(pwd, "data", "*.nc"))
         self.config = Config.from_nc(self.files[0])
         self.config.dims["time"].update(
-            {"index_by": "time", "expected_cadence": {"time": 10},}
+            {
+                "index_by": "time",
+                "expected_cadence": {"time": 10},
+            }
         )
 
     def tearDown(self):
