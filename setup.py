@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="ncagg",
-    version="0.8.17",
+    version="0.8.18",
     description="Utility for aggregation of NetCDF data.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
@@ -27,5 +27,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    project_urls={"Documentation": "http://ncagg.readthedocs.io/en/latest/",},
+    project_urls={
+        "Documentation": "http://ncagg.readthedocs.io/en/latest/",
+    },
 )

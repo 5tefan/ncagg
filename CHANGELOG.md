@@ -1,3 +1,7 @@
+# 0.8.18 - 2024-01-21
+
+- Bug fix: fixed string variable fill values replaced by the string "nan".
+
 # 0.8.17 - 2023-07-05
 
 - New feature: support `copy_from_alt` list of alternative variable names to use if `name` variable
