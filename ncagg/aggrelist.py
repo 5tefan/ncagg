@@ -19,14 +19,15 @@ def get_fill_for(variable):
     :return: A fill value for variable.
     """
     datatype = np.dtype(variable["datatype"])
-    try:
+
+    if np.issubdtype(datatype, np.floating):
         return datatype.type(np.nan)
-    except ValueError:
-        # for an integer type, there is no concept of nan, this will raise
-        # ValueError: cannot convert float NaN to integer, so use -9999 instead
-        # main reason for this complexity is to handle exis integer datatypes
-        nc_default_fill = datatype.type(nc.default_fillvals[datatype.str[1:]])
-        return datatype.type(variable["attributes"].get("_FillValue", nc_default_fill))
+
+    if np.issubdtype(datatype, str):
+        return ""
+
+    nc_default_fill = datatype.type(nc.default_fillvals[datatype.str[1:]])
+    return datatype.type(variable["attributes"].get("_FillValue", nc_default_fill))
 
 
 class VariableNotFoundException(Exception):
