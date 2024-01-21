@@ -568,22 +568,22 @@ class InputFileNode(AbstractNode):
                 )
 
         fill_value = get_fill_for(var)
+        nc_var = nc_in.variables[name]
         dims = [
             self.config.dims[d]
             for d in var["dimensions"]
-            if d in nc_in.variables[name].dimensions
+            if d in nc_var.dimensions
         ]
 
         # step 1: get the sorted data
         dim_slices = tuple(
             [self.sort_unlim.get(d["name"], slice(None)) for d in dims]
         ) or slice(None)
-        nc_in.variables[name].set_auto_mask(False)
+        nc_var.set_auto_mask(False)
         prelim_data = nc_in.variables[name][dim_slices]
-        if hasattr(nc_in.variables[name], "_FillValue"):
-            where_to_fill = prelim_data == nc_in.variables[name]._FillValue
+        if hasattr(nc_var, "_FillValue"):
+            where_to_fill = prelim_data == nc_var._FillValue
             prelim_data[where_to_fill] = fill_value
-        # prelim_data = np.ma.filled(nc_in.variables[name][dim_slices], fill_value=fill_value)
 
         if len(dims) == 0:
             # if this is just a scalar value, return
