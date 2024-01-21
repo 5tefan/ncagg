@@ -98,7 +98,7 @@ def generate_aggregation_list(config, files_to_aggregate):
 
     def cast_bound(bound):
         # type: (float | datetime) -> float
-        """ Cast a bound to a numerical type for use. Will not be working directly with datetime objects. """
+        """Cast a bound to a numerical type for use. Will not be working directly with datetime objects."""
         if isinstance(bound, datetime):
             units = config.vars[primary_index_by["index_by"]]["attributes"]["units"]
             return nc.date2num(bound, units)
@@ -111,9 +111,8 @@ def generate_aggregation_list(config, files_to_aggregate):
     )
 
     # Can continue into the correction loop as long as we have at least cadence_hz, or min and max.
-    if (
-        cadence_hz is None
-        or (first_along_primary is None and last_along_primary is None)
+    if cadence_hz is None or (
+        first_along_primary is None and last_along_primary is None
     ):
         return preliminary
 
@@ -271,7 +270,6 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
             vars_unlim.append(v)
 
     with nc.Dataset(to_fullpath, "r+") as nc_out:  # type: nc.Dataset
-
         # the vars once don't depend on an unlimited dim so only need to be copied once. Find the first
         # InputFileNode to copy from so we don't get fill values. Otherwise, if none exists, which shouldn't
         # happen, but oh well, use a fill node.
@@ -364,8 +362,8 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
 def initialize_aggregation_file(config, fullpath):
     # type: (Config, str) -> None
     """
-    Based on the configuration, initialize a file in which to write the aggregated output. 
-    
+    Based on the configuration, initialize a file in which to write the aggregated output.
+
     In other words, resurrect a netcdf file that would result in config.
 
     :param config: Aggregation configuration
@@ -386,7 +384,7 @@ def initialize_aggregation_file(config, fullpath):
                 fill_value = var_type.type(fill_value)
             zlib = True
             if np.issubdtype(var_type, str):
-                # NetCDF started raising RuntimeError when passed compression args on 
+                # NetCDF started raising RuntimeError when passed compression args on
                 # vlen datatypes. Detect vlens (str for now) and avoid compression.
                 # Ref: https://github.com/Unidata/netcdf4-python/issues/1205
                 zlib = False

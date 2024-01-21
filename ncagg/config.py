@@ -184,7 +184,7 @@ class ConfigDict(OrderedDict):
         super(ConfigDict, self).__setitem__(value["name"], value)
 
     def update(self, *args, **kwargs):
-        """ Update the ConfigDict, using __setitem__ in order to validate every entry. """
+        """Update the ConfigDict, using __setitem__ in order to validate every entry."""
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
 

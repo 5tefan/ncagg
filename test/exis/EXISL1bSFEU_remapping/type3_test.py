@@ -24,9 +24,9 @@ class TestEuvs(unittest.TestCase):
         os.remove(self.nc_out_filename)
 
     def test_using_product_bounds(self):
-        """ Ok, so the files in data/type3/ don't have an unlimited report_number dimension.
+        """Ok, so the files in data/type3/ don't have an unlimited report_number dimension.
         Also, euvsCQualityFlags is missing a report_number dimension, can we create an explicit
-        dependence on this? """
+        dependence on this?"""
         start_time = datetime(2017, 8, 25, 0, 3, 30)  # 2017-08-25T00:03:29.6Z
         end_time = datetime(2017, 8, 25, 0, 5, 0)  # 2017-08-25T00:04:29.6Z
 

@@ -5,8 +5,8 @@ from ncagg.config import Config
 
 
 class SampleConfig(ConfigDict):
-    """ A very basic config that expect fields with a something float value,
-    in order to test that basic functionality works as expected. """
+    """A very basic config that expect fields with a something float value,
+    in order to test that basic functionality works as expected."""
 
     def get_item_schema(self):
         default = super(SampleConfig, self).get_item_schema()
@@ -16,8 +16,8 @@ class SampleConfig(ConfigDict):
 
 class TestConfigDict(unittest.TestCase):
     def test_init_valid(self):
-        """ Make sure that a valid configuration is accepted and ordering
-        preserved. """
+        """Make sure that a valid configuration is accepted and ordering
+        preserved."""
         a = SampleConfig(
             [
                 {"name": "a", "something": 1},
@@ -30,8 +30,8 @@ class TestConfigDict(unittest.TestCase):
             self.assertEqual(["a", "b", "z"][i], k)
 
     def test_init_invalid(self):
-        """ Ensure that the sample config rejects the bad string value
-        since something is expected to be a float value. """
+        """Ensure that the sample config rejects the bad string value
+        since something is expected to be a float value."""
         with self.assertRaises(ValueError):
             SampleConfig(
                 [
@@ -42,7 +42,7 @@ class TestConfigDict(unittest.TestCase):
             )
 
     def test_update(self):
-        """ Test that we can't insert invalid values through update either. """
+        """Test that we can't insert invalid values through update either."""
         a = SampleConfig([{"name": "a", "something": 1}, {"name": "z", "something": 1}])
         a.update({"b": {"something": 2}})
         self.assertEqual(len(a), 3)
@@ -52,7 +52,7 @@ class TestConfigDict(unittest.TestCase):
 
 class TestDimVarAttrConfigs(unittest.TestCase):
     def test_dimension_config(self):
-        """ Test that the DimensionConfig object behaves as expected. """
+        """Test that the DimensionConfig object behaves as expected."""
         dc = DimensionConfig([{"name": "a", "size": 5}])
         self.assertIn("a", dc.keys())
         self.assertEqual(dc["a"]["size"], 5)
@@ -68,7 +68,7 @@ class TestDimVarAttrConfigs(unittest.TestCase):
 
 class TestOverallConfig(unittest.TestCase):
     def test_basic(self):
-        """ Make sure the configuration accepts a valid configuration. """
+        """Make sure the configuration accepts a valid configuration."""
         dims = DimensionConfig([{"name": "a", "size": 2}, {"name": "b", "size": None}])
         vars = VariableConfig(
             [
@@ -80,7 +80,7 @@ class TestOverallConfig(unittest.TestCase):
         Config(dims, vars, attrs)
 
     def test_basic_with_var_attrs(self):
-        """ Make sure the configuration accepts a valid configuration. """
+        """Make sure the configuration accepts a valid configuration."""
         dims = DimensionConfig([{"name": "a", "size": 2}, {"name": "b", "size": None}])
         vars = VariableConfig(
             [
@@ -97,7 +97,7 @@ class TestOverallConfig(unittest.TestCase):
         Config(dims, vars, attrs)
 
     def test_missing_dim(self):
-        """ The variable t depends on a dimension c that has not been configured.
+        """The variable t depends on a dimension c that has not been configured.
         Make sure a ValueError is raised because of this."""
         dims = DimensionConfig([{"name": "a", "size": 2}, {"name": "b", "size": None}])
         vars = VariableConfig(
@@ -112,7 +112,7 @@ class TestOverallConfig(unittest.TestCase):
 
     def test_extra_dim(self):
         """We have configured an extra dimension z that isn't used by any variables.
-        Make sure a ValueError is raised. """
+        Make sure a ValueError is raised."""
         dims = DimensionConfig(
             [
                 {"name": "a", "size": 2},

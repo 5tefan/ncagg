@@ -24,9 +24,9 @@ class TestEuvs(unittest.TestCase):
         os.remove(self.nc_out_filename)
 
     def test_basic(self):
-        """ Ok, so the files in data/type1/ don't have an unlimited dimension, report_number should be
+        """Ok, so the files in data/type1/ don't have an unlimited dimension, report_number should be
         unlimited so I've made report_nubmer unlimited in the config template type1_config.json.
-        Let's see if we can aggregate to it. """
+        Let's see if we can aggregate to it."""
         aggregation_list = generate_aggregation_list(self.config, self.files)
         self.assertEqual(len(aggregation_list), 3)
         evaluate_aggregation_list(self.config, aggregation_list, self.nc_out_filename)

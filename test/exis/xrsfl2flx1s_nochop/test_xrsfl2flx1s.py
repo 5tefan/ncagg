@@ -28,7 +28,7 @@ class TestAggregate(unittest.TestCase):
         record because it was less than 0.5*expected_time_step from the start boundary.
 
         Instead, that first data point should be taken, even if it is exactly on the
-        boundary, since the boundary isn't a realy piece of data. 
+        boundary, since the boundary isn't a realy piece of data.
 
         So, the essential piece of this test is to make sure that there remain 86400 records
         before and after aggregation.

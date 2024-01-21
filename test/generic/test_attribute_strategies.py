@@ -103,7 +103,6 @@ class TestAttributeStrategies(unittest.TestCase):
         self.assertIn(".nc", finalize(self.test_nc))
 
     def test_strat_static(self):
-
         # set the config for a static "license" attribute...
         value = "Hello world"
         self.handler_kwargs["config"].attrs["license"] = {

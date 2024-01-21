@@ -48,4 +48,3 @@ class TestExisCopyFromAlt(unittest.TestCase):
             data = np.ma.filled(nc_out.variables["SPP_roll_angle"][:], np.nan)
             self.assertFalse(np.any(np.isnan(data)))
             self.assertEqual(len(data), 2)  # one record in each file
-

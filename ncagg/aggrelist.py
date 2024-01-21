@@ -19,14 +19,15 @@ def get_fill_for(variable):
     :return: A fill value for variable.
     """
     datatype = np.dtype(variable["datatype"])
-    try:
+
+    if np.issubdtype(datatype, np.floating):
         return datatype.type(np.nan)
-    except ValueError:
-        # for an integer type, there is no concept of nan, this will raise
-        # ValueError: cannot convert float NaN to integer, so use -9999 instead
-        # main reason for this complexity is to handle exis integer datatypes
-        nc_default_fill = datatype.type(nc.default_fillvals[datatype.str[1:]])
-        return datatype.type(variable["attributes"].get("_FillValue", nc_default_fill))
+
+    if np.issubdtype(datatype, str):
+        return ""
+
+    nc_default_fill = datatype.type(nc.default_fillvals[datatype.str[1:]])
+    return datatype.type(variable["attributes"].get("_FillValue", nc_default_fill))
 
 
 class VariableNotFoundException(Exception):
@@ -154,7 +155,6 @@ class FillNode(AbstractNode):
         result_shape = []
 
         for index, dim in enumerate(var["dimensions"]):
-
             dim_size = self.config.dims[dim]["size"]
             dim_unlim = dim_size is None  # save dim_unlim because we'll set the size
 
@@ -228,7 +228,6 @@ class InputFileNode(AbstractNode):
             if d["index_by"] is not None and not d["flatten"]
         ]
         for udim in index_by:
-
             # cadence_hz may be None in which case we'll simply look for fill or invalid values in the index_by
             # variable. At the moment, this is hard coded to seek 0's since our main use case is index_by time
             # and we don't expect our spacecraft to teleport back to the epoch value :)
@@ -332,14 +331,14 @@ class InputFileNode(AbstractNode):
             self.dim_sizes[dim["name"]] = self.get_file_internal_aggregation_size(dim)
 
     def get_first_of_index_by(self, udim):
-        """ Get the first value along udim. """
+        """Get the first value along udim."""
         first_slice = self.file_internal_aggregation_list[udim["name"]][0]
         assert isinstance(first_slice, slice), "Must be a slice!"
         assert isinstance(first_slice.start, int), "Must be an int!"
         return self.get_index_of_index_by(first_slice.start, udim).item(0)
 
     def get_last_of_index_by(self, udim):
-        """ Get the last value along udim. """
+        """Get the last value along udim."""
         last_slice = self.file_internal_aggregation_list[udim["name"]][-1]
         assert isinstance(last_slice, slice), "Must be a slice!"
         assert isinstance(last_slice.start, int), "Must be an int!"
@@ -567,22 +566,20 @@ class InputFileNode(AbstractNode):
                 )
 
         fill_value = get_fill_for(var)
+        nc_var = nc_in.variables[name]
         dims = [
-            self.config.dims[d]
-            for d in var["dimensions"]
-            if d in nc_in.variables[name].dimensions
+            self.config.dims[d] for d in var["dimensions"] if d in nc_var.dimensions
         ]
 
         # step 1: get the sorted data
         dim_slices = tuple(
             [self.sort_unlim.get(d["name"], slice(None)) for d in dims]
         ) or slice(None)
-        nc_in.variables[name].set_auto_mask(False)
+        nc_var.set_auto_mask(False)
         prelim_data = nc_in.variables[name][dim_slices]
-        if hasattr(nc_in.variables[name], "_FillValue"):
-            where_to_fill = prelim_data == nc_in.variables[name]._FillValue
+        if hasattr(nc_var, "_FillValue"):
+            where_to_fill = prelim_data == nc_var._FillValue
             prelim_data[where_to_fill] = fill_value
-        # prelim_data = np.ma.filled(nc_in.variables[name][dim_slices], fill_value=fill_value)
 
         if len(dims) == 0:
             # if this is just a scalar value, return

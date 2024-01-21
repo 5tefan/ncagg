@@ -26,7 +26,7 @@ class TestFileInitialization(unittest.TestCase):
                         "datatype": "int8",
                         "attributes": {
                             "_FillValue": 1,
-                        }
+                        },
                     }
                 ],
                 "global attributes": [],
