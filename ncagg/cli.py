@@ -4,17 +4,17 @@ import logging
 from datetime import datetime, timedelta
 
 import click
-import pkg_resources
+from importlib.metadata import PackageNotFoundError, version
 
 from .aggregator import generate_aggregation_list, evaluate_aggregation_list
 from .config import Config
 
 try:
-    version = pkg_resources.require("ncagg")[0].version
-except pkg_resources.DistributionNotFound:
+    ncagg_version = version("ncagg")
+except PackageNotFoundError:
     # if version unknwon - you're probably running cli from a clone of the repo, not setup through setuputils/pip
     # if version is wrong - same as above, but you probably have an older version installed through setuputils
-    version = "unknown"
+    ncagg_version = "unknown"
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +150,7 @@ def get_src_from_stdin(ctx, param, value):
 
 
 @click.command()
-@click.version_option(version, "-v", "--version")
+@click.version_option(ncagg_version, "-v", "--version")
 @click.option(
     "--generate_template",
     callback=print_config,
