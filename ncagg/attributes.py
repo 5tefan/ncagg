@@ -5,7 +5,7 @@ import traceback
 from datetime import datetime
 
 import netCDF4 as nc
-import pkg_resources
+from importlib.metadata import version
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +138,7 @@ class StratNcaggVersion(Strat):
         pass  # do nothing
 
     def finalize(self, nc_out):
-        return pkg_resources.require("ncagg")[0].version
+        return version("ncagg")
 
 
 class StratIntSum(Strat):
