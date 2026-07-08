@@ -11,6 +11,9 @@ requires-python = ">= 3.8"
 authors = [
     {name = "Stefan Codrescu",email = "stefan.codrescu@noaa.gov"},
 ]
+maintainers = [
+    {name = "Ann Mahon",email="ann.mahon@noaa.gov"}
+]
 description = "Utility for aggregation of NetCDF data."
 readme = "README.md"
 license = {text = "MIT"}
