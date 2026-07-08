@@ -5,9 +5,8 @@ from datetime import datetime
 
 import netCDF4 as nc
 import numpy as np
-from typing import Callable
 
-from .aggrelist import AbstractNode, FillNode, InputFileNode, VariableNotFoundException
+from .aggrelist import FillNode, InputFileNode, VariableNotFoundException
 from .attributes import AttributeHandler
 from .config import Config
 
@@ -186,9 +185,9 @@ def generate_aggregation_list(config, files_to_aggregate):
                     start_from += dt_nom
                     size -= 1
 
-                assert (
-                    start_from + dt_nom >= first_along_primary
-                ), "{} + {} not gt {}".format(start_from, dt_nom, first_along_primary)
+                assert start_from + dt_nom >= first_along_primary, (
+                    "{} + {} not gt {}".format(start_from, dt_nom, first_along_primary)
+                )
 
             fill_node = FillNode(config)
             fill_node.set_udim(primary_index_by, size, start_from)
@@ -281,7 +280,7 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
             for var in vars_once:  # case: do once, only for first input file node
                 try:
                     nc_out.variables[var["name"]][:] = data_for(var)
-                except Exception as e:
+                except Exception:
                     logger.error(
                         "Error copying component: %s, one time variable: %s"
                         % (vars_once_src, var)
@@ -328,9 +327,9 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                         output_data = data_for(var)  # type: np.array
                         if np.issubdtype(output_data.dtype, np.floating):
                             # numpy ufunc isnan only defined for floating types.
-                            nc_out.variables[var["name"]][
-                                write_slices
-                            ] = np.ma.masked_where(np.isnan(output_data), output_data)
+                            nc_out.variables[var["name"]][write_slices] = (
+                                np.ma.masked_where(np.isnan(output_data), output_data)
+                            )
                         else:
                             nc_out.variables[var["name"]][write_slices] = output_data
 
@@ -338,7 +337,7 @@ def evaluate_aggregation_list(config, aggregation_list, to_fullpath, callback=No
                         # this error is fine and expected. The template may contain variables that don't
                         # exist in the inputs, just pass over them and they will come out as fill values.
                         pass
-                    except Exception as e:
+                    except Exception:
                         # something else... unexpected
                         logger.error(
                             "Error copying component: %s, unlim variable: %s"

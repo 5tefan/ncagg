@@ -1,12 +1,12 @@
-import sys
 import json
 import logging
+import sys
 from datetime import datetime, timedelta
-
-import click
 from importlib.metadata import PackageNotFoundError, version
 
-from .aggregator import generate_aggregation_list, evaluate_aggregation_list
+import click
+
+from .aggregator import evaluate_aggregation_list, generate_aggregation_list
 from .config import Config
 
 try:
@@ -132,7 +132,10 @@ def get_src_from_stdin(ctx, param, value):
     """
     stdin = click.get_text_stream("stdin")
     if not value and not stdin.isatty():
-        f = lambda should_be_file: src_path_type.convert(should_be_file, param, ctx)
+
+        def f(should_be_file):
+            return src_path_type.convert(should_be_file, param, ctx)
+
         value = list(map(f, stdin.read().strip().split()))
         if not value:
             # otherwise, nothing found
@@ -162,14 +165,17 @@ def get_src_from_stdin(ctx, param, value):
 @click.argument("dst", type=click.Path(exists=False, dir_okay=False))
 @click.argument("src", nargs=-1, callback=get_src_from_stdin, type=src_path_type)
 @click.option(
+    "--unlimited-dimension-config",
     "-u",
     help="Give an Unlimited Dimension Configuration as udim:ivar[:hz[:hz]]",
 )
 @click.option(
+    "--chunksize",
     "-c",
     help="Give an Chunksize Configuration as udim:chunksize to chunk the ulimited dimension udim by chunksize",
 )
 @click.option(
+    "--bound",
     "-b",
     help="If -u given, specify bounds for ivar as min:max or Tstart[:[T]stop]. "
     "min and max are numerical, otherwise T indicates start and stop are times."
@@ -177,36 +183,45 @@ def get_src_from_stdin(ctx, param, value):
     "it will be inferred to be the least significantly specified date + 1.",
 )
 @click.option(
+    "--log-level",
     "-l",
     help="log level",
     type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
     default="WARNING",
 )
 @click.option("-t", help="Specify a configuration template", type=click.File("r"))
-def cli(dst, src, u=None, c=None, b=None, l="WARNING", t=None):
+def cli(
+    dst,
+    src,
+    unlimited_dimension_config=None,
+    chunksize=None,
+    bound=None,
+    log_level="WARNING",
+    t=None,
+):
     """Aggregate NetCDF files."""
-    logging.getLogger().setLevel(l)
+    logging.getLogger().setLevel(log_level)
     if t is not None:  # if given a template...
         config = Config.from_dict(json.load(t))
     else:  # otherwise, use the first src file to create a default
         config = Config.from_nc(src[0])  # config from first input.
 
-    if u is not None:
+    if unlimited_dimension_config is not None:
         # we have an Unlimited Dim Configuration, fill out.
-        u_split = u.split(":")
+        u_split = unlimited_dimension_config.split(":")
         dim_indexed, index_by = u_split[:2]
         config.dims[dim_indexed].update({"index_by": index_by})
         for i, cadence in enumerate(u_split[2:]):
             dim = config.vars[index_by]["dimensions"][i]
             config.dims[dim_indexed]["expected_cadence"].update({dim: float(cadence)})
 
-        if b is not None:
-            start, stop = parse_bound_arg(b)
+        if bound is not None:
+            start, stop = parse_bound_arg(bound)
             config.dims[dim_indexed].update({"min": start, "max": stop})
 
-    if c is not None:
+    if chunksize is not None:
         # chunksize specified... apply to config
-        c_split = c.split(":")
+        c_split = chunksize.split(":")
         udim = c_split[0]
         chunksize = int(c_split[1])
         if udim not in config.dims.keys():

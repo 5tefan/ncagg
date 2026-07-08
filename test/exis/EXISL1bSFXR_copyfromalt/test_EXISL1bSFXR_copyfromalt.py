@@ -3,7 +3,6 @@ import tempfile
 import netCDF4 as nc
 from ncagg.config import Config
 from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
-from datetime import datetime
 import glob
 import os
 import numpy as np

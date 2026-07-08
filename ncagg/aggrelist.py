@@ -6,7 +6,6 @@ import netCDF4 as nc
 import numpy as np
 from contextlib import contextmanager
 
-from .config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -149,9 +148,7 @@ class FillNode(AbstractNode):
             else None
         )
 
-        linspaces = (
-            []
-        )  # these will construct the values if we return anything besides fill values.
+        linspaces = []  # these will construct the values if we return anything besides fill values.
         result_shape = []
 
         for index, dim in enumerate(var["dimensions"]):

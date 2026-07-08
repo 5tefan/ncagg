@@ -1,6 +1,5 @@
 import unittest
 from datetime import datetime
-import tempfile
 import netCDF4 as nc
 import os
 
@@ -15,13 +14,9 @@ from ncagg.attributes import (
 from ncagg.attributes import (
     StratDateCreated,
     StratStatic,
-    StratTimeCoverageStart,
-    StratTimeCoverageEnd,
 )
 from ncagg.attributes import (
     StartFirstInputFilename,
-    StartLastInputFilename,
-    StratCountInputFiles,
 )
 
 from ncagg import Config
