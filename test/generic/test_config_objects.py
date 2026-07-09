@@ -139,4 +139,4 @@ class TestOverallConfig(unittest.TestCase):
             ]
         )
         attrs = GlobalAttributeConfig([])
-        json = Config(dims, vars, attrs).to_dict()
+        Config(dims, vars, attrs).to_dict()

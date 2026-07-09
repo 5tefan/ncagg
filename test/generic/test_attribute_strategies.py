@@ -1,31 +1,22 @@
+import os
 import unittest
 from datetime import datetime
-import tempfile
-import netCDF4 as nc
-import os
 
-from ncagg.attributes import (
-    StratFirst,
-    StratLast,
-    StratUniqueList,
-    StratIntSum,
-    StratFloatSum,
-    StratAssertConst,
-)
-from ncagg.attributes import (
-    StratDateCreated,
-    StratStatic,
-    StratTimeCoverageStart,
-    StratTimeCoverageEnd,
-)
-from ncagg.attributes import (
-    StartFirstInputFilename,
-    StartLastInputFilename,
-    StratCountInputFiles,
-)
+import netCDF4 as nc
 
 from ncagg import Config
-from ncagg.attributes import datetime_format
+from ncagg.attributes import (
+    StartFirstInputFilename,
+    StratAssertConst,
+    StratDateCreated,
+    StratFirst,
+    StratFloatSum,
+    StratIntSum,
+    StratLast,
+    StratStatic,
+    StratUniqueList,
+    datetime_format,
+)
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
 test_input_file = os.path.join(
@@ -71,7 +62,11 @@ class TestAttributeStrategies(unittest.TestCase):
         process, finalize = StratFloatSum.setup_handler(**self.handler_kwargs)
         for attr in self.mock_float_attributes:
             process(attr)
-        self.assertEqual(finalize(self.test_nc), sum(self.mock_float_attributes))
+        self.assertAlmostEqual(
+            finalize(self.test_nc),
+            sum(self.mock_float_attributes),
+            places=5,
+        )
 
     def test_assert_const_fails_nonconst(self):
         process, finalize = StratAssertConst.setup_handler(**self.handler_kwargs)

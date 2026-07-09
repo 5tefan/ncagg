@@ -34,3 +34,8 @@ Homepage = "https://github.com/5tefan/ncagg"
 
 [project.scripts]
 ncagg = "ncagg.cli:cli"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.20",
+]

@@ -1,10 +1,12 @@
-import unittest
-import numpy as np
-import netCDF4 as nc
-from ncagg.config import Config
-from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
 import os
 import tempfile
+import unittest
+
+import netCDF4 as nc
+import numpy as np
+
+from ncagg.aggregator import evaluate_aggregation_list, generate_aggregation_list
+from ncagg.config import Config
 
 
 class TestMultiUnlimDims(unittest.TestCase):
@@ -48,8 +50,8 @@ class TestMultiUnlimDims(unittest.TestCase):
 
     def test_default_multi_dim(self):
         config = Config.from_nc(self.inputs[0])
-        l = generate_aggregation_list(config, self.inputs)
-        evaluate_aggregation_list(config, l, self.filename)
+        agg_list = generate_aggregation_list(config, self.inputs)
+        evaluate_aggregation_list(config, agg_list, self.filename)
         with nc.Dataset(self.filename) as nc_out:  # type: nc.Dataset
             # this is the default aggregation produced by aggregation
             # along both unlimited dimensions. This isn't really practically
@@ -73,8 +75,8 @@ class TestMultiUnlimDims(unittest.TestCase):
     def test_collapse_second_dim(self):
         config = Config.from_nc(self.inputs[0])
         config.dims["b"].update({"flatten": True, "index_by": "b"})
-        l = generate_aggregation_list(config, self.inputs)
-        evaluate_aggregation_list(config, l, self.filename)
+        agg_list = generate_aggregation_list(config, self.inputs)
+        evaluate_aggregation_list(config, agg_list, self.filename)
         with nc.Dataset(self.filename) as nc_out:  # type: nc.Dataset
             # This is the more practically useful method of aggregation,
             # where, for example, the dimension "a" might represent time

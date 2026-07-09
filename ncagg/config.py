@@ -333,7 +333,7 @@ class VariableConfig(ConfigDict):
 
                 v["datatype"] = str(dt)
 
-                if "_FillValue" not in v["attributes"].keys() and not dt.kind in [
+                if "_FillValue" not in v["attributes"].keys() and dt.kind not in [
                     "U",
                     "S",
                 ]:  # not string type

@@ -333,7 +333,7 @@ class AttributeHandler(object):
                 config=config,
                 name=attr.get("name", None),
                 *args,
-                **kwargs
+                **kwargs,
             )
             for attr in self.config.attrs.values()
         }
@@ -353,7 +353,7 @@ class AttributeHandler(object):
                 try:
                     attr_val = getattr(nc_in, attr["name"], None)
                     handler[0](attr_val, nc_in)
-                except Exception as e:
+                except Exception:
                     # ignore if there is no attribute, may happen in cases like date_created
                     # and time_coverage_begin if they don't exist in advance (which is ok)
                     logger.debug(traceback.format_exc())
