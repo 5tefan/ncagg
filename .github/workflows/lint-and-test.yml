@@ -3,34 +3,25 @@ name: Lint and Test
 on: [push]
 
 jobs:
-  miniconda:
-    name: Miniconda ${{ matrix.os }} py ${{ matrix.python-version }}
+  lint-and-test:
+    name: ${{ matrix.os }} py ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
-        matrix:
-            os: ["ubuntu-latest", "macos-latest"]
-            python-version: [3.7, 3.8, 3.9]
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+        python-version: [3.12, 3.14]
     steps:
       - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
+      - name: Install uv and set the Python version
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
-          activate-environment: ncagg
-          environment-file: environment.yml
           python-version: ${{ matrix.python-version }}
-          auto-activate-base: false
-      - name: Info
-        shell: bash -l {0}
-        run: |
-          conda info
-          conda list
-      - name: Lint
-        shell: bash -l {0}
-        run: |
-            conda install flake8
-            python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-            python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      - name: Run unit tests
-        shell: bash -l {0}
-        run: |
-            python -m unittest discover
-
+          enable-cache: true
+      - name: Install the project
+        run: uv sync --dev
+      - name: Ruff format
+        run: uv run ruff format --check --output-format=github .
+      - name: Ruff check
+        run: uv run ruff check --output-format=github .
+      - name: Run tests
+        run: uv run python -m unittest discover
