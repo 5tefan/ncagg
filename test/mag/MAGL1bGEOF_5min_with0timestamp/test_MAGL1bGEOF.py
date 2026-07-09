@@ -5,7 +5,7 @@ import numpy as np
 from ncagg.config import Config
 from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_list
 from ncagg.aggrelist import FillNode
-from datetime import datetime, timedelta
+from datetime import datetime
 import glob
 import os
 

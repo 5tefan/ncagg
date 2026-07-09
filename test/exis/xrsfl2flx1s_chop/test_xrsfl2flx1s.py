@@ -7,8 +7,6 @@ from ncagg.aggregator import generate_aggregation_list, evaluate_aggregation_lis
 from datetime import datetime, timedelta
 import glob
 import os
-import netCDF4 as nc
-import numpy as np
 
 
 class TestGenerateAggregationList(unittest.TestCase):
