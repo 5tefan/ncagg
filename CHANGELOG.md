@@ -1,3 +1,8 @@
+# 0.8.19 - 2026-07-15
+
+- Project config changed from `setup.py` to `pyproject.toml`
+
+
 # 0.8.18 - 2024-01-21
 
 - Bug fix: fixed string variable fill values replaced by the string "nan".
